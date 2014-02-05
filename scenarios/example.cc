@@ -72,7 +72,7 @@ void init(int argc, char *argv[])
     Simulator::Run ();
     Simulator::Destroy ();
 
-    fprintf(stderr, "Simulation completed!\n");
+    fprintf(stderr, "Simulation completed! Yeah! \n");
 }
 
 int main (int argc, char *argv[])
