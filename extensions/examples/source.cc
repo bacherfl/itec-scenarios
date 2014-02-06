@@ -30,7 +30,7 @@ void Source::StartApplication ()
   // initialize ndn::App
   ndn::App::StartApplication ();
 
-  Ptr<ndn::Name> prefix = Create<ndn::Name> ("/source/data");
+  Ptr<ndn::Name> prefix = Create<ndn::Name> ("/itec/data");
 
   // Creating FIB entry that ensures that we will receive incoming Interests
   Ptr<ndn::Fib> fib = GetNode ()->GetObject<ndn::Fib> ();
@@ -57,10 +57,10 @@ void Source::OnInterest (Ptr<const ndn::Interest> interest)
   // Create and configure ndn::Data and ndn::DataTail
   // (header is added in front of the packet, tail is added at the end of the 
 
-  Ptr<ndn::Data> data = Create<ndn::Data> (Create<Packet> (1024));
+  Ptr<ndn::Data> data = Create<ndn::Data> (Create<Packet> (4096));
   data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
 
-  NS_LOG_DEBUG ("Soruce: Sending Data packet for " << data->GetName ()); 
+  NS_LOG_DEBUG ("Source: Sending Data packet for " << data->GetName ());
 
   // Call trace (for logging purposes)
   m_transmittedDatas (data, this, m_face);

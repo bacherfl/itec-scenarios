@@ -29,7 +29,7 @@ void Sink::StartApplication ()
 {
   // initialize ndn::App
   ndn::App::StartApplication ();
-
+  i_number = 0;
 	SendInterest();
 }
 
@@ -43,9 +43,14 @@ void Sink::StopApplication ()
 void Sink::SendInterest ()
 {
   // Sending one Interest packet out
-	 std::string n("/source/data");
-	 //char* r_str = (char *) malloc(2*sizeof(char));
-	 //n.append(random_numbers(r_str,2));
+  std::ostringstream convert;
+  convert << i_number++;;
+  std::string n("/itec/file" + convert.str());
+
+  if(i_number < 0)
+   i_number = 0;
+  //char* r_str = (char *) malloc(2*sizeof(char));
+  //n.append(random_numbers(r_str,2));
 
    Ptr<ndn::Name> prefix = Create<ndn::Name> (n.c_str());
 
@@ -72,8 +77,8 @@ void Sink::OnInterest (Ptr<const ndn::Interest> interest)
 // Callback that will be called when Data arrives
 void Sink::OnData (Ptr<const ndn::Data> contentObject)
 {
-  NS_LOG_DEBUG ("Sink: Receiving Data packet for " << contentObject->GetName());
-  //SendInterest();
+  NS_LOG_DEBUG ("Sink: Receiving Data packet for " << contentObject->GetName() << " size: " << contentObject->GetWire()->GetSize ());
+  SendInterest();
 }
 
 char* Sink::random_numbers(char * string, unsigned length)
