@@ -29,7 +29,7 @@ void Sink::StartApplication ()
 {
   // initialize ndn::App
   ndn::App::StartApplication ();
-  i_number = 0;
+  i_number = 1;
 	SendInterest();
 }
 
@@ -42,10 +42,12 @@ void Sink::StopApplication ()
 
 void Sink::SendInterest ()
 {
+  NS_LOG_FUNCTION(this);
   // Sending one Interest packet out
   std::ostringstream convert;
   convert << i_number++;;
-  std::string n("/itec/file" + convert.str());
+  std::string n("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s" + convert.str());
+  n.append(".m4s");
 
   if(i_number < 0)
    i_number = 0;
@@ -61,8 +63,8 @@ void Sink::SendInterest ()
   interest->SetName             (prefix);
   interest->SetInterestLifetime (Seconds (1.0));
 
-  NS_LOG_DEBUG ("Sink: Sending Interest packet for " << *prefix);
-  
+  NS_LOG_FUNCTION("Sending Interest packet for " << *prefix << this);
+
   // Call trace (for logging purposes)
   m_transmittedInterests (interest, this, m_face);
   m_face->ReceiveInterest (interest);
@@ -71,7 +73,7 @@ void Sink::SendInterest ()
 // Callback that will be called when Interest arrives
 void Sink::OnInterest (Ptr<const ndn::Interest> interest)
 { 
-  NS_LOG_DEBUG ("Sink: Should not receive Interest packet for " << interest->GetName());
+  NS_LOG_FUNCTION(interest->GetName() << this);
 }
 
 // Callback that will be called when Data arrives

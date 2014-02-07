@@ -1,8 +1,30 @@
 #include "ns3-dev/ns3/core-module.h"
 #include "ns3-dev/ns3/network-module.h"
 #include "ns3-dev/ns3/ndnSIM-module.h"
+#include "ns3-dev/ns3/point-to-point-module.h"
 
 using namespace ns3;
+
+class PcapWriter
+{
+public:
+  PcapWriter (const std::string &file)
+  {
+    PcapHelper helper;
+    m_pcap = helper.CreateFile (file, std::ios::out, PcapHelper::DLT_PPP);
+  }
+
+  void TracePacket (Ptr<const Packet> packet)
+  {
+    static PppHeader pppHeader;
+    pppHeader.SetProtocol (0x0077);
+
+    m_pcap->Write (Simulator::Now (), pppHeader, packet);
+  }
+
+private:
+  Ptr<PcapFileWrapper> m_pcap;
+};
 
 void parseParameters(int argc, char* argv[])
 {
@@ -24,11 +46,11 @@ void parseParameters(int argc, char* argv[])
     LogComponentDisableAll (LOG_LOGIC);
     LogComponentDisableAll (LOG_FUNCTION);
   }
-  if(v1)
+  if(!v1 && !v2)
   {
     LogComponentDisableAll (LOG_INFO);
   }
-  if(v0)
+  if(!v0 && !v1 && !v2)
   {
     LogComponentDisableAll (LOG_DEBUG);
   }
@@ -92,18 +114,22 @@ int main(int argc, char* argv[])
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
 
+  //ndn::L3AggregateTracer::InstallAll ("aggregate-trace.txt", Seconds (0.5));
+
+  PcapWriter trace ("ndn-simple-trace.pcap");
+  Config::ConnectWithoutContext ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/MacTx",
+         MakeCallback (&PcapWriter::TracePacket, &trace));
 
   source1.Start (Seconds(0.0));
   sink.Start (Seconds(0.1));
 
   NS_LOG_WARN("Simulation will be started!");
 
-  Simulator::Stop (Seconds (10.0));
+  Simulator::Stop (Seconds (100.0));
   Simulator::Run ();
   Simulator::Destroy ();
 
   NS_LOG_WARN("Simulation completed!");
-
   return 0;
 }
 

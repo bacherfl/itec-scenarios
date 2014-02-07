@@ -27,6 +27,8 @@ using namespace ns3;
 
 void ContentProvider::StartApplication ()
 {
+  NS_LOG_FUNCTION(this);
+
   // initialize ndn::App
   ndn::App::StartApplication ();
 
@@ -46,14 +48,15 @@ void ContentProvider::StartApplication ()
 
 void ContentProvider::StopApplication ()
 {
+  NS_LOG_FUNCTION(this);
   ndn::App::StopApplication ();
 }
 
 void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
 {
-  ndn::App::OnInterest (interest);
+  NS_LOG_FUNCTION(interest->GetName() << this);
 
-  NS_LOG_INFO ("ContentProvider::OnInterest: Received Interest " << interest->GetName());
+  ndn::App::OnInterest (interest);
 
   std::string fname = interest->GetName().toUri();
   fname = fname.substr(ndn_prefix.length(), fname.length());
@@ -69,7 +72,7 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
   Ptr<ndn::Data> data = Create<ndn::Data> (Create<Packet> (fstats.st_size));
   data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
 
-  NS_LOG_INFO ("ContentProvider::OnInterest: Sending data packet " << data->GetName() << " payload " << fstats.st_size);
+  NS_LOG_FUNCTION("Sending data packet" << data->GetName() << "size" << fstats.st_size << this);
 
   // Call trace (for logging purposes)
   m_transmittedDatas (data, this, m_face);
@@ -78,4 +81,5 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
 
 void ContentProvider::OnData (Ptr<const ndn::Data> contentObject)
 {
+  NS_LOG_FUNCTION(contentObject->GetName () << this);
 }

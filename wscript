@@ -30,6 +30,11 @@ OTHER_NS3_MODULES = ['antenna', 'aodv', 'bridge', 'brite', 'buildings', 'click',
 
 def configure(conf):
     conf.load("compiler_cxx boost ns3")
+    
+    #added by dposch
+    #conf.env.LIBPATH_MYLIB = ['../libdash/libdash/build/bin/']
+    #conf.env.INCLUDES_MYLIB = ['../libdash/libdash/libdash/include']
+    #conf.check_cxx(lib = 'libdash', use = 'MYLIB', cxxflags = '-O2')
 
     conf.check_boost(lib='system iostreams')
     boost_version = conf.env.BOOST_VERSION.split('_')
@@ -85,9 +90,9 @@ def build (bld):
         app = bld.program (
             target = name,
             features = ['cxx'],
-            source = [scenario],
-            use = deps + " extensions",
-            includes = "extensions"
+            source = [scenario],        #added by dposch
+            use = deps + " extensions", # +'MYLIB',
+            includes = "extensions",
             )
 
 def shutdown (ctx):

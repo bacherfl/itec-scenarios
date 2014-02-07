@@ -6,3 +6,8 @@ scenarios/example.cc
 scenarios/example2.cc
 extensions/contentprovider.h
 extensions/contentprovider.cc
+scenarios/simpleina.cc
+extensions/dashrequester.h
+extensions/dashrequester.cc
+extensions/utils/buffer.h
+extensions/utils/buffer.cc
