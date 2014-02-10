@@ -13,11 +13,7 @@ TypeId DashRequester::GetTypeId ()
       .AddAttribute("MPD",
                     "Path to MPD file.",
                     StringValue("/path/to/mpd"),
-                    MakeStringAccessor(&DashRequester::mpd),
-                    MakeStringChecker ())
-      .AddAttribute("Prefix", "NDN content prefix.",
-                    StringValue("/itec/"),
-                    MakeStringAccessor(&DashRequester::ndn_prefix),
+                    MakeStringAccessor(&DashRequester::mpd_path),
                     MakeStringChecker ())
       .AddAttribute("InterestPipeline", "The number of maximum pending interests",
                     UintegerValue(8),
@@ -43,6 +39,9 @@ void DashRequester::StartApplication ()
 {
   // initialize ndn::App
   ndn::App::StartApplication ();
+
+  manager = CreateDashManager();
+  mpd = manager->Open ((char*)mpd_path.c_str ());
 
   buf = new Buffer(buffer_size);
 

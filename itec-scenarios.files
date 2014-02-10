@@ -11,3 +11,5 @@ extensions/dashrequester.h
 extensions/dashrequester.cc
 extensions/utils/buffer.h
 extensions/utils/buffer.cc
+topologies/example2.top
+topologies/simple_ina.top

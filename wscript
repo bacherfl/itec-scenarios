@@ -33,6 +33,12 @@ def configure(conf):
     conf.load("compiler_cxx boost ns3")
     
     #added by dposch
+    #import os
+    #conf.env['CPPPATH_LIBDAI'] = [os.path.abspath(os.path.join(conf.env['WITH_LIBDAI'],'include'))]
+    #conf.env['LIBPATH_LIBDAI'] = [os.path.abspath(os.path.join(conf.env['WITH_LIBDAI'],'lib'))]
+    #conf.env.append_value('CPPPATH', conf.env['CPPPATH_LIBDAI'])
+    #conf.env.append_value('LIBPATH', conf.env['LIBPATH_LIBDAI'])
+
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
 
     conf.check_boost(lib='system iostreams')
@@ -90,7 +96,7 @@ def build (bld):
             target = name,
             features = ['cxx'],
             source = [scenario],        #added by dposch
-            use = deps + " extensions",
+            use = deps + " extensions DASH",
             includes = " extensions"
             )
 

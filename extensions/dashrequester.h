@@ -47,8 +47,10 @@ private:
   unsigned int interest_pipeline;
   unsigned int buffer_size;
   unsigned int size_of_data_objects;
-  std::string mpd;
-  std::string ndn_prefix;
+  std::string mpd_path;
+
+  dash::IDASHManager* manager;
+  dash::mpd::IMPD* mpd;
 
   Buffer* buf;
 
