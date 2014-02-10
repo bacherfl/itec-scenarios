@@ -17,6 +17,7 @@ def options(opt):
                    help=('Modify --run arguments to enable the visualizer'),
                    action="store_true", default=False, dest='visualize')
     opt.add_option('--mpi',
+
                    help=('Run in MPI mode'),
                    type="string", default="", dest="mpi")
     opt.add_option('--time',
@@ -32,9 +33,7 @@ def configure(conf):
     conf.load("compiler_cxx boost ns3")
     
     #added by dposch
-    #conf.env.LIBPATH_MYLIB = ['../libdash/libdash/build/bin/']
-    #conf.env.INCLUDES_MYLIB = ['../libdash/libdash/libdash/include']
-    #conf.check_cxx(lib = 'libdash', use = 'MYLIB', cxxflags = '-O2')
+    conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
 
     conf.check_boost(lib='system iostreams')
     boost_version = conf.env.BOOST_VERSION.split('_')
@@ -91,8 +90,8 @@ def build (bld):
             target = name,
             features = ['cxx'],
             source = [scenario],        #added by dposch
-            use = deps + " extensions", # +'MYLIB',
-            includes = "extensions",
+            use = deps + " extensions",
+            includes = " extensions"
             )
 
 def shutdown (ctx):

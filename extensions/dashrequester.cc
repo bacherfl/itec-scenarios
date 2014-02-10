@@ -1,19 +1,5 @@
 #include "dashrequester.h"
 
-#include "ns3-dev/ns3/ptr.h"
-#include "ns3-dev/ns3/log.h"
-#include "ns3-dev/ns3/simulator.h"
-#include "ns3-dev/ns3/packet.h"
-
-#include "ns3-dev/ns3/ndn-app-face.h"
-#include "ns3-dev/ns3/ndn-interest.h"
-#include "ns3-dev/ns3/ndn-data.h"
-
-#include "ns3-dev/ns3/ndn-fib.h"
-#include "ns3-dev/ns3/random-variable.h"
-
-//#include "libdash.h"
-
 namespace ns3 {
 
 NS_OBJECT_ENSURE_REGISTERED (DashRequester);

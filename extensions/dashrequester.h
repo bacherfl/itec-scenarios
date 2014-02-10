@@ -18,8 +18,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include "utils/buffer.h"
 
-#include "utils/buffer.h";
+#include "libdash/libdash.h"
 
 NS_LOG_COMPONENT_DEFINE ("DASHRequester");
 namespace ns3 {
