@@ -59,7 +59,9 @@ int main(int argc, char* argv[])
   Ptr<Node> adaptiveNode = Names::Find<Node>("AdaptiveNode");
   Ptr<Node> simpleNode = Names::Find<Node>("SimpleNode");
   Ptr<Node> dummySrc = Names::Find<Node>("DummySrc");
+  Ptr<Node> contentSrc = Names::Find<Node>("ContentSrc");
 
+  //background traffix
   ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
   consumerHelper.SetPrefix ("/dummy/data");
   consumerHelper.SetAttribute ("Frequency", StringValue("30")); //30 interests a second (ca. 1MBit traffic)
@@ -73,12 +75,23 @@ int main(int argc, char* argv[])
   std::string prefix = "/dummy";
   ndnGlobalRoutingHelper.AddOrigins(prefix, dummySrc);
 
-  // Calculate and install FIBs
-  ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
-
   dummyProducer.Start (Seconds(0.0));
   dummyConsumer.Start (Seconds(5.0));
   dummyConsumer.Stop (Seconds(10.0));
+
+
+  //multimedia traffix
+  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
+  dashRequesterHelper.SetAttribute ("InterestPipeline",UintegerValue(4));
+  dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
+  ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
+
+  dashContainer.Start (Seconds(0.0));
+
+  // Calculate and install FIBs
+  ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
+
 
   NS_LOG_UNCOND("Simulation will be started!");
 

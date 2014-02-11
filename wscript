@@ -40,6 +40,7 @@ def configure(conf):
     #conf.env.append_value('LIBPATH', conf.env['LIBPATH_LIBDAI'])
 
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
+    conf.env.append_value('/usr/local/include/libdash/', ['include'])
 
     conf.check_boost(lib='system iostreams')
     boost_version = conf.env.BOOST_VERSION.split('_')
@@ -88,7 +89,17 @@ def build (bld):
         source = bld.path.ant_glob(['extensions/**/*.cc']),
         use = deps,
         cxxflags = [bld.env.CXX11_CMD],
+        includes = ' libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/'
         )
+
+    #framework = bld.objects (
+        #target = "libdashframework",
+        #features = ["cxx"],
+        #source = bld.path.ant_glob(['libdash/libdash/qtsampleplayer/libdashframework/Adaptation/*.cpp']),
+        #use = deps,
+        #cxxflags = [bld.env.CXX11_CMD],
+        #includes = ' /usr/local/include/libdash/ '
+        #)
 
     for scenario in bld.path.ant_glob (['scenarios/*.cc']):
         name = str(scenario)[:-len(".cc")]

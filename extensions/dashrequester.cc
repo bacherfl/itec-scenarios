@@ -7,7 +7,7 @@ NS_OBJECT_ENSURE_REGISTERED (DashRequester);
 // register NS-3 type
 TypeId DashRequester::GetTypeId ()
 {
-  static TypeId tid = TypeId ("DashRequester")
+  static TypeId tid = TypeId ("ns3::ndn::DashRequester")
       .SetParent<ndn::App>()
       .AddConstructor<DashRequester>()
       .AddAttribute("MPD",
@@ -24,7 +24,7 @@ TypeId DashRequester::GetTypeId ()
                     MakeUintegerAccessor (&DashRequester::buffer_size),
                     MakeUintegerChecker<uint32_t> ())
       .AddAttribute("SizeOfDataObjects", "The expected size of requested data objects.",
-                    UintegerValue(4096),
+                    UintegerValue(1024),
                     MakeUintegerAccessor (&DashRequester::size_of_data_objects),
                      MakeUintegerChecker<uint32_t> ());
   return tid;
@@ -41,9 +41,13 @@ void DashRequester::StartApplication ()
   ndn::App::StartApplication ();
 
   manager = CreateDashManager();
-  mpd = manager->Open ((char*)mpd_path.c_str ());
+  mpd = manager->Open ((char*) getPWD().append(mpd_path).c_str());
 
-  buf = new Buffer(buffer_size);
+  if(mpd == NULL)
+  {
+    NS_LOG_WARN("DashRequester::StartApplication: Opening of MPD FAILED, " << this);
+    this->StopApplication ();
+  }
 
   //parse the pseudeo mpd
   //create a buffer
@@ -57,6 +61,9 @@ void DashRequester::StopApplication ()
   // cleanup ndn::App
   ndn::App::StopApplication ();
 
+  if(manager != NULL)
+    manager->Delete ();
+
   if(buf != NULL)
     delete buf;
 }
@@ -69,4 +76,10 @@ void DashRequester::OnInterest (Ptr<const ndn::Interest> interest)
 // Callback that will be called when Data arrives
 void DashRequester::OnData (Ptr<const ndn::Data> contentObject)
 {
+}
+
+std::string DashRequester::getPWD ()
+{
+  struct passwd *pw = getpwuid(getuid());
+  return std::string(pw->pw_dir);
 }

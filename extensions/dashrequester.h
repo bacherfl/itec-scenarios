@@ -22,7 +22,7 @@
 
 #include "libdash/libdash.h"
 
-NS_LOG_COMPONENT_DEFINE ("DASHRequester");
+NS_LOG_COMPONENT_DEFINE ("DashRequester");
 namespace ns3 {
 
 class DashRequester : public ndn::App
@@ -42,6 +42,9 @@ public:
 
   // (overridden from ndn::App) Callback that will be called when Data arrives
   virtual void OnData (Ptr<const ndn::Data> contentObject);
+
+protected:
+  std::string getPWD();
 
 private:
   unsigned int interest_pipeline;
