@@ -15,12 +15,9 @@
 #include "ns3-dev/ns3/ndn-data.h"
 #include "ns3-dev/ns3/ndn-fib.h"
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <pwd.h>
-#include "utils/buffer.h"
-
-#include "libdash/libdash.h"
+#include "dash/playerfactory.h"
+#include "dash/dashplayer.h"
+#include "dash/iadaptationlogic.h"
 
 NS_LOG_COMPONENT_DEFINE ("DashRequester");
 namespace ns3 {
@@ -43,19 +40,13 @@ public:
   // (overridden from ndn::App) Callback that will be called when Data arrives
   virtual void OnData (Ptr<const ndn::Data> contentObject);
 
-protected:
-  std::string getPWD();
-
 private:
   unsigned int interest_pipeline;
   unsigned int buffer_size;
   unsigned int size_of_data_objects;
   std::string mpd_path;
 
-  dash::IDASHManager* manager;
-  dash::mpd::IMPD* mpd;
-
-  Buffer* buf;
+  ns3::dashimpl::DashPlayer *player;
 
 };
 

@@ -1,11 +1,13 @@
 #include "buffer.h"
 
-Buffer::Buffer(int maxSize)
+using namespace ns3::utils;
+
+Buffer::Buffer(unsigned int maxSize)
 {
   this->max_size = maxSize;
 }
 
-bool Buffer::addData (int seconds)
+bool Buffer::addData (unsigned int seconds)
 {
   if(cur_size + seconds < max_size)
   {
@@ -15,7 +17,7 @@ bool Buffer::addData (int seconds)
   return false;
 }
 
-bool Buffer::consumeData (int seconds)
+bool Buffer::consumeData (unsigned int seconds)
 {
   if(cur_size - seconds >= 0)
   {
@@ -39,4 +41,12 @@ bool Buffer::isFull ()
     return true;
 
   return false;
+}
+
+unsigned int Buffer::fillState()
+{
+  double percent = (100 * this->cur_size);
+  percent /= this->max_size;
+
+  return (int)(percent+0.5);
 }

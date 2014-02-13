@@ -13,3 +13,16 @@ extensions/utils/buffer.h
 extensions/utils/buffer.cc
 topologies/example2.top
 topologies/simple_ina.top
+extensions/backgroundtraffic.h
+extensions/backgroundtraffic.cc
+extensions/dash/iadaptationlogic.h
+extensions/dash/dashplayer.h
+extensions/dash/dashplayer.cc
+extensions/utils/observer.h
+extensions/utils/observable.h
+extensions/utils/observable.cc
+extensions/dash/playerfactory.h
+extensions/dash/playerfactory.cc
+extensions/dash/alwayslowestadaptationlogic.h
+extensions/dash/alwayslowestadaptationlogic.cpp
+extensions/dash/iadaptationlogic.cc

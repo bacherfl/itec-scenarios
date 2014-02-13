@@ -2,6 +2,7 @@
 #include "ns3-dev/ns3/network-module.h"
 #include "ns3-dev/ns3/ndnSIM-module.h"
 #include "ns3-dev/ns3/point-to-point-module.h"
+#include "ns3/ndn-cs-tracer.h"
 
 using namespace ns3;
 
@@ -101,27 +102,55 @@ int main(int argc, char* argv[])
   sink.Start (Seconds(0.1));
   */
 
+
+#define ContentProvider
+
+#ifdef ContentProvider
   ndn::AppHelper helperSource ("ContentProvider");
   helperSource.SetAttribute ("ContentPath", StringValue("/data/"));
+
+#else
+  ndn::AppHelper helperSource ("ns3::ndn::Producer");
+  helperSource.SetAttribute ("PayloadSize", StringValue("1500"));
+
+  //helperSource.SetAttribute("Freshness", TimeValue (Seconds (0)));
+  helperSource.SetPrefix("/itec");
+#endif
+
+
   ApplicationContainer source1 = helperSource.Install(src1);
+#ifdef SRC2
+  ApplicationContainer source2 = helperSource.Install(src2);
+#endif
 
   ndn::AppHelper helperSink ("Sink");
   ApplicationContainer sink = helperSink.Install(dst1);
 
   std::string prefix = "/itec";
   ndnGlobalRoutingHelper.AddOrigins(prefix, src1);
+#ifdef SRC2
+  ndnGlobalRoutingHelper.AddOrigins(prefix, src2);
+#endif
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
 
   //ndn::L3AggregateTracer::InstallAll ("aggregate-trace.txt", Seconds (0.5));
 
+#ifdef PCAP
   PcapWriter trace ("ndn-simple-trace.pcap");
   Config::ConnectWithoutContext ("/NodeList/*/DeviceList/*/$ns3::PointToPointNetDevice/MacTx",
          MakeCallback (&PcapWriter::TracePacket, &trace));
+#endif
 
   source1.Start (Seconds(0.0));
+#ifdef SRC2
+  source2.Start (Seconds(0.0));
+#endif
   sink.Start (Seconds(0.1));
+
+
+  ndn::CsTracer::InstallAll ("cs-trace.txt", Seconds (1));
 
   NS_LOG_WARN("Simulation will be started!");
 

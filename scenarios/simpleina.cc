@@ -3,11 +3,16 @@
 #include "ns3-dev/ns3/ndnSIM-module.h"
 #include "ns3-dev/ns3/point-to-point-module.h"
 
+
+#include "../extensions/backgroundtraffic.h"
+
+
 using namespace ns3;
 
-void parseParameters(int argc, char* argv[])
+void parseParameters(int argc, char* argv[], bool &background_traffic)
 {
   bool v0 = false, v1 = false, v2 = false;
+
   std::string top_path = "topologies/simple_ina.top";
 
   CommandLine cmd;
@@ -15,6 +20,8 @@ void parseParameters(int argc, char* argv[])
   cmd.AddValue ("v1", "Prints all log messages >= LOG_INFO. (OPTIONAL)", v1);
   cmd.AddValue ("v2", "Prints all log messages. (OPTIONAL)", v2);
   cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
+  cmd.AddValue ("bg", "Enable background traffic. (OPTIONAL", background_traffic);
+
 
   cmd.Parse (argc, argv);
 
@@ -42,7 +49,11 @@ int main(int argc, char* argv[])
 {
   NS_LOG_COMPONENT_DEFINE ("SimpleINA");
 
-  parseParameters(argc, argv);
+  bool  background_traffic = false;
+
+
+
+  parseParameters(argc, argv, background_traffic);
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
@@ -75,6 +86,21 @@ int main(int argc, char* argv[])
   std::string prefix = "/dummy";
   ndnGlobalRoutingHelper.AddOrigins(prefix, dummySrc);
 
+  /*/ enalbe background traffic?
+  if (background_traffic)
+  {
+    NS_LOG_UNCOND("Background Traffic enabled");
+    NodeContainer dummySrcNodes, dummyDstNodes;
+    dummySrcNodes.Add(dummySrc);
+    dummyDstNodes.Add(dummyDst);
+
+    std::string dummy_prefix = "/dummy";
+
+    // install background traffic
+    BackgroundTraffic bgTrafficHelper(1.0, 2.0, dummy_prefix);
+    bgTrafficHelper.Install(dummySrcNodes, dummyDstNodes, ndnGlobalRoutingHelper);
+  }*/
+
   dummyProducer.Start (Seconds(0.0));
   dummyConsumer.Start (Seconds(5.0));
   dummyConsumer.Stop (Seconds(10.0));
@@ -91,7 +117,6 @@ int main(int argc, char* argv[])
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
-
 
   NS_LOG_UNCOND("Simulation will be started!");
 

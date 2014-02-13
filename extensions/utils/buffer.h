@@ -1,19 +1,28 @@
-#ifndef BUFFER_H
-#define BUFFER_H
+#ifndef MYBUFFER_H
+#define MYBUFFER_H
 
-class Buffer
+namespace ns3
 {
-public:
-  Buffer(int maxSize);
+  namespace utils
+  {
+    class Buffer
+    {
+    public:
+      Buffer(unsigned int maxSize);
 
-  bool consumeData(int seconds);
-  bool addData(int seconds);
+      bool consumeData(unsigned int seconds);
+      bool addData(unsigned int seconds);
 
-  bool isEmpty();
-  bool isFull();
+      bool isEmpty();
+      bool isFull();
 
-  unsigned int max_size;
-  unsigned int cur_size; // in seconds
-};
+      unsigned int fillState();
+
+    private:
+      unsigned int max_size;
+      unsigned int cur_size; // in seconds
+    };
+  }
+}
 
 #endif // BUFFER_H

@@ -40,18 +40,7 @@ void DashRequester::StartApplication ()
   // initialize ndn::App
   ndn::App::StartApplication ();
 
-  manager = CreateDashManager();
-  mpd = manager->Open ((char*) getPWD().append(mpd_path).c_str());
-
-  if(mpd == NULL)
-  {
-    NS_LOG_WARN("DashRequester::StartApplication: Opening of MPD FAILED, " << this);
-    this->StopApplication ();
-  }
-
-  //parse the pseudeo mpd
-  //create a buffer
-  //create an adaptation logic
+  player = dashimpl::PlayerFactory::getInstance()->createPlayer(mpd_path, dashimpl::AlwaysLowest, 30);
 
 }
 
@@ -61,11 +50,8 @@ void DashRequester::StopApplication ()
   // cleanup ndn::App
   ndn::App::StopApplication ();
 
-  if(manager != NULL)
-    manager->Delete ();
-
-  if(buf != NULL)
-    delete buf;
+  if (player)
+    delete player;
 }
 
 // Callback that will be called when Interest arrives
@@ -78,8 +64,4 @@ void DashRequester::OnData (Ptr<const ndn::Data> contentObject)
 {
 }
 
-std::string DashRequester::getPWD ()
-{
-  struct passwd *pw = getpwuid(getuid());
-  return std::string(pw->pw_dir);
-}
+
