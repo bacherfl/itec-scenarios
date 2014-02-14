@@ -4,13 +4,15 @@ using namespace ns3::dashimpl;
 
 IAdaptationLogic::IAdaptationLogic(dash::mpd::IMPD* mpd)
 {
+
   this->mpd = mpd;
   this->currentPeriod = getFirstPeriod();
   this->currentSegment = NULL;
 
-  this->base_url = this->currentPeriod->GetBaseURLs().at(0)->GetUrl();
-
-  fprintf(stderr, "baseurl %s", base_url.c_str ());
+  if(this->currentPeriod->GetBaseURLs().size () > 0)
+    this->base_url = this->currentPeriod->GetBaseURLs().at(0)->GetUrl();
+  else
+    this->base_url = mpd->GetBaseUrls().at(0)->GetUrl();
 }
 
 dash::mpd::IRepresentation* IAdaptationLogic::getBestRepresentation(dash::mpd::IPeriod* period)

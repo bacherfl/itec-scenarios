@@ -1,6 +1,12 @@
 #ifndef PLAYERFACTORY_H
 #define PLAYERFACTORY_H
 
+#include "ns3-dev/ns3/log.h"
+#include "ns3-dev/ns3/core-module.h"
+#include "ns3-dev/ns3/network-module.h"
+#include "ns3-dev/ns3/ndnSIM-module.h"
+#include "ns3-dev/ns3/point-to-point-module.h"
+
 #include <stddef.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -18,10 +24,12 @@
 #include <string>
 #include "../utils/buffer.h"
 
+#include <stdio.h>
+
 namespace ns3
 {
   namespace dashimpl
-  {
+  {  
     class PlayerFactory
     {
     public:

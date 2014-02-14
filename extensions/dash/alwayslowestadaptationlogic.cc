@@ -9,7 +9,7 @@ AlwaysLowestAdaptationLogic::AlwaysLowestAdaptationLogic(dash::mpd::IMPD *mpd) :
 
 std::string AlwaysLowestAdaptationLogic::getNextSegmentUri ()
 {
-  dash::mpd::IRepresentation* rep = this->getLowestRepresentation();
+  //dash::mpd::IRepresentation* rep = this->getLowestRepresentation();
 
   //if(this->currentSegment == NULL)
   return NULL;
