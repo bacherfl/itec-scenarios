@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
   std::string prefix = "/dummy";
   ndnGlobalRoutingHelper.AddOrigins(prefix, dummySrc);
 
-  /*/ enalbe background traffic?
+  /*// enalbe background traffic?
   if (background_traffic)
   {
     NS_LOG_UNCOND("Background Traffic enabled");
