@@ -26,3 +26,5 @@ extensions/dash/playerfactory.cc
 extensions/dash/alwayslowestadaptationlogic.h
 extensions/dash/alwayslowestadaptationlogic.cc
 extensions/dash/iadaptationlogic.cc
+extensions/dash/segment.h
+extensions/dash/segment.cc

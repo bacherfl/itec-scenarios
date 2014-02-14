@@ -3,6 +3,8 @@
 
 #include "iadaptationlogic.h"
 
+#include <stdio.h>
+
 namespace ns3
 {
   namespace dashimpl
@@ -10,9 +12,9 @@ namespace ns3
     class AlwaysLowestAdaptationLogic : public IAdaptationLogic
     {
     public:
-      AlwaysLowestAdaptationLogic(dash::mpd::IMPD *mpd);
+      AlwaysLowestAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path);
 
-      virtual std::string getNextSegmentUri ();
+      virtual Segment* getNextSegmentUri ();
 
     };
   }

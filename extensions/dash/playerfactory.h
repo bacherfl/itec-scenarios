@@ -39,7 +39,7 @@ namespace ns3
     private:
       PlayerFactory();
 
-      IAdaptationLogic* resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd);
+      IAdaptationLogic* resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path);
       dash::mpd::IMPD* resolveMPD(std::string mpd_path) ;
       std::string getPWD();
 

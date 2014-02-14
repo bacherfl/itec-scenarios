@@ -4,9 +4,17 @@
 #include <string>
 #include <vector>
 #include "libdash/libdash.h"
+
 #include "../utils/buffer.h"
+#include "segment.h"
+
+#include <limits.h>
 
 #include <stdio.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <pwd.h>
 
 namespace ns3
 {
@@ -25,25 +33,25 @@ namespace ns3
     public:
 
       //TODO
-      IAdaptationLogic(dash::mpd::IMPD* mpd);
+      IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path);
 
       virtual ~IAdaptationLogic(){}
-      virtual std::string getNextSegmentUri() = 0;
+      virtual Segment* getNextSegmentUri() = 0;
 
     protected:
       dash::mpd::IMPD* mpd;
+      std::string dataset_path;
       dash::mpd::IPeriod* currentPeriod;
-      dash::mpd::ISegment* currentSegment;
+      unsigned int currentSegmentNr;
       std::string base_url;
 
       virtual dash::mpd::IRepresentation* getOptimalRepresentation(dash::mpd::IPeriod *period){return NULL;}
-
-    private:
 
       virtual dash::mpd::IPeriod* getFirstPeriod();
 
       virtual dash::mpd::IRepresentation* getBestRepresentation(dash::mpd::IPeriod* period);
       virtual dash::mpd::IRepresentation* getLowestRepresentation(dash::mpd::IPeriod* period);
+      virtual unsigned int getFileSize(std::string filename);
 
     };
   }

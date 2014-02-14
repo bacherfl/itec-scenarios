@@ -101,11 +101,6 @@ int main(int argc, char* argv[])
     bgTrafficHelper.Install(dummySrcNodes, dummyDstNodes, ndnGlobalRoutingHelper);
   }*/
 
-  dummyProducer.Start (Seconds(0.0));
-  dummyConsumer.Start (Seconds(5.0));
-  dummyConsumer.Stop (Seconds(10.0));
-
-
   //multimedia traffix
   ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
@@ -114,6 +109,9 @@ int main(int argc, char* argv[])
   ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
 
   dashContainer.Start (Seconds(0.0));
+  dummyProducer.Start (Seconds(0.0));
+  dummyConsumer.Start (Seconds(5.0));
+  dummyConsumer.Stop (Seconds(10.0));
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();

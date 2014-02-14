@@ -4,6 +4,7 @@
 #include "iadaptationlogic.h"
 #include "../utils/observer.h"
 #include "../utils/buffer.h"
+#include "segment.h"
 
 #include "libdash/libdash.h"
 
@@ -28,6 +29,8 @@ namespace ns3
       dash::mpd::IMPD* mpd;
       dashimpl::IAdaptationLogic* alogic;
       ns3::utils::Buffer* buf;
+
+      bool isPlaying;
 
     };
   }

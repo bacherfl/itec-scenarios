@@ -8,16 +8,32 @@ DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::util
   this->mpd = mpd;
   this->alogic = alogic;
   this->buf = buf;
+
+  isPlaying = false;
 }
 
 void DashPlayer::play ()
 {
-  alogic->getNextSegmentUri();
+  isPlaying = true;
+  Segment* s;
+
+  while(isPlaying)
+  {
+    s = alogic->getNextSegmentUri();
+
+    fprintf(stderr, "Segment(%s, %d)\n", s->getUri ().c_str (),s->getSize ());
+
+    if(s == NULL)
+    {
+      isPlaying = false;
+      break;
+    }
+  }
 }
 
 void DashPlayer::stop ()
 {
-
+  isPlaying = false;
 }
 
 void DashPlayer::update ()

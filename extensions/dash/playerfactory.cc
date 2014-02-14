@@ -18,8 +18,11 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
     fprintf(stderr, "ERROR: PlayerFactory::createPlayer::mpd is NULL\n");
     return NULL;
   }
+  // the dataset_path is needed for simulation purposes only!
+  std::string dataset_path = getPWD().append (mpd_path);
+  dataset_path = dataset_path.substr (0, dataset_path.find_last_of ('/')+1);
 
-  IAdaptationLogic* logic = resolveAdaptation(alogic, mpd);
+  IAdaptationLogic* logic = resolveAdaptation(alogic, mpd, dataset_path);
 
   if(logic == NULL)
   {
@@ -32,26 +35,20 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
   return new DashPlayer(mpd, logic, buffer);
 }
 
-IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd)
+IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path)
 {
   switch(alogic)
   {
     case dashimpl::AlwaysLowest:
-      return new AlwaysLowestAdaptationLogic(mpd);
+      return new AlwaysLowestAdaptationLogic(mpd, dataset_path);
     default:
-      return new AlwaysLowestAdaptationLogic(mpd);
+      return new AlwaysLowestAdaptationLogic(mpd, dataset_path);
   }
 }
 
 dash::mpd::IMPD* PlayerFactory::resolveMPD(std::string mpd_path)
 {
-  dash::mpd::IMPD* p;
-  p = manager->Open((char*)mpd_path.c_str ());
-
-  if(p == NULL)
-    p = manager->Open( (char*) getPWD().append(mpd_path).c_str());
-
-  return p;
+  return manager->Open( (char*) getPWD().append(mpd_path).c_str());
 }
 
 

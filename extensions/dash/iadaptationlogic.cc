@@ -2,12 +2,13 @@
 
 using namespace ns3::dashimpl;
 
-IAdaptationLogic::IAdaptationLogic(dash::mpd::IMPD* mpd)
+IAdaptationLogic::IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path)
 {
 
   this->mpd = mpd;
+  this->dataset_path = dataset_path;
   this->currentPeriod = getFirstPeriod();
-  this->currentSegment = NULL;
+  this->currentSegmentNr = 0;
 
   if(this->currentPeriod->GetBaseURLs().size () > 0)
     this->base_url = this->currentPeriod->GetBaseURLs().at(0)->GetUrl();
@@ -43,7 +44,7 @@ dash::mpd::IRepresentation* IAdaptationLogic::getLowestRepresentation(dash::mpd:
 {
   std::vector<dash::mpd::IAdaptationSet *> adaptationSets = period->GetAdaptationSets();
 
-  int bitrate = 0;
+  int bitrate = INT_MAX;
   dash::mpd::IRepresentation *lowest = NULL;
 
   for(size_t i = 0; i < adaptationSets.size(); i++)
@@ -71,5 +72,17 @@ dash::mpd::IPeriod* IAdaptationLogic::getFirstPeriod()
           return NULL;
 
       return periods.at(0);
+}
+
+unsigned int IAdaptationLogic::getFileSize (std::string filename)
+{
+  struct stat fstats;
+  if(!(stat (filename.c_str(), &fstats) == 0))
+  {
+    fprintf(stderr, "ContentProvider::OnInterest: File does NOT exist: %s", filename.c_str ());
+    return -1;
+  }
+
+  return fstats.st_size;
 }
 

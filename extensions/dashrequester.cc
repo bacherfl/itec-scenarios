@@ -39,8 +39,8 @@ void DashRequester::StartApplication ()
 {
   // initialize ndn::App
   ndn::App::StartApplication ();
-
   player = dashimpl::PlayerFactory::getInstance()->createPlayer(mpd_path, dashimpl::AlwaysLowest, 30);
+  player->play ();
 
 }
 
