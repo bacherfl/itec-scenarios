@@ -28,3 +28,7 @@ extensions/dash/alwayslowestadaptationlogic.cc
 extensions/dash/iadaptationlogic.cc
 extensions/dash/segment.h
 extensions/dash/segment.cc
+extensions/dash/idownloader.h
+extensions/dash/idownloader.cc
+extensions/dash/simplendndownloader.h
+extensions/dash/simplendndownloader.cc

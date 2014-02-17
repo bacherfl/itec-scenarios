@@ -83,8 +83,7 @@ int main(int argc, char* argv[])
   producerHelper.SetAttribute ("PayloadSize", StringValue("4096"));
   ApplicationContainer dummyProducer = producerHelper.Install(dummySrc); // last node
 
-  std::string prefix = "/dummy";
-  ndnGlobalRoutingHelper.AddOrigins(prefix, dummySrc);
+  ndnGlobalRoutingHelper.AddOrigins("/dummy", dummySrc);
 
   /*// enalbe background traffic?
   if (background_traffic)
@@ -101,14 +100,22 @@ int main(int argc, char* argv[])
     bgTrafficHelper.Install(dummySrcNodes, dummyDstNodes, ndnGlobalRoutingHelper);
   }*/
 
-  //multimedia traffix
+  //multimedia traffic
   ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
   dashRequesterHelper.SetAttribute ("InterestPipeline",UintegerValue(4));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
 
-  dashContainer.Start (Seconds(0.0));
+  ndn::AppHelper dashContentProviderHelper ("ContentProvider");
+  dashContentProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
+  dashContentProviderHelper.SetAttribute("Prefix", StringValue("/www-itec.uni-klu.ac.at/ftp/datasets/mmsys12/BigBuckBunny"));
+  ApplicationContainer contentProvider = dashContentProviderHelper.Install (contentSrc);
+
+  ndnGlobalRoutingHelper.AddOrigins("/www-itec.uni-klu.ac.at/ftp/datasets/mmsys12/BigBuckBunny", contentSrc);
+
+  contentProvider.Start (Seconds(0.0));
+  dashContainer.Start (Seconds(1.0));
   dummyProducer.Start (Seconds(0.0));
   dummyConsumer.Start (Seconds(5.0));
   dummyConsumer.Stop (Seconds(10.0));

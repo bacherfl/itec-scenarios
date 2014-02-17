@@ -2,10 +2,11 @@
 
 using namespace ns3::dashimpl;
 
-Segment::Segment(std::string uri, unsigned int size)
+Segment::Segment(std::string uri, unsigned int size, unsigned int duration)
 {
   this->uri = uri;
   this->size = size;
+  this->duration = duration;
 }
 
 std::string Segment::getUri ()
@@ -16,4 +17,10 @@ std::string Segment::getUri ()
 unsigned int Segment::getSize ()
 {
   return size;
+}
+
+
+unsigned int Segment::getDuration ()
+{
+  return duration;
 }

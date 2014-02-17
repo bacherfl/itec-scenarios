@@ -3,11 +3,12 @@
 using namespace ns3::dashimpl;
 using namespace ns3::utils;
 
-DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf)
+DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf, IDownloader *downloader)
 {
   this->mpd = mpd;
   this->alogic = alogic;
   this->buf = buf;
+  this->downloader = downloader;
 
   isPlaying = false;
 }
@@ -17,18 +18,20 @@ void DashPlayer::play ()
   isPlaying = true;
   Segment* s;
 
-  while(isPlaying)
-  {
+  //while(isPlaying)
+  //{
     s = alogic->getNextSegmentUri();
-
-    fprintf(stderr, "Segment(%s, %d)\n", s->getUri ().c_str (),s->getSize ());
 
     if(s == NULL)
     {
       isPlaying = false;
-      break;
+      //break;
     }
-  }
+
+    //Todo download segment
+    downloader->download (s);
+    //fprintf(stderr, "Segment(%s, %d, %d)\n", s->getUri ().c_str (),s->getSize (), s->getDuration ());
+  //}
 }
 
 void DashPlayer::stop ()
@@ -40,4 +43,3 @@ void DashPlayer::update ()
 {
 
 }
-

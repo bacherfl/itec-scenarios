@@ -10,15 +10,17 @@ namespace ns3
     class Segment
     {
     public:
-      Segment(std::string uri, unsigned int size);
+      Segment(std::string uri, unsigned int size, unsigned int duration);
 
       unsigned int getSize();
       std::string getUri();
+      unsigned int getDuration();
 
     private:
 
       std::string uri;
       unsigned int size;
+      unsigned int duration;
 
     };
   }

@@ -58,9 +58,14 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
 
   ndn::App::OnInterest (interest);
 
-  std::string fname = interest->GetName().toUri();
-  fname = fname.substr(ndn_prefix.length(), fname.length());
-  fname = std::string(content_path).append(fname);
+  std::string fname = interest->GetName().toUri();  // get the uri from interest
+  fname = fname.substr(ndn_prefix.length(), fname.length()); // remove the prefix
+  fname = std::string(content_path).append(fname); // prepend the data path
+  std::string chunk_nr = fname.substr(fname.find_last_not_of ("/chunk_"), fname.length ()); // extract the chunk number remove .../chunk_X
+  fname = fname.substr (0, fname.find_last_of ("/"));
+
+  //fprintf(stderr, "FNAME = %s\n",fname.c_str ());
+  //fprintf(stderr, "chunk_nr = %s\n", chunk_nr.c_str ());
 
   struct stat fstats;
   if(!(stat (fname.c_str(), &fstats) == 0))
@@ -69,10 +74,19 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
     return;
   }
 
-  Ptr<ndn::Data> data = Create<ndn::Data> (Create<Packet> (fstats.st_size));
+  unsigned int size = fstats.st_size;
+
+  int result;
+  std::stringstream(chunk_nr) >> result;
+  size -= MAX_PACKET_PAYLOAD * result;
+
+  if(size > MAX_PACKET_PAYLOAD)
+    size = MAX_PACKET_PAYLOAD;
+
+  Ptr<ndn::Data> data = Create<ndn::Data> (Create<Packet> (size));
   data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
 
-  NS_LOG_FUNCTION("Sending data packet" << data->GetName() << "size" << fstats.st_size << this);
+  NS_LOG_FUNCTION("Sending data packet" << data->GetName() << "size" << size << this);
 
   // Call trace (for logging purposes)
   m_transmittedDatas (data, this, m_face);

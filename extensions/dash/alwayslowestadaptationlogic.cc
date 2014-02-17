@@ -21,7 +21,7 @@ Segment *AlwaysLowestAdaptationLogic::getNextSegmentUri()
     uri.append (seg_name);
     currentSegmentNr++;
 
-    s = new Segment(uri, getFileSize(dataset_path + seg_name));
+    s = new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration());
   }
 
   return s;

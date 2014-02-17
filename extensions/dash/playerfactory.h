@@ -18,13 +18,18 @@
 
 #include "libdash/IMPD.h"
 #include "iadaptationlogic.h"
+#include "idownloader.h"
 
+#include "simplendndownloader.h"
 #include "alwayslowestadaptationlogic.h"
 
 #include <string>
 #include "../utils/buffer.h"
 
 #include <stdio.h>
+
+#include "ns3-dev/ns3/node.h"
+#include "ns3-dev/ns3/ptr.h"
 
 namespace ns3
 {
@@ -33,7 +38,7 @@ namespace ns3
     class PlayerFactory
     {
     public:
-      DashPlayer* createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size);
+      DashPlayer* createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size, DownloaderType downloader, Ptr<ns3::Node> node);
       static PlayerFactory* getInstance();
 
     private:
@@ -41,6 +46,7 @@ namespace ns3
 
       IAdaptationLogic* resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path);
       dash::mpd::IMPD* resolveMPD(std::string mpd_path) ;
+      IDownloader* resolveDownloader(DownloaderType downloader, Ptr<Node> node);
       std::string getPWD();
 
       static PlayerFactory* instance;

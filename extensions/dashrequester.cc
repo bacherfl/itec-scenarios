@@ -39,9 +39,8 @@ void DashRequester::StartApplication ()
 {
   // initialize ndn::App
   ndn::App::StartApplication ();
-  player = dashimpl::PlayerFactory::getInstance()->createPlayer(mpd_path, dashimpl::AlwaysLowest, 30);
+  player = dashimpl::PlayerFactory::getInstance()->createPlayer(mpd_path, dashimpl::AlwaysLowest, 30, dashimpl::SimpleNDN, GetNode());
   player->play ();
-
 }
 
 // Processing when application is stopped

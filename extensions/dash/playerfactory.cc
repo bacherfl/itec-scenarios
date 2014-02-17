@@ -9,10 +9,9 @@ PlayerFactory::PlayerFactory()
   manager = CreateDashManager();
 }
 
-DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size)
+DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size, DownloaderType downloader, Ptr<Node> node)
 {
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
-
   if(mpd == NULL)
   {
     fprintf(stderr, "ERROR: PlayerFactory::createPlayer::mpd is NULL\n");
@@ -23,16 +22,22 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
   dataset_path = dataset_path.substr (0, dataset_path.find_last_of ('/')+1);
 
   IAdaptationLogic* logic = resolveAdaptation(alogic, mpd, dataset_path);
-
   if(logic == NULL)
   {
     fprintf(stderr, "ERROR: PlayerFactory::createPlayer::logic is NULL\n");
     return NULL;
   }
 
+  IDownloader* dwn = resolveDownloader(downloader, node);
+  if(dwn == NULL)
+  {
+    fprintf(stderr, "ERROR: PlayerFactory::createPlayer::downloader is NULL\n");
+    return NULL;
+  }
+
   utils::Buffer* buffer = new utils::Buffer(buffer_size);
 
-  return new DashPlayer(mpd, logic, buffer);
+  return new DashPlayer(mpd, logic, buffer, dwn);
 }
 
 IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path)
@@ -44,6 +49,25 @@ IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, d
     default:
       return new AlwaysLowestAdaptationLogic(mpd, dataset_path);
   }
+}
+
+IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Node> node)
+{
+  IDownloader* d = NULL;
+
+  switch(downloader)
+  {
+    case dashimpl::SimpleNDN:
+    {
+      d = new SimpleNDNDownloader();
+      break;
+    }
+    default:
+      d = new SimpleNDNDownloader();
+  }
+
+  d->setNodeForNDN (node);
+  return d;
 }
 
 dash::mpd::IMPD* PlayerFactory::resolveMPD(std::string mpd_path)
