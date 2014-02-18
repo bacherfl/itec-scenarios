@@ -2,6 +2,8 @@
 
 using namespace ns3::dashimpl;
 
+NS_LOG_COMPONENT_DEFINE ("PlayerFactory");
+
 PlayerFactory* PlayerFactory::instance = NULL;
 
 PlayerFactory::PlayerFactory()

@@ -4,27 +4,41 @@ using namespace ns3::utils;
 
 Buffer::Buffer(unsigned int maxSize)
 {
+   pthread_mutex_init(&mutex, NULL);
   this->max_size = maxSize;
+  this->cur_size = 0;
 }
 
 bool Buffer::addData (unsigned int seconds)
 {
+  bool result = false;
+
+  pthread_mutex_lock (&mutex);
+
   if(cur_size + seconds < max_size)
   {
-    this->cur_size += seconds;
-    return true;
+    cur_size += seconds;
+    result = true;
   }
-  return false;
+
+  pthread_mutex_unlock(&mutex);
+  return result;
 }
 
 bool Buffer::consumeData (unsigned int seconds)
 {
+  bool result = false;
+
+  pthread_mutex_lock (&mutex);
+
   if(cur_size - seconds >= 0)
   {
    cur_size -= seconds;
-   return true;
+   result = true;
   }
-  return false;
+
+  pthread_mutex_unlock(&mutex);
+  return result;
 }
 
 bool Buffer::isEmpty ()
@@ -43,10 +57,20 @@ bool Buffer::isFull ()
   return false;
 }
 
-unsigned int Buffer::fillState()
+unsigned int Buffer::fillPercentage()
 {
-  double percent = (100 * this->cur_size);
+  double percent = (100 * cur_size);
   percent /= this->max_size;
 
   return (int)(percent+0.5);
+}
+
+unsigned int Buffer::maxBufferSeconds()
+{
+  return max_size;
+}
+
+unsigned int Buffer::bufferedSeconds()
+{
+  return cur_size;
 }

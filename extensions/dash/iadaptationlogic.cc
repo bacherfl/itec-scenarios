@@ -2,9 +2,10 @@
 
 using namespace ns3::dashimpl;
 
+NS_LOG_COMPONENT_DEFINE ("IAdaptationLogic");
+
 IAdaptationLogic::IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path)
 {
-
   this->mpd = mpd;
   this->dataset_path = dataset_path;
   this->currentPeriod = getFirstPeriod();

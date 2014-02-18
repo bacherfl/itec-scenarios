@@ -1,5 +1,7 @@
 #include "alwayslowestadaptationlogic.h"
 
+NS_LOG_COMPONENT_DEFINE ("AlwaysLowestAdaptationLogic");
+
 using namespace ns3::dashimpl;
 
 AlwaysLowestAdaptationLogic::AlwaysLowestAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path) : IAdaptationLogic(mpd, dataset_path)

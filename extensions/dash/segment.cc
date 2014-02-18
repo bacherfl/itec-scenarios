@@ -1,5 +1,7 @@
 #include "segment.h"
 
+NS_LOG_COMPONENT_DEFINE ("Segment");
+
 using namespace ns3::dashimpl;
 
 Segment::Segment(std::string uri, unsigned int size, unsigned int duration)

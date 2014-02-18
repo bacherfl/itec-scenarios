@@ -9,6 +9,11 @@
 
 #include "libdash/libdash.h"
 
+#include <unistd.h>
+#include "ns3-dev/ns3/simulator.h"
+
+#define CONSUME_INTERVALL 1.0
+
 namespace ns3
 {
   namespace dashimpl
@@ -25,14 +30,20 @@ namespace ns3
       virtual void stop();
 
       virtual void update();
+      virtual void consume();
 
     private:
+
+      virtual void streaming();
+
       dash::mpd::IMPD* mpd;
       dashimpl::IAdaptationLogic* alogic;
       dashimpl::IDownloader* downloader;
       ns3::utils::Buffer* buf;
 
       bool isPlaying;
+      bool isStreaming;
+      Segment* cur_seg;
 
     };
   }

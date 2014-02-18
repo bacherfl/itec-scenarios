@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "ns3-dev/ns3/log.h"
+
 namespace ns3
 {
   namespace dashimpl

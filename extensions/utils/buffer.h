@@ -1,6 +1,8 @@
 #ifndef MYBUFFER_H
 #define MYBUFFER_H
 
+#include <pthread.h>
+
 namespace ns3
 {
   namespace utils
@@ -16,11 +18,14 @@ namespace ns3
       bool isEmpty();
       bool isFull();
 
-      unsigned int fillState();
+      unsigned int fillPercentage();
+      unsigned int maxBufferSeconds();
+      unsigned int bufferedSeconds();
 
     private:
       unsigned int max_size;
       unsigned int cur_size; // in seconds
+      pthread_mutex_t mutex;
     };
   }
 }

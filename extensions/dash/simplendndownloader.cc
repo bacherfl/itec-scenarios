@@ -2,7 +2,7 @@
 
 using namespace ns3::dashimpl;
 
-NS_OBJECT_ENSURE_REGISTERED (SimpleNDNDownloader);
+NS_LOG_COMPONENT_DEFINE ("SimpleNDNDownloader");
 
 SimpleNDNDownloader::SimpleNDNDownloader() : IDownloader()
 {
@@ -12,6 +12,7 @@ SimpleNDNDownloader::SimpleNDNDownloader() : IDownloader()
 
 bool SimpleNDNDownloader::download (Segment *s)
 {
+  NS_LOG_FUNCTION(this);
   StartApplication ();
 
   bytesToDownload = s->getSize ();
@@ -23,7 +24,8 @@ bool SimpleNDNDownloader::download (Segment *s)
     cur_chunk_uri = std::string("/").append(cur_chunk_uri.substr (7,cur_chunk_uri.length ()));
   }
 
-  fprintf(stderr, "Download %s\n", cur_chunk_uri.c_str ());
+  NS_LOG_FUNCTION(cur_chunk_uri << this);
+
   downloadChunk();
 
   return true;
@@ -33,11 +35,8 @@ void SimpleNDNDownloader::downloadChunk ( )
 {
   if(bytesToDownload > 0)
   {
-
     std::stringstream ss;
     ss << cur_chunk_uri << "/chunk_" << chunk_number;
-
-    fprintf(stderr, "downloadChunk: %s\n", ss.str ().c_str());
 
     Ptr<ndn::Name> prefix = Create<ndn::Name> (ss.str ().c_str());
 
@@ -55,34 +54,38 @@ void SimpleNDNDownloader::downloadChunk ( )
     m_face->ReceiveInterest (interest);
     chunk_number++;
   }
-
-  fprintf(stderr, "downloadChunk\n");
 }
 
 void SimpleNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 {
-  fprintf(stderr, "received: %s size %d", contentObject->GetName().toUri().c_str(), contentObject->GetPayload()->GetSize ());
-
   bytesToDownload -= contentObject->GetPayload()->GetSize ();
 
   if(bytesToDownload > 0)
     downloadChunk ();
-
+  else
+  {
+    chunk_number = 0;
+    NS_LOG_FUNCTION(std::string("Finally received segment: ").append(cur_chunk_uri.substr (0,cur_chunk_uri.find_last_of ("/chunk_"))) << this);
+    notifyAll (); //notify observers
+  }
 }
 
 // Processing upon start of the application
 void SimpleNDNDownloader::StartApplication ()
 {
+  NS_LOG_FUNCTION(this);
   ndn::App::StartApplication ();
 }
 
 // Processing when application is stopped
 void SimpleNDNDownloader::StopApplication ()
 {
+  NS_LOG_FUNCTION(this);
   ndn::App::StopApplication ();
 }
 
 void SimpleNDNDownloader::setNodeForNDN (Ptr<Node> node)
 {
+  NS_LOG_FUNCTION(this);
   SetNode(node);
 }

@@ -3,6 +3,9 @@
 
 #include "segment.h"
 
+#include "../utils/observable.h"
+#include "../utils/observer.h"
+
 #define MAX_PACKET_PAYLOAD 4096
 
 #include "ns3-dev/ns3/node.h"
@@ -17,7 +20,7 @@ namespace ns3
         SimpleNDN
     };
 
-    class IDownloader
+    class IDownloader : public utils::Observable
     {
     public:
       IDownloader();
