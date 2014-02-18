@@ -4,12 +4,13 @@ using namespace ns3::dashimpl;
 
 NS_LOG_COMPONENT_DEFINE ("IAdaptationLogic");
 
-IAdaptationLogic::IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path)
+IAdaptationLogic::IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer* buf)
 {
   this->mpd = mpd;
   this->dataset_path = dataset_path;
   this->currentPeriod = getFirstPeriod();
   this->currentSegmentNr = 0;
+  this->buf = buf;
 
   if(this->currentPeriod->GetBaseURLs().size () > 0)
     this->base_url = this->currentPeriod->GetBaseURLs().at(0)->GetUrl();
@@ -39,6 +40,27 @@ dash::mpd::IRepresentation* IAdaptationLogic::getBestRepresentation(dash::mpd::I
       }
   }
   return best;
+}
+
+Segment *IAdaptationLogic::getNextSegment()
+{
+  dash::mpd::IRepresentation* rep = getOptimalRepresentation(currentPeriod);
+
+  Segment *s = NULL;
+  std::string uri("");
+  std::string seg_name("");
+
+  if(rep->GetSegmentList ()->GetSegmentURLs().size() > currentSegmentNr)
+  {
+    uri.append (base_url);
+    seg_name.append(rep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
+    uri.append (seg_name);
+    currentSegmentNr++;
+
+    s = new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration());
+  }
+
+  return s;
 }
 
 dash::mpd::IRepresentation* IAdaptationLogic::getLowestRepresentation(dash::mpd::IPeriod* period)

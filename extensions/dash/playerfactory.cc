@@ -23,7 +23,9 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
   std::string dataset_path = getPWD().append (mpd_path);
   dataset_path = dataset_path.substr (0, dataset_path.find_last_of ('/')+1);
 
-  IAdaptationLogic* logic = resolveAdaptation(alogic, mpd, dataset_path);
+  utils::Buffer* buffer = new utils::Buffer(buffer_size);
+
+  IAdaptationLogic* logic = resolveAdaptation(alogic, mpd, dataset_path, buffer);
   if(logic == NULL)
   {
     fprintf(stderr, "ERROR: PlayerFactory::createPlayer::logic is NULL\n");
@@ -37,19 +39,21 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
     return NULL;
   }
 
-  utils::Buffer* buffer = new utils::Buffer(buffer_size);
-
   return new DashPlayer(mpd, logic, buffer, dwn);
 }
 
-IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path)
+IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf)
 {
   switch(alogic)
   {
     case dashimpl::AlwaysLowest:
-      return new AlwaysLowestAdaptationLogic(mpd, dataset_path);
+      return new AlwaysLowestAdaptationLogic(mpd, dataset_path, buf);
+    case dashimpl::RateBased:
+      return new RateBasedAdaptationLogic(mpd, dataset_path, buf);
+  case dashimpl::BufferBased:
+    return new BufferBasedAdaptationLogic(mpd, dataset_path, buf);
     default:
-      return new AlwaysLowestAdaptationLogic(mpd, dataset_path);
+      return new AlwaysLowestAdaptationLogic(mpd, dataset_path, buf);
   }
 }
 

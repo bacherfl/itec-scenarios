@@ -45,6 +45,8 @@ namespace ns3
       bool isStreaming;
       Segment* cur_seg;
 
+      Time dlStartTime;
+
     };
   }
 }

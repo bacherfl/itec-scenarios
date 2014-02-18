@@ -31,7 +31,7 @@ bool Buffer::consumeData (unsigned int seconds)
 
   pthread_mutex_lock (&mutex);
 
-  if(cur_size - seconds >= 0)
+  if(cur_size >= seconds)
   {
    cur_size -= seconds;
    result = true;

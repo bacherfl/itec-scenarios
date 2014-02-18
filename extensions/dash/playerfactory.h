@@ -22,6 +22,8 @@
 
 #include "simplendndownloader.h"
 #include "alwayslowestadaptationlogic.h"
+#include "ratebasedadaptationlogic.h"
+#include "bufferbasedadaptationlogic.h"
 
 #include <string>
 #include "../utils/buffer.h"
@@ -44,7 +46,7 @@ namespace ns3
     private:
       PlayerFactory();
 
-      IAdaptationLogic* resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path);
+      IAdaptationLogic* resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf);
       dash::mpd::IMPD* resolveMPD(std::string mpd_path) ;
       IDownloader* resolveDownloader(DownloaderType downloader, Ptr<Node> node);
       std::string getPWD();

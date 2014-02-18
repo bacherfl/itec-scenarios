@@ -23,7 +23,7 @@ void DashPlayer::play ()
   NS_LOG_FUNCTION(this);
   isPlaying = true;
   streaming ();
-  Simulator::Schedule(Seconds (2.0), &DashPlayer::consume, this);
+  Simulator::Schedule(Seconds(3.0), &DashPlayer::consume, this);
 }
 
 void DashPlayer::streaming ()
@@ -31,7 +31,7 @@ void DashPlayer::streaming ()
   if(isPlaying)
   {
     if(cur_seg == NULL) // else prior segment has not been downloaded
-      cur_seg = alogic->getNextSegmentUri();
+      cur_seg = alogic->getNextSegment();
 
     //check if last segment
     if(cur_seg == NULL)
@@ -54,6 +54,7 @@ void DashPlayer::streaming ()
       return;
     }
 
+    dlStartTime = Simulator::Now ();
     downloader->download (cur_seg);
     isStreaming = true;
   }
@@ -68,6 +69,8 @@ void DashPlayer::stop ()
 void DashPlayer::update ()
 {
   //fprintf(stderr, "NOTIFYED\n");
+
+  alogic->updateStatistic (dlStartTime, Simulator::Now (), cur_seg->getSize ());
 
   if(!buf->addData (cur_seg->getDuration ()))
     fprintf(stderr, "BUFFER FULL!!!\n");

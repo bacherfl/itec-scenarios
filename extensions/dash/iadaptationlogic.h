@@ -5,6 +5,8 @@
 #include <vector>
 #include "libdash/libdash.h"
 
+#include "ns3-dev/ns3/timer.h"
+
 #include "../utils/buffer.h"
 #include "segment.h"
 
@@ -23,9 +25,10 @@ namespace ns3
 
     enum AdaptationLogicType
     {
-        AlwaysBest,
+        AlwaysBest, //todo impl
         AlwaysLowest,
-        RateBased
+        RateBased,
+        BufferBased
     };
 
     class IAdaptationLogic
@@ -33,10 +36,11 @@ namespace ns3
     public:
 
       //TODO
-      IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path);
+      IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf);
 
       virtual ~IAdaptationLogic(){}
-      virtual Segment* getNextSegmentUri() = 0;
+      virtual Segment* getNextSegment();
+      virtual void updateStatistic(Time start, Time stop, unsigned int segment_size) = 0;
 
     protected:
       dash::mpd::IMPD* mpd;
@@ -44,8 +48,9 @@ namespace ns3
       dash::mpd::IPeriod* currentPeriod;
       unsigned int currentSegmentNr;
       std::string base_url;
+      utils::Buffer* buf;
 
-      virtual dash::mpd::IRepresentation* getOptimalRepresentation(dash::mpd::IPeriod *period){return NULL;}
+      virtual dash::mpd::IRepresentation* getOptimalRepresentation(dash::mpd::IPeriod *period) = 0;
 
       virtual dash::mpd::IPeriod* getFirstPeriod();
 

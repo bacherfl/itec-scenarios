@@ -32,3 +32,7 @@ extensions/dash/idownloader.h
 extensions/dash/idownloader.cc
 extensions/dash/simplendndownloader.h
 extensions/dash/simplendndownloader.cc
+extensions/dash/ratebasedadaptationlogic.h
+extensions/dash/ratebasedadaptationlogic.cc
+extensions/dash/bufferbasedadaptationlogic.h
+extensions/dash/bufferbasedadaptationlogic.cc
