@@ -17,7 +17,8 @@ namespace ns3
   {
     enum DownloaderType
     {
-        SimpleNDN
+      SimpleNDN,
+      PipelineNDN
     };
 
     class IDownloader : public utils::Observable

@@ -21,6 +21,7 @@
 #include "idownloader.h"
 
 #include "simplendndownloader.h"
+#include "pipelinendndownloader.h"
 #include "alwayslowestadaptationlogic.h"
 #include "ratebasedadaptationlogic.h"
 #include "bufferbasedadaptationlogic.h"
@@ -36,7 +37,7 @@
 namespace ns3
 {
   namespace dashimpl
-  {  
+  {
     class PlayerFactory
     {
     public:

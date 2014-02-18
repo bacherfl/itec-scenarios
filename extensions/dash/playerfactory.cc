@@ -68,6 +68,12 @@ IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Nod
       d = new SimpleNDNDownloader();
       break;
     }
+    case dashimpl::PipelineNDN:
+    {
+      d = new PipelineNDNDownloader();
+      break;
+    }
+
     default:
       d = new SimpleNDNDownloader();
   }

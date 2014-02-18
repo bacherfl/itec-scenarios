@@ -36,3 +36,5 @@ extensions/dash/ratebasedadaptationlogic.h
 extensions/dash/ratebasedadaptationlogic.cc
 extensions/dash/bufferbasedadaptationlogic.h
 extensions/dash/bufferbasedadaptationlogic.cc
+extensions/dash/pipelinendndownloader.h
+extensions/dash/pipelinendndownloader.cc
