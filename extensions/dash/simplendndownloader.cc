@@ -27,7 +27,6 @@ bool SimpleNDNDownloader::download (Segment *s)
   NS_LOG_FUNCTION(cur_chunk_uri << this);
 
   downloadChunk();
-
   return true;
 }
 
