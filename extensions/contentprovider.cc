@@ -61,7 +61,7 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
   std::string fname = interest->GetName().toUri();  // get the uri from interest
   fname = fname.substr(ndn_prefix.length(), fname.length()); // remove the prefix
   fname = std::string(content_path).append(fname); // prepend the data path
-  std::string chunk_nr = fname.substr(fname.find_last_not_of ("/chunk_"), fname.length ()); // extract the chunk number remove .../chunk_X
+  std::string chunk_nr = fname.substr(fname.find_last_of ("/chunk_")+1); // extract the chunk number remove .../chunk_X
   fname = fname.substr (0, fname.find_last_of ("/"));
 
   //fprintf(stderr, "FNAME = %s\n",fname.c_str ());
