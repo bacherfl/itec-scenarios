@@ -22,6 +22,7 @@
 
 #include "simplendndownloader.h"
 #include "pipelinendndownloader.h"
+#include "windowndndownloader.h"
 #include "alwayslowestadaptationlogic.h"
 #include "ratebasedadaptationlogic.h"
 #include "bufferbasedadaptationlogic.h"
