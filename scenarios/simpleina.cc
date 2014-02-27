@@ -57,7 +57,8 @@ int main(int argc, char* argv[])
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate");
+  ndnHelper.EnableLimits (true, Seconds(0.2), 100, 4200);
   ndnHelper.InstallAll ();
 
   // Installing global routing interface on all nodes
@@ -76,7 +77,7 @@ int main(int argc, char* argv[])
   ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
   consumerHelper.SetPrefix ("/dummy/data");
   consumerHelper.SetAttribute ("Frequency", StringValue("30")); //30 interests a second (ca. 1MBit traffic)
-  ApplicationContainer dummyConsumer = consumerHelper.Install(dummyDst);
+  //ApplicationContainer dummyConsumer = consumerHelper.Install(dummyDst);
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
   producerHelper.SetPrefix ("/dummy");
@@ -109,16 +110,16 @@ int main(int argc, char* argv[])
 
   ndn::AppHelper dashContentProviderHelper ("ContentProvider");
   dashContentProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
-  dashContentProviderHelper.SetAttribute("Prefix", StringValue("/www-itec.uni-klu.ac.at/ftp/datasets/mmsys12/BigBuckBunny"));
+  dashContentProviderHelper.SetAttribute("Prefix", StringValue("/itec/BigBuckBunny"));
   ApplicationContainer contentProvider = dashContentProviderHelper.Install (contentSrc);
 
-  ndnGlobalRoutingHelper.AddOrigins("/www-itec.uni-klu.ac.at/ftp/datasets/mmsys12/BigBuckBunny", contentSrc);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/BigBuckBunny", contentSrc);
 
   contentProvider.Start (Seconds(0.0));
   dashContainer.Start (Seconds(1.0));
-  dummyProducer.Start (Seconds(0.0));
-  dummyConsumer.Start (Seconds(5.0));
-  dummyConsumer.Stop (Seconds(10.0));
+  //dummyProducer.Start (Seconds(0.0));
+  //dummyConsumer.Start (Seconds(5.0));
+  //dummyConsumer.Stop (Seconds(10.0));
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();

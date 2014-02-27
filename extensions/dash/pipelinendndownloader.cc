@@ -14,17 +14,13 @@ PipelineNDNDownloader::PipelineNDNDownloader() : IDownloader()
   m_rtt = CreateObject<ndn::RttMeanDeviation> ();
 }
 
-
-
 bool PipelineNDNDownloader::download (Segment *s)
 {
   NS_LOG_FUNCTION(this);
   StartApplication ();
-  fprintf(stderr, "Download called\n");
+  //fprintf(stderr, "Download called\n");
 
   bytesToDownload = s->getSize ();
-
-
   cur_chunk_uri = s->getUri();
   chunk_number = 0;
 
@@ -115,8 +111,10 @@ void PipelineNDNDownloader::checkForSendPackets()
    // fprintf(stderr, "%d packets send...\n", cnt);
     // no need to schedule next event if there is no data in here
     Simulator::Schedule(Seconds (NDN_PIPELINE_SENDPACKET_SCHEDULE), &PipelineNDNDownloader::checkForSendPackets, this);
-  } else {
-    fprintf(stderr, "checkForSend: no data available\n");
+  }
+  else
+  {
+    //fprintf(stderr, "checkForSend: no data available\n");
   }
 }
 
@@ -213,7 +211,7 @@ void PipelineNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
     if (ok)
     {
-      fprintf(stderr, "DEBUG: notifying observer\n");
+      //fprintf(stderr, "DEBUG: notifying observer\n");
       NS_LOG_FUNCTION(std::string("Finally received segment: ").append(d->base_uri) << this);
 
       this->chunks_status.pop();

@@ -55,6 +55,7 @@ void DashPlayer::streaming ()
     }
 
     dlStartTime = Simulator::Now ();
+    fprintf(stderr, "DashPlayer::requesting Segment: %s\n", cur_seg->getUri ().c_str ());
     downloader->download (cur_seg);
     isStreaming = true;
   }

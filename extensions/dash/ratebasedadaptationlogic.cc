@@ -20,8 +20,6 @@ dash::mpd::IRepresentation* RateBasedAdaptationLogic::getOptimalRepresentation(d
   dash::mpd::IRepresentation* rep = getLowestRepresentation (period);
   unsigned int avg = getAvgDLS();
 
-  fprintf(stderr, "avg = %d\n", avg );
-
   for(int i = 0; i < reps.size (); i++)
   {
     if(reps.at(i)->GetBandwidth() <= avg && reps.at(i)->GetBandwidth() > rep->GetBandwidth ())
@@ -59,8 +57,8 @@ void RateBasedAdaptationLogic::updateStatistic(Time start, Time stop, unsigned i
   //fprintf(stderr, "segmentsize bits = %d\n", bits);
   bits = bits * 1000;
   bits = bits / dif; // 1000 * bits / ms = bits / s
-  fprintf(stderr, "avg bits = %d\n", bits);
-  bits = bits * 0.7; //introduce 30% safety
+  //fprintf(stderr, "avg bits = %d\n", bits);
+  bits = bits * 0.8; //introduce 20% safety
 
   //fprintf(stderr, "avg kbits = %d\n", bits);
 

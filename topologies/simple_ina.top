@@ -12,8 +12,8 @@ DummySrc     NA       3       5
 link
 
 # srcNode     dstNode       bandwidth   metric    delay  queue
-ContentDst    AdaptiveNode    3Mbps       1        5ms    20
-DummyDst      AdaptiveNode    3Mbps       1        5ms    20
-AdaptiveNode  SimpleNode      3Mbps       1        5ms    20
-SimpleNode    ContentSrc      3Mbps       1        5ms    20
-SimpleNode    DummySrc        3Mbps       1        5ms    20
+ContentDst    AdaptiveNode    3Mbps       1        5ms    30
+DummyDst      AdaptiveNode    3Mbps       1        5ms    30
+AdaptiveNode  SimpleNode      3Mbps       1        5ms    30
+SimpleNode    ContentSrc      3Mbps       1        5ms    30
+SimpleNode    DummySrc        3Mbps       1        5ms    30

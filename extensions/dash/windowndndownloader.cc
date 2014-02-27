@@ -15,7 +15,7 @@ bool WindowNDNDownloader::download (Segment *s)
   NS_LOG_FUNCTION(this);
   StartApplication ();
 
-  bytesToDownload = s->getSize ();
+  bytesToDownload = s->getSize();
   cur_chunk_uri = s->getUri();
   chunk_number = 0;
 
