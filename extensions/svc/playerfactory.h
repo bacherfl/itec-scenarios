@@ -22,7 +22,8 @@ namespace ns3
     class PlayerFactory
     {
     public:
-      SvcPlayer* createPlayer(std::string mpd_path, unsigned int buffer_size, utils::DownloaderType downloader, Ptr<ns3::Node> node);
+      SvcPlayer* createPlayer(std::string mpd_path, unsigned int buffer_size, utils::DownloaderType downloader,
+                              unsigned int maxWidth, unsigned int maxHeight, Ptr<ns3::Node> node);
       static PlayerFactory* getInstance();
 
     private:

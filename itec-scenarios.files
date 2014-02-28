@@ -45,3 +45,5 @@ extensions/svc/playerfactory.h
 extensions/svc/playerfactory.cc
 extensions/svcrequester.h
 extensions/svcrequester.cc
+extensions/svc/svcsegmentextractor.h
+extensions/svc/svcsegmentextractor.cc
