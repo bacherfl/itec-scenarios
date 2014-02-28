@@ -13,13 +13,12 @@
 
 namespace ns3
 {
-  namespace dashimpl
+  namespace utils
   {
     enum DownloaderType
     {
       SimpleNDN,
-      PipelineNDN,
-      WindowNDN
+      PipelineNDN
     };
 
     class IDownloader : public utils::Observable

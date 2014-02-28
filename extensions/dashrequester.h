@@ -18,7 +18,7 @@
 #include "dash/playerfactory.h"
 #include "dash/dashplayer.h"
 #include "dash/iadaptationlogic.h"
-#include "dash/idownloader.h"
+#include "utils/idownloader.h"
 
 NS_LOG_COMPONENT_DEFINE ("DashRequester");
 namespace ns3 {

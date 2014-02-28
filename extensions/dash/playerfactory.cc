@@ -1,6 +1,7 @@
 #include "playerfactory.h"
 
 using namespace ns3::dashimpl;
+using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("PlayerFactory");
 
@@ -63,19 +64,14 @@ IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Nod
 
   switch(downloader)
   {
-    case dashimpl::SimpleNDN:
+    case SimpleNDN:
     {
       d = new SimpleNDNDownloader();
       break;
     }
-    case dashimpl::PipelineNDN:
+    case PipelineNDN:
     {
       d = new PipelineNDNDownloader();
-      break;
-    }
-    case dashimpl::WindowNDN:
-    {
-      d = new WindowNDNDownloader();
       break;
     }
     default:

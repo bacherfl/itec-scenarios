@@ -8,7 +8,7 @@
 #include "ns3-dev/ns3/timer.h"
 
 #include "../utils/buffer.h"
-#include "segment.h"
+#include "../utils/segment.h"
 
 #include <limits.h>
 
@@ -39,7 +39,7 @@ namespace ns3
       IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf);
 
       virtual ~IAdaptationLogic(){}
-      virtual Segment* getNextSegment();
+      virtual utils::Segment* getNextSegment();
       virtual void updateStatistic(Time start, Time stop, unsigned int segment_size) = 0;
 
     protected:

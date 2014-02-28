@@ -1,6 +1,6 @@
 #include "pipelinendndownloader.h"
 
-using namespace ns3::dashimpl;
+using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("PipelineNDNDownloader");
 

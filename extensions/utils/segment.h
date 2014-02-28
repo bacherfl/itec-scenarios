@@ -7,7 +7,7 @@
 
 namespace ns3
 {
-  namespace dashimpl
+  namespace utils
   {
     class Segment
     {

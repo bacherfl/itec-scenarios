@@ -2,10 +2,10 @@
 #define DASHPLAYER_H
 
 #include "iadaptationlogic.h"
-#include "idownloader.h"
+#include "../utils/idownloader.h"
 #include "../utils/observer.h"
 #include "../utils/buffer.h"
-#include "segment.h"
+#include "../utils/segment.h"
 
 #include "libdash/libdash.h"
 
@@ -23,7 +23,7 @@ namespace ns3
     {
     public:
 
-      DashPlayer(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic* alogic, ns3::utils::Buffer* buf, dashimpl::IDownloader* downloader);
+      DashPlayer(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic* alogic, ns3::utils::Buffer* buf, utils::IDownloader* downloader);
       virtual ~DashPlayer(){}
 
       virtual void play();
@@ -38,12 +38,12 @@ namespace ns3
 
       dash::mpd::IMPD* mpd;
       dashimpl::IAdaptationLogic* alogic;
-      dashimpl::IDownloader* downloader;
+      utils::IDownloader* downloader;
       ns3::utils::Buffer* buf;
 
       bool isPlaying;
       bool isStreaming;
-      Segment* cur_seg;
+      utils::Segment* cur_seg;
 
       Time dlStartTime;
 

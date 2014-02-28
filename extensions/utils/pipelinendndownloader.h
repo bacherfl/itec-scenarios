@@ -36,7 +36,7 @@
 
 namespace ns3
 {
-  namespace dashimpl
+  namespace utils
   {
     class PipelineNDNDownloader : public IDownloader, public ndn::App
     {

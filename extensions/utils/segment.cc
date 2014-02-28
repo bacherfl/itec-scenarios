@@ -2,7 +2,7 @@
 
 NS_LOG_COMPONENT_DEFINE ("Segment");
 
-using namespace ns3::dashimpl;
+using namespace ns3::utils;
 
 Segment::Segment(std::string uri, unsigned int size, unsigned int duration)
 {

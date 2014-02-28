@@ -15,7 +15,7 @@
 #include "ns3-dev/ns3/ndn-data.h"
 #include "ns3-dev/ns3/ndn-fib.h"
 
-#include "dash/idownloader.h"
+#include "utils/idownloader.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
