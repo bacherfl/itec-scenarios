@@ -1,5 +1,5 @@
-#ifndef DASHREQUESTER_H
-#define DASHREQUESTER_H
+#ifndef SVCREQUESTER_H
+#define SVCREQUESTER_H
 
 #include "ns3-dev/ns3/ndn-app.h"
 #include "ns3-dev/ns3/simulator.h"
@@ -7,15 +7,15 @@
 #include "ns3-dev/ns3/ptr.h"
 #include "ns3-dev/ns3/log.h"
 
-#include "dash/playerfactory.h"
-#include "dash/dashplayer.h"
-#include "dash/iadaptationlogic.h"
 #include "utils/idownloader.h"
 
-NS_LOG_COMPONENT_DEFINE ("DashRequester");
+#include "svc/playerfactory.h"
+#include "svc/svcplayer.h"
+
+NS_LOG_COMPONENT_DEFINE ("SvcRequester");
 namespace ns3 {
 
-class DashRequester : public ndn::App
+class SvcRequester : public ndn::App
 {
 public:
   // register NS-3 type "CustomApp"
@@ -37,9 +37,8 @@ private:
   unsigned int buffer_size;
   std::string mpd_path;
 
-  ns3::dashimpl::DashPlayer *player;
+  ns3::svc::SvcPlayer *player;
 
 };
-
 }
-#endif // DASHREQUESTER_H
+#endif // SVCREQUESTER_H

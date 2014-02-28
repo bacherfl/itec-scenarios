@@ -15,18 +15,18 @@ TypeId DashRequester::GetTypeId ()
                     StringValue("/path/to/mpd"),
                     MakeStringAccessor(&DashRequester::mpd_path),
                     MakeStringChecker ())
-      .AddAttribute("InterestPipeline", "The number of maximum pending interests",
+      /*.AddAttribute("InterestPipeline", "The number of maximum pending interests",
                     UintegerValue(8),
                     MakeUintegerAccessor (&DashRequester::interest_pipeline),
-                    MakeUintegerChecker<uint32_t> ())
+                    MakeUintegerChecker<uint32_t> ())*/
       .AddAttribute("BufferSize", "The buffer size in seconds.",
                     UintegerValue(20),
                     MakeUintegerAccessor (&DashRequester::buffer_size),
-                    MakeUintegerChecker<uint32_t> ())
-      .AddAttribute("SizeOfDataObjects", "The expected size of requested data objects.",
+                    MakeUintegerChecker<uint32_t> ());
+      /*.AddAttribute("SizeOfDataObjects", "The expected size of requested data objects.",
                     UintegerValue(1024),
                     MakeUintegerAccessor (&DashRequester::size_of_data_objects),
-                     MakeUintegerChecker<uint32_t> ());
+                     MakeUintegerChecker<uint32_t> ())*/
   return tid;
 }
 

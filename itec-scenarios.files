@@ -39,3 +39,9 @@ extensions/dash/ratebasedadaptationlogic.cc
 extensions/dash/bufferbasedadaptationlogic.h
 extensions/dash/bufferbasedadaptationlogic.cc
 
+extensions/svc/svcplayer.h
+extensions/svc/svcplayer.cc
+extensions/svc/playerfactory.h
+extensions/svc/playerfactory.cc
+extensions/svcrequester.h
+extensions/svcrequester.cc
