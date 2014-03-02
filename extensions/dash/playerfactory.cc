@@ -74,6 +74,11 @@ IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Nod
       d = new PipelineNDNDownloader();
       break;
     }
+    case TimeoutNDN:
+    {
+      d = new TimeoutNDNDownloader();
+      break;
+    }
     default:
       d = new SimpleNDNDownloader();
   }

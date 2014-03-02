@@ -13,6 +13,7 @@
 #include "../utils/idownloader.h"
 #include "../utils/buffer.h"
 #include "../utils/simplendndownloader.h"
+#include "../utils/timeoutndndownloader.h"
 #include "../utils/pipelinendndownloader.h"
 
 namespace ns3

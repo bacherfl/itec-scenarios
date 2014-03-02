@@ -47,3 +47,5 @@ extensions/svcrequester.h
 extensions/svcrequester.cc
 extensions/svc/svcsegmentextractor.h
 extensions/svc/svcsegmentextractor.cc
+extensions/utils/timeoutndndownloader.h
+extensions/utils/timeoutndndownloader.cc
