@@ -159,7 +159,8 @@ void PipelineNDNDownloader::OnTimeout (uint32_t sequenceNumber)
 void PipelineNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 {
   App::OnNack(interest);
-  fprintf(stderr, "ON Nack called...\n");
+  fprintf(stderr, "ON Nack called (%s)...\n", interest->GetName().toUri().c_str());
+
 }
 
 void PipelineNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
