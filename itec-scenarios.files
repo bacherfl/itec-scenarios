@@ -51,3 +51,7 @@ extensions/utils/timeoutndndownloader.h
 extensions/utils/timeoutndndownloader.cc
 extensions/utils/congestionwindow.h
 extensions/utils/congestionwindow.cc
+extensions/utils/windowndndownloader.h
+extensions/utils/windowndndownloader.cc
+extensions/utils/ndnsegmentstatus.h
+extensions/utils/ndnsegmentstatus.cc

@@ -33,6 +33,7 @@
 #include "../utils/simplendndownloader.h"
 #include "../utils/timeoutndndownloader.h"
 #include "../utils/pipelinendndownloader.h"
+#include "../utils/windowndndownloader.h"
 
 namespace ns3
 {

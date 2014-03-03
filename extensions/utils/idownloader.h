@@ -19,7 +19,8 @@ namespace ns3
     {
       SimpleNDN,
       PipelineNDN,
-      TimeoutNDN
+      TimeoutNDN,
+      WindowNDN
     };
 
     class IDownloader : public utils::Observable

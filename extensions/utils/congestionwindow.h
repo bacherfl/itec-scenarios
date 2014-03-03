@@ -16,6 +16,8 @@ namespace ns3
     CongestionWindow();
     CongestionWindow(int window_size, int window_threshold);
 
+    void Reset();
+
     void SetWindowSize(int window_size);
     void SetThreshold(int window_threshold);
 
@@ -25,9 +27,17 @@ namespace ns3
     int IncreaseWindow();
     int DecreaseWindow();
 
+    void SetReceiverWindowSize(int recv_window);
+    int GetReceiverWindowSize();
+
   protected:
     int window_size;
     int window_threshold;
+
+    int recv_window_size;
+
+    int start_window_size;
+    int start_window_threshold;
   };
 }
 #endif // CONGESTIONWINDOW_H
