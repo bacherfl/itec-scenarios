@@ -32,3 +32,22 @@ unsigned int Segment::getLevel ()
 {
   return level;
 }
+
+std::string Segment::toString ()
+{
+  std::string ret("");
+  ret.append ("SegUri: ").append (uri);
+  ret.append (" SegSize: ").append(convertInt (size));
+  ret.append (" SegDuration: ").append(convertInt (duration));
+  ret.append (" SegLevel: ").append(convertInt (level));
+
+  return ret;
+}
+
+std::string Segment::convertInt(unsigned int number)
+{
+   std::stringstream ss;
+   ss << number;
+   return ss.str();
+}
+

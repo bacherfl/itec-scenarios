@@ -6,13 +6,17 @@
 #include "../utils/buffer.h"
 #include "../utils/segment.h"
 
+#include "ns3-dev/ns3/simulator.h"
+
 #include "svcsegmentextractor.h"
+
+#define CONSUME_INTERVALL 1.0
 
 namespace ns3
 {
     namespace svc
     {
-    class SvcPlayer
+    class SvcPlayer : utils::Observer
     {
     public:
       SvcPlayer(dash::mpd::IMPD* mpd, std::string dataset_path, ns3::utils::IDownloader* downloader,
@@ -25,6 +29,16 @@ namespace ns3
       ns3::utils::IDownloader* downloader;
       ns3::utils::Buffer* buf;
       SVCSegmentExtractor* extractor;
+
+      std::vector<utils::Segment*> current_segments;
+
+      bool isPlaying;
+      bool isStreaming;
+
+      virtual void update();
+
+      void streaming();
+      void consume();
     };
   }
 }

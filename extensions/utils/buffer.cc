@@ -57,12 +57,12 @@ bool Buffer::isFull ()
   return false;
 }
 
-unsigned int Buffer::fillPercentage()
+double Buffer::fillPercentage()
 {
   double percent = (100 * cur_size);
   percent /= this->max_size;
 
-  return (int)(percent+0.5);
+  return percent / 100;
 }
 
 unsigned int Buffer::maxBufferSeconds()
