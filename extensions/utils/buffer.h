@@ -18,7 +18,7 @@ namespace ns3
       bool isEmpty();
       bool isFull();
 
-      unsigned int fillPercentage();
+      double fillPercentage();
       unsigned int maxBufferSeconds();
       unsigned int bufferedSeconds();
 

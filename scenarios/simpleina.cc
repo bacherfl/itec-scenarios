@@ -102,27 +102,29 @@ int main(int argc, char* argv[])
   }*/
 
   //multimedia traffic
-  /*ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);*/
+  ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
 
-  ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
-  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
+  /*ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
+  //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
+  //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
+  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer svcContainer = svcRequesterHelper.Install(contentDst);
+  ApplicationContainer svcContainer = svcRequesterHelper.Install(contentDst);*/
 
   ndn::AppHelper cProviderHelper ("ContentProvider");
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
-  cProviderHelper.SetAttribute("Prefix", StringValue("/itec/BigBuckBunny"));
+  cProviderHelper.SetAttribute("Prefix", StringValue("/itec/bbb"));
   ApplicationContainer contentProvider = cProviderHelper.Install (contentSrc);
 
-  ndnGlobalRoutingHelper.AddOrigins("/itec/BigBuckBunny", contentSrc);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb", contentSrc);
   ndnGlobalRoutingHelper.AddOrigins("/itec/sintel", contentSrc);
 
   contentProvider.Start (Seconds(0.0));
-  svcContainer.Start (Seconds(1.0));
-  //dashContainer.Start (Seconds(1.0));
+  //svcContainer.Start (Seconds(1.0));
+  dashContainer.Start (Seconds(1.0));
   //dummyProducer.Start (Seconds(0.0));
   //dummyConsumer.Start (Seconds(5.0));
   //dummyConsumer.Stop (Seconds(10.0));
@@ -132,7 +134,7 @@ int main(int argc, char* argv[])
 
   NS_LOG_UNCOND("Simulation will be started!");
 
-  Simulator::Stop (Seconds (100.0));
+  Simulator::Stop (Seconds (600.0)); //runs for 10 min.
   Simulator::Run ();
   Simulator::Destroy ();
 

@@ -23,7 +23,7 @@ void DashPlayer::play ()
   NS_LOG_FUNCTION(this);
   isPlaying = true;
   streaming ();
-  Simulator::Schedule(Seconds(3.0), &DashPlayer::consume, this);
+  Simulator::Schedule(Seconds(2.0), &DashPlayer::consume, this);
 }
 
 void DashPlayer::streaming ()
@@ -36,8 +36,8 @@ void DashPlayer::streaming ()
     //check if last segment
     if(cur_seg == NULL)
     {
-      isPlaying = false;
-      //break;
+      //isPlaying = false;
+      return;
     }
 
    //w8 if buffer is full
@@ -84,7 +84,7 @@ void DashPlayer::update ()
 void DashPlayer::consume ()
 {
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
-    fprintf(stderr, "CONSUMED FAILED");
+    fprintf(stderr, "CONSUMED FAILED\n");
 
   Simulator::Schedule(Seconds (CONSUME_INTERVALL), &DashPlayer::consume, this);
 }
