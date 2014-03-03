@@ -40,10 +40,11 @@ unsigned int RateBasedAdaptationLogic::getAvgDLS ()
       counter++;
     }
 
-  avg /= counter;
-
   if(counter > 0)
+  {
+    avg /= counter;
     return avg * buf->fillPercentage ();
+  }
   else
     return 0;
 }
