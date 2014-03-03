@@ -3,6 +3,12 @@
 
 #include "idownloader.h"
 
+#include "ns3-dev/ns3/core-module.h"
+#include "ns3-dev/ns3/network-module.h"
+#include "ns3-dev/ns3/ndnSIM-module.h"
+#include "ns3-dev/ns3/point-to-point-module.h"
+
+
 #include "ns3-dev/ns3/ndn-app.h"
 #include "ns3-dev/ns3/simulator.h"
 #include "ns3-dev/ns3/string.h"

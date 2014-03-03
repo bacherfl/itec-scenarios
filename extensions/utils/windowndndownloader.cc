@@ -1,5 +1,6 @@
 #include "windowndndownloader.h"
 
+using namespace ns3;
 using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("WindowNDNDownloader");
@@ -27,18 +28,34 @@ bool WindowNDNDownloader::download (Segment *s)
   NS_LOG_FUNCTION(this);
   StartApplication ();
 
-  //fprintf(stderr, "Freeing stuff...\n");
 
-  // check if this->segmentStatus is != NULL, if so, we need to free the memory used
+  // Get Device Bitrate
+
+  Ptr<PointToPointNetDevice> nd1 = this->m_face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
+
+  DataRate d;
+  DataRateValue dv;
+
+  nd1->GetAttribute("DataRate", dv);
+  d = dv.Get();
+
+  uint64_t bitrate = d.GetBitRate();
+
+
+  int max_packets = bitrate / (MAX_PACKET_PAYLOAD + 20) / 8;
+  //fprintf(stderr, "Max Packets per second = %d\n", max_packets);
+
+  // set threshold to max_packets / 4
+  cwnd.SetReceiverWindowSize(max_packets);
+  cwnd.SetThreshold(max_packets/4);
+
+
 
   if (this->curSegmentStatus.chunk_status != NULL)
     delete this->curSegmentStatus.chunk_status;
 
-  //fprintf(stderr, "freeing timeout events\n");
   if (this->curSegmentStatus.chunk_timeout_events != NULL)
     delete[] this->curSegmentStatus.chunk_timeout_events;
-
-  //fprintf(stderr, "Done freeing timeout events\n");
 
 
   this->curSegmentStatus.base_uri = s->getUri();
@@ -76,6 +93,7 @@ bool WindowNDNDownloader::download (Segment *s)
   }
 
   NS_LOG_FUNCTION(this->curSegmentStatus.base_uri << this);
+
 
 
   downloadChunk(0);
