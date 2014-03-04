@@ -3,9 +3,9 @@
 #include "ns3-dev/ns3/ndnSIM-module.h"
 #include "ns3-dev/ns3/point-to-point-module.h"
 
-
 #include "../extensions/backgroundtraffic.h"
 
+#include "../extensions/svc/svcadaptivestrategy.h"
 
 using namespace ns3;
 
@@ -51,27 +51,40 @@ int main(int argc, char* argv[])
 
   bool  background_traffic = false;
 
-
-
   parseParameters(argc, argv, background_traffic);
 
-  // Install NDN stack on all nodes
+  NodeContainer adaptiveNodes;
+  NodeContainer normalNodes;
+
+  // fetch src und dst nodes
+  Ptr<Node> contentDst = Names::Find<Node>("ContentDst");
+  normalNodes.Add (contentDst);
+  Ptr<Node> dummyDst = Names::Find<Node>("DummyDst");
+  normalNodes.Add (dummyDst);
+  Ptr<Node> adaptiveNode = Names::Find<Node>("AdaptiveNode");
+  adaptiveNodes.Add (adaptiveNode);
+  Ptr<Node> simpleNode = Names::Find<Node>("SimpleNode");
+  normalNodes.Add (simpleNode);
+  Ptr<Node> dummySrc = Names::Find<Node>("DummySrc");
+  normalNodes.Add (dummySrc);
+  Ptr<Node> contentSrc = Names::Find<Node>("ContentSrc");
+  normalNodes.Add (contentSrc);
+
+  // Install NDN stack on all normal nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate");
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate",  "EnableNACKs", "true");
   ndnHelper.EnableLimits (true, Seconds(0.2), 100, 4200);
-  ndnHelper.InstallAll ();
+  ndnHelper.Install(normalNodes);
+
+  //change strategy for adaptive NODE
+  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SVCAdaptiveStrategy");
+  ndnHelper.EnableLimits (false);
+  ndnHelper.Install (adaptiveNodes);
 
   // Installing global routing interface on all nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.InstallAll ();
 
-  // fetch src und dst nodes
-  Ptr<Node> contentDst = Names::Find<Node>("ContentDst");
-  Ptr<Node> dummyDst = Names::Find<Node>("DummyDst");
-  Ptr<Node> adaptiveNode = Names::Find<Node>("AdaptiveNode");
-  Ptr<Node> simpleNode = Names::Find<Node>("SimpleNode");
-  Ptr<Node> dummySrc = Names::Find<Node>("DummySrc");
-  Ptr<Node> contentSrc = Names::Find<Node>("ContentSrc");
 
   //background traffix
   ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");

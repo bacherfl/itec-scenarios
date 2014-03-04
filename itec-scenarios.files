@@ -55,3 +55,5 @@ extensions/utils/windowndndownloader.h
 extensions/utils/windowndndownloader.cc
 extensions/utils/ndnsegmentstatus.h
 extensions/utils/ndnsegmentstatus.cc
+extensions/svc/svcadaptivestrategy.h
+extensions/svc/svcadaptivestrategy.cc
