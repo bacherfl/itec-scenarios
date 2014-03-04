@@ -77,15 +77,13 @@ int main(int argc, char* argv[])
   ndnHelper.Install(normalNodes);
 
   //change strategy for adaptive NODE
-  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SVCAdaptiveStrategy");
+  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SmartFlooding::Stats::SVCAdaptiveStrategy::PerOutFaceLimits");
   ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNodes);
 
   // Installing global routing interface on all nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.InstallAll ();
-
-
 
   // enalbe background traffic?
   if (background_traffic)

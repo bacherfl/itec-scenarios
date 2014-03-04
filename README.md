@@ -32,4 +32,7 @@ Install Guide (testet on Ubuntu 12.04 64bit)
     * ./waf 
     * ./waf --run example --vis
 
+#some examples
+		* git clone https://github.com/cawka/ndnSIM-ddos-interest-flooding.git
+
 ==============
