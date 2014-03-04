@@ -59,7 +59,7 @@ namespace ns3{
 
       ApplicationContainer dummyProducer = m_producerHelper->Install(producerList);
       dummyProducer.Start (Seconds(this->m_bgtrafficstart));
-      dummyProducer.Stop (Seconds(this->m_bgtrafficstop));
+      dummyProducer.Stop (Seconds(this->m_bgtrafficstop+0.1)); // make sure to have the producer available for a little bit longer
       ndnGlobalRoutingHelper.AddOrigins(this->ndn_prefix, producerList);
 
 

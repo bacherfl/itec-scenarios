@@ -86,20 +86,8 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.InstallAll ();
 
 
-  //background traffix
-  ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
-  consumerHelper.SetPrefix ("/dummy/data");
-  consumerHelper.SetAttribute ("Frequency", StringValue("30")); //30 interests a second (ca. 1MBit traffic)
-  //ApplicationContainer dummyConsumer = consumerHelper.Install(dummyDst);
 
-  ndn::AppHelper producerHelper ("ns3::ndn::Producer");
-  producerHelper.SetPrefix ("/dummy");
-  producerHelper.SetAttribute ("PayloadSize", StringValue("4096"));
-  ApplicationContainer dummyProducer = producerHelper.Install(dummySrc); // last node
-
-  ndnGlobalRoutingHelper.AddOrigins("/dummy", dummySrc);
-
-  /*// enalbe background traffic?
+  // enalbe background traffic?
   if (background_traffic)
   {
     NS_LOG_UNCOND("Background Traffic enabled");
@@ -110,9 +98,9 @@ int main(int argc, char* argv[])
     std::string dummy_prefix = "/dummy";
 
     // install background traffic
-    BackgroundTraffic bgTrafficHelper(1.0, 2.0, dummy_prefix);
+    BackgroundTraffic bgTrafficHelper(25.0, 50.0, dummy_prefix);
     bgTrafficHelper.Install(dummySrcNodes, dummyDstNodes, ndnGlobalRoutingHelper);
-  }*/
+  }
 
   //multimedia traffic
   ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
