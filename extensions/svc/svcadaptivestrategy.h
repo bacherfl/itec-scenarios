@@ -15,33 +15,37 @@
 #include "../../../ns-3/src/ndnSIM/model/fw/smart-flooding.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/per-out-face-limits.h"
 
-#include "../statscollector.h"
+#include "../utils/ndntracer.h"
+
 #include <stdio.h>
 
 namespace ns3 {
 namespace ndn {
 namespace fw {
 
-// ns3::ndn::fw::ANYFORWARDINGSTRATEGY::StatsCollector::SVCAdaptiveStrategy
+// ns3::ndn::fw::ANYFORWARDINGSTRATEGY::SVCAdaptiveStrategy
 template<class Parent>
-class SVCAdaptiveStrategy:
-    public StatsCollector< Parent >
+class SVCAdaptiveStrategy: public Parent
 {
+  typedef Parent super;
+
 public:
-
-  typedef StatsCollector< Parent > super;
-
   static TypeId GetTypeId ();
 
   static std::string GetLogName ();
 
-  SVCAdaptiveStrategy () {}
+  SVCAdaptiveStrategy () {tracer = NULL;}
+
+  virtual void AddFace(Ptr<Face> face);
+  virtual void RemoveFace(Ptr<Face> face);
 
   virtual void OnInterest(Ptr< Face > face, Ptr< Interest > interest);
   virtual void DidSendOutInterest (Ptr<Face> inFace, Ptr<Face> outFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
 
 protected:
   static LogComponent g_log;
+private:
+  utils::NDNTracer* tracer;
 };
 
 template<class Parent>
@@ -64,6 +68,26 @@ std::string SVCAdaptiveStrategy<Parent>::GetLogName ()
 }
 
 template<class Parent>
+void SVCAdaptiveStrategy<Parent>::AddFace (Ptr<Face> face)
+{
+  if(tracer == NULL)
+    tracer = new utils::NDNTracer(this);
+
+  tracer->addFace (face);
+
+  super::AddFace(face);
+}
+
+template<class Parent>
+void SVCAdaptiveStrategy<Parent>::RemoveFace (Ptr<Face> face)
+{
+  if(tracer != NULL)
+    tracer->removeFace(face);
+
+  super::AddFace(face);
+}
+
+template<class Parent>
 void SVCAdaptiveStrategy<Parent>::OnInterest (Ptr< Face > face, Ptr< Interest > interest)
 {
   super::OnInterest(face,interest);
@@ -73,7 +97,7 @@ template<class Parent>
 void SVCAdaptiveStrategy<Parent>::DidSendOutInterest (Ptr<Face> inFace, Ptr<Face> outFace,
                                         Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
-  fprintf(stderr, "SVCAdaptiveStrategy: send out interest: %s\n", interest->GetName().toUri().c_str());
+  //fprintf(stderr, "SVCAdaptiveStrategy: send out interest: %s\n", interest->GetName().toUri().c_str());
   super::DidSendOutInterest (inFace, outFace, interest, pitEntry);
   //todo
 }

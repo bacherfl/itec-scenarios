@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
   ndnHelper.Install(normalNodes);
 
   //change strategy for adaptive NODE
-  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::StatsCollector::SVCAdaptiveStrategy");
+  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCAdaptiveStrategy");
   ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNodes);
 
