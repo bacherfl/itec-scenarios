@@ -1,7 +1,11 @@
 #include "windowndndownloader.h"
+#include "svcleveltag.h"
+
 
 using namespace ns3;
 using namespace ns3::utils;
+
+
 
 NS_LOG_COMPONENT_DEFINE ("WindowNDNDownloader");
 
@@ -94,9 +98,8 @@ bool WindowNDNDownloader::download (Segment *s)
 
   NS_LOG_FUNCTION(this->curSegmentStatus.base_uri << this);
 
-
-
   downloadChunk(0);
+
   return true;
 }
 
@@ -132,12 +135,12 @@ int WindowNDNDownloader::GetNextNeededChunkNumber(int start_chunk_number)
 
 void WindowNDNDownloader::ScheduleNextChunkDownload()
 {
+  NS_LOG_FUNCTION(this);
   int chunk_number = GetNextNeededChunkNumber();
 
   if (chunk_number == -1)
   {
     //fprintf(stderr, "in WindowNDNDownloader::ScheduleNextChunkDownload() - no chunks available to download (bytesToDownload = %d)\n", this->curSegmentStatus.bytesToDownload);
-
     return;
   }
 
@@ -147,6 +150,7 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
   this->scheduleDownloadTimer =
       Simulator::Schedule(MilliSeconds(1000.0 / (float)this->cwnd.GetWindowSize()),
                           &WindowNDNDownloader::downloadChunk, this, chunk_number);
+
 }
 
 
@@ -190,6 +194,22 @@ void WindowNDNDownloader::downloadChunk (int chunk_number)
     {
       ScheduleNextChunkDownload();
     }
+
+
+    // extract the string level
+    // URI='/itec/bbb/bunny_svc_spatial_2s/bbb-svc.264.seg3-L32.svc/chunk_44'
+
+
+    std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
+
+
+     uri = uri.substr(0, uri.find_first_of("."));
+
+    int level = atoi(uri.c_str());
+
+    ndn::SVCLevelTag levelTag;
+    levelTag.Set(level);
+    interest->GetPayload ()->AddPacketTag (levelTag);
 
 
     // Call trace (for logging purposes)
@@ -247,7 +267,27 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   int c_chunk_number = atoi(s.c_str());
 
   NS_LOG_FUNCTION("NACK on chunk " << c_chunk_number << ". " << this);
-  fprintf(stderr, "nack chunk %d\n", c_chunk_number);
+
+  /*  NORMAL_INTEREST = 0,
+      NACK_LOOP = 10,
+      NACK_CONGESTION = 11,
+      NACK_GIVEUP_PIT = 12, */
+
+
+  if (interest->GetNack() == 11)
+  {
+    fprintf(stderr, "nack chunk %d (type: congestion)\n", c_chunk_number);
+
+  } else if (interest->GetNack() == 12)
+  {
+    fprintf(stderr, "nack chunk %d (type: give-up-pit)\n", c_chunk_number);
+
+  }
+  else
+  {
+    fprintf(stderr, "nack chunk %d (type: loop)\n", c_chunk_number);
+  }
+
 
   // adjust stats
   this->packets_inflight--;
@@ -259,6 +299,7 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
   // make sure to cancel the OnTimeout event for this chunk
   this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
+
 
   // re-request the packet
   this->curSegmentStatus.chunk_status[c_chunk_number] = Timeout;
@@ -303,7 +344,6 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   // make sure to cancel the OnTimeout event for this chunk
   this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
 
-
   if(this->curSegmentStatus.bytesToDownload == 0)
   {
     // cancel the scheduled download timer
@@ -313,14 +353,13 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
                       this->curSegmentStatus.base_uri.substr (0,this->curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
     notifyAll (); //notify observers
   } else {
+    // cancel the next download timer, we have a higher congestion window now, which means less waiting time
 
-    // cancel the next download timer, we have a higher congestion window now
-    this->scheduleDownloadTimer.Cancel();
-
-    // make sure that the next packet is scheduled again
-    ScheduleNextChunkDownload();
-
-
+    if (this->scheduleDownloadTimer.IsExpired())
+    {
+      // make sure that the next packet is scheduled again
+      ScheduleNextChunkDownload();
+    }
   }
 }
 

@@ -36,6 +36,7 @@ namespace ns3{
 
   BackgroundTraffic::~BackgroundTraffic()
   {
+    NS_LOG_UNCOND("Destroying background traffic");
     delete this->m_consumerHelper;
     delete this->m_producerHelper;
   }
@@ -46,7 +47,7 @@ namespace ns3{
   void BackgroundTraffic::Install(const NodeContainer& producerList, const NodeContainer& consumerList, ndn::GlobalRoutingHelper& ndnGlobalRoutingHelper)
   {
       NS_LOG_FUNCTION(this);
-      NS_LOG_INFO("In InstallAll() of backgroundtraffic");
+      NS_LOG_UNCOND("In InstallAll() of backgroundtraffic");
       NS_LOG_INFO("BGTRafficStart:" << this->m_bgtrafficstart << ", " << this->m_bgtrafficstop << ";");
 
 
@@ -57,9 +58,10 @@ namespace ns3{
       dummyConsumer.Stop (Seconds(this->m_bgtrafficstop));
 
 
+
       ApplicationContainer dummyProducer = m_producerHelper->Install(producerList);
-      dummyProducer.Start (Seconds(this->m_bgtrafficstart));
-      dummyProducer.Stop (Seconds(this->m_bgtrafficstop+0.1)); // make sure to have the producer available for a little bit longer
+      dummyProducer.Start (Seconds(this->m_bgtrafficstart-0.5));
+      dummyProducer.Stop (Seconds(this->m_bgtrafficstop+5)); // make sure to have the producer available for a little bit longer
       ndnGlobalRoutingHelper.AddOrigins(this->ndn_prefix, producerList);
 
 

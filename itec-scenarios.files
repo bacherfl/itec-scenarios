@@ -64,3 +64,7 @@ extensions/stats/load-stats-face.h
 extensions/stats/load-stats-face.cc
 extensions/stats/load-stats-node.h
 extensions/stats/load-stats-node.cc
+extensions/utils/adaptivequeue.h
+extensions/utils/adaptivequeue.cc
+extensions/utils/svcleveltag.h
+extensions/utils/svcleveltag.cc
