@@ -1,12 +1,5 @@
 #include "svcadaptivestrategy.h"
 
-#include "ns3-dev/ns3/ndn-fib.h"
-#include "ns3-dev/ns3/ndn-fib-entry.h"
-#include "ns3-dev/ns3/ndn-pit-entry.h"
-#include "ns3-dev/ns3/ndn-interest.h"
-
-#include <boost/foreach.hpp>
-
 namespace ns3 {
 namespace ndn {
 namespace fw {

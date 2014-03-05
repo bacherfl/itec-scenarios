@@ -15,8 +15,8 @@ topologies/example2.top
 topologies/simple_ina.top
 extensions/backgroundtraffic.h
 extensions/backgroundtraffic.cc
-extensions/stats.h
-extensions/stats.cc
+extensions/statscollector.h
+extensions/statscollector.cc
 extensions/dash/iadaptationlogic.h
 extensions/dash/dashplayer.h
 extensions/dash/dashplayer.cc
@@ -58,9 +58,3 @@ extensions/utils/ndnsegmentstatus.h
 extensions/utils/ndnsegmentstatus.cc
 extensions/svc/svcadaptivestrategy.h
 extensions/svc/svcadaptivestrategy.cc
-extensions/stats/load-stats.h
-extensions/stats/load-stats.cc
-extensions/stats/load-stats-face.h
-extensions/stats/load-stats-face.cc
-extensions/stats/load-stats-node.h
-extensions/stats/load-stats-node.cc
