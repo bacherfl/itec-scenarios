@@ -67,7 +67,7 @@ namespace ns3
       virtual void downloadChunk(int chunk_number);
       virtual void ScheduleNextChunkDownload();
 
-      virtual bool isPartOfCurrentSegment(std::string packetUri);
+      virtual void CancelAllTimeoutEvents();
 
       Ptr<ndn::RttEstimator> m_rtt;
 

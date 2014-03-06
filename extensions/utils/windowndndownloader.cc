@@ -241,10 +241,6 @@ void WindowNDNDownloader::OnTimeout (int c_chunk_number)
 
 void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 {
-
-  if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
-    return;
-
   // find out what chunk this is
   std::string s =  interest->GetName().toUri().c_str();
   std::string segment_uri;
@@ -255,48 +251,8 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
   NS_LOG_FUNCTION("NACK on chunk " << c_chunk_number << ". " << this);
 
-  /*if (interest->GetNack() == ndn::Interest::NACK_LOOP)
-  {
-    fprintf(stderr, "nack chunk %d (type: loop)\n", c_chunk_number);
-  }
-  else if (interest->GetNack() == ndn::Interest::NACK_CONGESTION)
-  {
-    fprintf(stderr, "nack chunk %d (type: congestion)\n", c_chunk_number);
-
-  } else if (interest->GetNack() == ndn::Interest::NACK_GIVEUP_PIT)
-  {
-    fprintf(stderr, "nack chunk %d (type: give-up-pit)\n", c_chunk_number);
-  }
-  else
-  {
-    fprintf(stderr, "nack chunk %d (type: %d UNKNOWN)\n", c_chunk_number, interest->GetNack());
-  }*/
-
   // make sure to cancel the OnTimeout event for this chunk
   this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
-
-  //check if packet was dropped on purpose.
-  Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
-  ndn::SVCLevelTag levelTag;
-
-  bool tagExists = packet->PeekPacketTag(levelTag);
-  if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
-  {
-    NS_LOG_FUNCTION("NACK %s was dropped on purpose\n" << interest->GetName());
-
-    for (int i = 0; i < this->curSegmentStatus.num_chunks; i++)
-    {
-      if (this->curSegmentStatus.chunk_status[i] == Requested)
-      {
-        this->curSegmentStatus.chunk_timeout_events[i].Cancel();
-      }
-    }
-
-    lastDownloadSuccessful = false;
-
-    notifyAll ();
-    return; // stopp downloading
-  }
 
   // adjust stats
   this->packets_inflight--;
@@ -318,9 +274,6 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 {
   NS_LOG_FUNCTION(this);
-
-  if(!isPartOfCurrentSegment(contentObject->GetName().toUri()))
-    return;
 
   this->curSegmentStatus.bytesToDownload -= contentObject->GetPayload()->GetSize ();
   packets_received++;
@@ -364,27 +317,19 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     // make sure that the next packet is scheduled again
       ScheduleNextChunkDownload();
   }
-
 }
 
-bool WindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
+
+
+void WindowNDNDownloader::CancelAllTimeoutEvents()
 {
-  if (!lastDownloadSuccessful)
+  for (int i = 0; i < this->curSegmentStatus.num_chunks; i++)
   {
-    fprintf(stderr, "RETURN false1\n");
-    return false;
+    if (this->curSegmentStatus.chunk_status[i] == Requested)
+    {
+      this->curSegmentStatus.chunk_timeout_events[i].Cancel();
+    }
   }
-  fprintf(stderr, "%s \n",curSegmentStatus.base_uri.c_str ());
-  fprintf(stderr, "%s \n",packetUri.substr (0,curSegmentStatus.base_uri.size ()).c_str ());
-
-  if (curSegmentStatus.base_uri.compare (packetUri.substr (0,curSegmentStatus.base_uri.size ())) == 0)
-  {
-    fprintf(stderr, "RETURN true2\n");
-    return true;
-  }
-
-  fprintf(stderr, "RETURN false3\n");
-  return false;
 }
 
 // Processing upon start of the application

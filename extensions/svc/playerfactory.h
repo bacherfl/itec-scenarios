@@ -16,6 +16,7 @@
 #include "../utils/timeoutndndownloader.h"
 #include "../utils/pipelinendndownloader.h"
 #include "../utils/windowndndownloader.h"
+#include "../utils/svcwindowndndownloader.h"
 
 
 
