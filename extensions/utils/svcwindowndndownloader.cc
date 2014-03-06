@@ -19,7 +19,12 @@ SVCWindowNDNDownloader::SVCWindowNDNDownloader() : WindowNDNDownloader()
 void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 {
   if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
+  {
+    fprintf(stderr, "SVCWindow: Dropping wrong NACK - URI: %s\n", interest->GetName ().toUri().c_str());
     return;
+  }
+
+  fprintf(stderr, "SVCWindow: NACK - URI: %s\n", interest->GetName ().toUri().c_str());
 
   //check if packet was dropped on purpose.
   Ptr<Packet> packet = ndn::Wire::FromInterest(interest);

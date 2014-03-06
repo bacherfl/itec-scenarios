@@ -96,9 +96,10 @@ void SVCAdaptiveStrategy<Parent>::OnInterest (Ptr< Face > face, Ptr< Interest > 
 
   if (tagExists && levelTag.Get () == 32) //TODO
   {
-    fprintf(stderr, "Droped Interest %s\n", interest->GetName ().toUri().c_str());
+    NS_LOG_UNCOND("Strategy: Dropping Interest " << interest->GetName ().toUri());
+    //fprintf(stderr, "Droped Interest %s\n", interest->GetName ().toUri().c_str());
     Ptr<Interest> nack = Create<Interest> (*interest);
-    nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anway to this.
+    nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
 
     levelTag.Set (-1); // means packet dropped on purpose
     nack->GetPayload ()->AddPacketTag (levelTag);
@@ -108,7 +109,7 @@ void SVCAdaptiveStrategy<Parent>::OnInterest (Ptr< Face > face, Ptr< Interest > 
     return;
   }
 
-super::OnInterest(face,interest);
+  super::OnInterest(face,interest);
 }
 
 } // namespace fw
