@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 
   // Install NDN stack on all normal nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate",  "EnableNACKs", "true");
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Window",  "EnableNACKs", "true");
   ndnHelper.EnableLimits (true, Seconds(0.2), 100, 4200);
   ndnHelper.Install(normalNodes);
 
