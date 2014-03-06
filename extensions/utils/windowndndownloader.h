@@ -22,10 +22,8 @@
 #include "ns3-dev/ns3/ndn-interest.h"
 #include "ns3-dev/ns3/ndn-data.h"
 #include "ns3-dev/ns3/ndn-fib.h"
-
 #include "ns3-dev/ns3/ndnSIM/utils/ndn-rtt-estimator.h"
 #include "ns3-dev/ns3/ndnSIM/utils/ndn-rtt-mean-deviation.h"
-
 #include <ns3-dev/ns3/ndn-l3-protocol.h>
 
 #include <stdio.h>
@@ -33,7 +31,6 @@
 #include <sstream>
 
 #include "../utils/ndnsegmentstatus.h"
-
 #include "../utils/congestionwindow.h"
 
 

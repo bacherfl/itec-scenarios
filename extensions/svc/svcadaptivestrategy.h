@@ -4,11 +4,12 @@
 #include "ns3-dev/ns3/log.h"
 #include "ns3-dev/ns3/ndn-forwarding-strategy.h"
 #include "ns3-dev/ns3/ndn-l3-protocol.h"
-
 #include "ns3-dev/ns3/ndn-fib.h"
 #include "ns3-dev/ns3/ndn-fib-entry.h"
 #include "ns3-dev/ns3/ndn-pit-entry.h"
 #include "ns3-dev/ns3/ndn-interest.h"
+#include "ns3-dev/ns3/packet.h"
+#include "ns3-dev/ns3/ndn-wire.h"
 
 #include "../../../ns-3/src/ndnSIM/model/fw/best-route.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/flooding.h"
@@ -16,6 +17,7 @@
 #include "../../../ns-3/src/ndnSIM/model/fw/per-out-face-limits.h"
 
 #include "../utils/ndntracer.h"
+#include "../utils/svcleveltag.h"
 
 #include <stdio.h>
 
@@ -40,7 +42,6 @@ public:
   virtual void RemoveFace(Ptr<Face> face);
 
   virtual void OnInterest(Ptr< Face > face, Ptr< Interest > interest);
-  virtual void DidSendOutInterest (Ptr<Face> inFace, Ptr<Face> outFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
 
 protected:
   static LogComponent g_log;
@@ -74,7 +75,6 @@ void SVCAdaptiveStrategy<Parent>::AddFace (Ptr<Face> face)
     tracer = new utils::NDNTracer(this);
 
   tracer->addFace (face);
-
   super::AddFace(face);
 }
 
@@ -83,25 +83,32 @@ void SVCAdaptiveStrategy<Parent>::RemoveFace (Ptr<Face> face)
 {
   if(tracer != NULL)
     tracer->removeFace(face);
-
   super::AddFace(face);
 }
 
 template<class Parent>
 void SVCAdaptiveStrategy<Parent>::OnInterest (Ptr< Face > face, Ptr< Interest > interest)
 {
-  super::OnInterest(face,interest);
-  //fprintf(stderr, "getAvgInTrafficKbits = %d\n", tracer->getAvgInTrafficKbits (face));
-  //fprintf(stderr, "getAvgOutTrafficKbits = %d\n", tracer->getAvgOutTrafficKbits (face));
-}
+  Ptr<Packet> packet = Wire::FromInterest(interest);
+  SVCLevelTag levelTag;
 
-template<class Parent>
-void SVCAdaptiveStrategy<Parent>::DidSendOutInterest (Ptr<Face> inFace, Ptr<Face> outFace,
-                                        Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
-{
-  //fprintf(stderr, "SVCAdaptiveStrategy: send out interest: %s\n", interest->GetName().toUri().c_str());
-  super::DidSendOutInterest (inFace, outFace, interest, pitEntry);
-  //todo
+  bool tagExists = packet->PeekPacketTag(levelTag);
+
+  if (tagExists && levelTag.Get () == 32) //TODO
+  {
+    fprintf(stderr, "Droped Interest %s\n", interest->GetName ().toUri().c_str());
+    Ptr<Interest> nack = Create<Interest> (*interest);
+    nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anway to this.
+
+    levelTag.Set (-1); // means packet dropped on purpose
+    nack->GetPayload ()->AddPacketTag (levelTag);
+
+    face->SendInterest (nack);
+    SVCAdaptiveStrategy<Parent>::m_outNacks (nack, face);
+    return;
+  }
+
+super::OnInterest(face,interest);
 }
 
 } // namespace fw

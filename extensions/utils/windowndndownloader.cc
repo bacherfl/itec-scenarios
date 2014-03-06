@@ -1,4 +1,5 @@
 #include "windowndndownloader.h"
+#include "ns3-dev/ns3/ndn-wire.h"
 #include "svcleveltag.h"
 
 
@@ -268,25 +269,35 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
   NS_LOG_FUNCTION("NACK on chunk " << c_chunk_number << ". " << this);
 
-  /*  NORMAL_INTEREST = 0,
-      NACK_LOOP = 10,
-      NACK_CONGESTION = 11,
-      NACK_GIVEUP_PIT = 12, */
-
-
-  if (interest->GetNack() == 11)
-  {
-    fprintf(stderr, "nack chunk %d (type: congestion)\n", c_chunk_number);
-
-  } else if (interest->GetNack() == 12)
-  {
-    fprintf(stderr, "nack chunk %d (type: give-up-pit)\n", c_chunk_number);
-
-  }
-  else
+  if (interest->GetNack() == ndn::Interest::NACK_LOOP)
   {
     fprintf(stderr, "nack chunk %d (type: loop)\n", c_chunk_number);
   }
+  else if (interest->GetNack() == ndn::Interest::NACK_CONGESTION)
+  {
+    fprintf(stderr, "nack chunk %d (type: congestion)\n", c_chunk_number);
+
+  } else if (interest->GetNack() == ndn::Interest::NACK_GIVEUP_PIT)
+  {
+    fprintf(stderr, "nack chunk %d (type: give-up-pit)\n", c_chunk_number);
+  }
+  else
+  {
+    fprintf(stderr, "nack chunk %d (type: %d UNKNOWN)\n", c_chunk_number, interest->GetNack());
+  }
+
+  //check if packet was dropped on purpose.
+
+  Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
+  ndn::SVCLevelTag levelTag;
+
+  bool tagExists = packet->PeekPacketTag(levelTag);
+
+  if (tagExists && levelTag.Get () == -1) //TODO
+  {
+    fprintf (stderr, "NACK %s was dropped on purpose\n", interest->GetName ().toUri().c_str());
+  }
+
 
 
   // adjust stats
