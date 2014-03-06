@@ -56,7 +56,6 @@ extensions/utils/ndnsegmentstatus.h
 extensions/utils/ndnsegmentstatus.cc
 extensions/svc/svcadaptivestrategy.h
 extensions/svc/svcadaptivestrategy.cc
-<<<<<<< HEAD
 extensions/stats/load-stats.h
 extensions/stats/load-stats.cc
 extensions/stats/load-stats-face.h
