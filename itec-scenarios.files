@@ -70,3 +70,5 @@ extensions/utils/itracer.h
 extensions/utils/itracer.cc
 extensions/utils/ndntracer.h
 extensions/utils/ndntracer.cc
+extensions/utils/svcwindowndndownloader.h
+extensions/utils/svcwindowndndownloader.cc
