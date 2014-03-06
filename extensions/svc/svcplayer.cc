@@ -73,17 +73,25 @@ void SvcPlayer::streaming ()
 
 void SvcPlayer::update ()
 {
-  fprintf(stderr, "NOTIFYED\n");
+  //fprintf(stderr, "NOTIFYED\n");
   //alogic->updateStatistic (dlStartTime, Simulator::Now (), cur_seg->getSize ());
 
-  if(current_segments.at(0)->getLevel() == 0) // only baselayer increases buffer fillstate
+  if(downloader->wasSuccessfull())
   {
-    if(!buf->addData(current_segments.at(0)->getDuration()))
+    if(current_segments.at(0)->getLevel() == 0) // only baselayer increases buffer fillstate
     {
-      fprintf(stderr, "BUFFER FULL!!!\n");
+      if(!buf->addData(current_segments.at(0)->getDuration()))
+      {
+        fprintf(stderr, "BUFFER FULL!!!\n");
+      }
+         //else bufferstatus updated.
     }
-       //else bufferstatus updated.
   }
+  else
+  {
+    fprintf(stderr, "SvcPlayer::update Segment %s was dropped \n", (*current_segments.begin ())->toString().c_str());
+  }
+  //else we dont download this segment;
 
   isStreaming = false;
   current_segments.erase (current_segments.begin ());

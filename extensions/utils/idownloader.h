@@ -27,8 +27,14 @@ namespace ns3
     {
     public:
       IDownloader();
+
+      bool wasSuccessfull();
+
       virtual bool download(Segment *s) = 0;
       virtual void setNodeForNDN(Ptr <ns3::Node> node) = 0;
+
+    protected:
+      bool lastDownloadSuccessful;
     };
   }
 }

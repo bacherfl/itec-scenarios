@@ -6,4 +6,11 @@ NS_LOG_COMPONENT_DEFINE ("IDownloader");
 
 IDownloader::IDownloader()
 {
+  lastDownloadSuccessful = true;
+}
+
+
+bool IDownloader::wasSuccessfull()
+{
+  return lastDownloadSuccessful;
 }

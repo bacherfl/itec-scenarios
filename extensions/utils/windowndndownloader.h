@@ -65,9 +65,9 @@ namespace ns3
 
     protected:
       virtual void downloadChunk(int chunk_number);
-
       virtual void ScheduleNextChunkDownload();
 
+      virtual bool isPartOfCurrentSegment(std::string packetUri);
 
       Ptr<ndn::RttEstimator> m_rtt;
 
@@ -79,9 +79,7 @@ namespace ns3
       int packets_inflight;
       unsigned int packets_nack;
 
-
       EventId scheduleDownloadTimer;
-
 
       void CheckRetrieveTimeout(int c_chunk_number);
       void OnTimeout (int c_chunk_number);
