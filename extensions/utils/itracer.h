@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include <boost/unordered_map.hpp>
+#include <boost/foreach.hpp>
 
 
 namespace ns3 {
@@ -22,17 +23,23 @@ class ITracer
 {
 
 public:
-  ITracer(ForwardingStrategy* strategy);
+  ITracer(ForwardingStrategy* strategy, Time avgPeriod);
 
   virtual ~ITracer () {}
 
   void addFace(Ptr<const Face> face);
-  void removeFace(Ptr<const Face> face) ;
+  void removeFace(Ptr<const Face> face);
+  void setAvgPeriod (const Time &avgPeriod);
+
+  int getAvgInTrafficKbits(Ptr<const Face> face);
+  int getAvgOutTrafficKbits(Ptr<const Face> face);
 
   //todo implement public methods e.g. getAvgSpeed..etc
 
 protected:
   void Connect ();
+
+  void copyDataForAvgCalculation();
 
   virtual void OutInterests  (Ptr<const Interest>, Ptr<const Face>) = 0;
   virtual void InInterests   (Ptr<const Interest>, Ptr<const Face>) = 0;
@@ -50,7 +57,7 @@ protected:
   {
     Stats(){Reset();}
 
-    inline void Reset ()
+    void Reset ()
     {
       m_inInterestsCount   = 0;
       m_outInterestsCount  = 0;
@@ -66,6 +73,7 @@ protected:
       m_outSatisfiedInterestsCount = 0;
       m_outTimedOutInterestsCount = 0;
 
+      /*Size is stored in Bytes*/
       m_inInterestsSize   = 0;
       m_outInterestsSize  = 0;
       m_dropInterestsSize = 0;
@@ -79,6 +87,39 @@ protected:
       m_timedOutInterestsSize = 0;
       m_outSatisfiedInterestsSize = 0;
       m_outTimedOutInterestsSize = 0;
+    }
+
+    Stats operator=(const Stats& other)
+    {
+      m_inInterestsCount   = other.m_inInterestsCount;
+      m_outInterestsCount  = other.m_outInterestsCount;
+      m_dropInterestsCount = other.m_dropInterestsCount;
+      m_inNacksCount       = other.m_inNacksCount;
+      m_outNacksCount      = other.m_outNacksCount;
+      m_dropNacksCount     = other.m_dropNacksCount;
+      m_inDataCount        = other.m_inDataCount;
+      m_outDataCount       = other.m_outDataCount;
+      m_dropDataCount      = other.m_dropDataCount;
+      m_satisfiedInterestsCount = other.m_satisfiedInterestsCount;
+      m_timedOutInterestsCount = other.m_timedOutInterestsCount;
+      m_outSatisfiedInterestsCount = other.m_outSatisfiedInterestsCount;
+      m_outTimedOutInterestsCount = other.m_outTimedOutInterestsCount;
+
+      m_inInterestsSize   = other.m_inInterestsSize;
+      m_outInterestsSize  = other.m_outInterestsSize;
+      m_dropInterestsSize = other.m_dropInterestsSize;
+      m_inNacksSize       = other.m_inNacksSize;
+      m_outNacksSize      = other.m_outNacksSize;
+      m_dropNacksSize     = other.m_dropNacksSize;
+      m_inDataSize        = other.m_inDataSize;
+      m_outDataSize       = other.m_outDataSize;
+      m_dropDataSize      = other.m_dropDataSize;
+      m_satisfiedInterestsSize = other.m_satisfiedInterestsSize;
+      m_timedOutInterestsSize = other.m_timedOutInterestsSize;
+      m_outSatisfiedInterestsSize = other.m_outSatisfiedInterestsSize;
+      m_outTimedOutInterestsSize = other.m_outTimedOutInterestsSize;
+
+      return *this;
     }
 
     int m_inInterestsCount, m_inInterestsSize;
@@ -97,9 +138,11 @@ protected:
   };
 
   ForwardingStrategy *strategy;
+  Time period;
   typedef boost::unordered_map<int, Stats> StatsMap;
-  StatsMap faceStats;
-
+  StatsMap faceStats; /*used for gathering facestats*/
+  StatsMap measuredStats; /*after period times out, faceStats are copied into this struct. measuredStats is used for avgCalculation*/
+  EventId avgEvent;
 
 };
 

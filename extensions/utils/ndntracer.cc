@@ -2,8 +2,16 @@
 
 using namespace ns3::ndn::utils;
 
-NDNTracer::NDNTracer(ForwardingStrategy* strategy) : ITracer(strategy)
+NDNTracer::NDNTracer(ForwardingStrategy* strategy, Time averagingPeriod) : ITracer(strategy, averagingPeriod)
 {
+  Stats a,b;
+  b.m_dropInterestsCount = 10;
+
+  a = b;
+  a.m_dropInterestsCount++;
+
+  fprintf(stderr, "a.m_dropInterestsCount = %d\n", a.m_dropInterestsCount);
+  fprintf(stderr, "b.m_dropInterestsCount = %d\n", b.m_dropInterestsCount);
 }
 
 void NDNTracer::OutInterests  (Ptr<const Interest> interest, Ptr<const Face> face)
@@ -27,7 +35,7 @@ void NDNTracer::DropInterests (Ptr<const Interest> interest, Ptr<const Face> fac
   faceStats[face->GetId ()].m_dropInterestsCount ++;
 
   if(interest->GetWire ())
-    faceStats[face->GetId ()].m_dropInterestsSize += interest->GetWire ()->GetSize ();
+    faceStats[face->GetId ()].m_dropInterestsSize += interest->GetWire ()->GetSize();
 }
 
 void NDNTracer::OutNacks  (Ptr<const Interest> interest, Ptr<const Face> face)

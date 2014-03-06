@@ -91,6 +91,8 @@ template<class Parent>
 void SVCAdaptiveStrategy<Parent>::OnInterest (Ptr< Face > face, Ptr< Interest > interest)
 {
   super::OnInterest(face,interest);
+  fprintf(stderr, "getAvgInTrafficKbits = %d\n", tracer->getAvgInTrafficKbits (face));
+  fprintf(stderr, "getAvgOutTrafficKbits = %d\n", tracer->getAvgOutTrafficKbits (face));
 }
 
 template<class Parent>

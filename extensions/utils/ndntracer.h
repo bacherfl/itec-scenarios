@@ -15,7 +15,7 @@ namespace  utils
 class NDNTracer : public ITracer
 {
 public:
-  NDNTracer(ForwardingStrategy* strategy);
+  NDNTracer(ForwardingStrategy* strategy, Time averagingPeriod = Seconds(0.5));
 
   virtual void OutInterests  (Ptr<const Interest> interest, Ptr<const Face>);
 

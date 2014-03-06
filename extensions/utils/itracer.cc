@@ -2,10 +2,11 @@
 
 using namespace  ns3::ndn::utils;
 
-ITracer::ITracer(ForwardingStrategy* strategy)
+ITracer::ITracer(ForwardingStrategy* strategy, Time avgPeriod)
 {
   this->strategy = strategy;
   Connect();
+  setAvgPeriod (avgPeriod);
 }
 
 
@@ -18,6 +19,41 @@ void ITracer::addFace(Ptr<const Face> face)
 void ITracer::removeFace(Ptr<const Face> face)
 {
   faceStats.erase(face->GetId ());
+}
+
+void ITracer::setAvgPeriod (const Time &avgPeriod)
+{
+  this->period = avgPeriod;
+  avgEvent.Cancel ();
+  avgEvent = Simulator::Schedule (period, &ITracer::copyDataForAvgCalculation, this);
+}
+
+void ITracer::copyDataForAvgCalculation ()
+{
+  measuredStats.clear();
+
+  BOOST_FOREACH(StatsMap::value_type &i, faceStats)
+  {
+    measuredStats.insert(i);
+    i.second.Reset();
+  }
+  avgEvent = Simulator::Schedule (period, &ITracer::copyDataForAvgCalculation, this);
+}
+
+int ITracer::getAvgInTrafficKbits(Ptr<const Face> face)
+{
+  Stats s = measuredStats[face->GetId ()];
+
+  int bits = (s.m_inDataSize + s.m_inInterestsSize + s.m_inNacksSize) * 8;
+  return ( bits / period.GetSeconds()) / 1000;
+}
+
+int ITracer::getAvgOutTrafficKbits(Ptr<const Face> face)
+{
+  Stats s = measuredStats[face->GetId ()];
+
+  int bits = (s.m_outDataSize + s.m_outInterestsSize + s.m_outNacksSize) *8;
+  return ( bits / period.GetSeconds()) / 1000;
 }
 
 void ITracer::Connect ()
