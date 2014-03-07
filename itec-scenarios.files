@@ -72,3 +72,5 @@ extensions/utils/ndntracer.h
 extensions/utils/ndntracer.cc
 extensions/utils/svcwindowndndownloader.h
 extensions/utils/svcwindowndndownloader.cc
+scenarios/largescenario.cc
+topologies/large.top
