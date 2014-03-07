@@ -84,14 +84,12 @@ void SvcPlayer::update ()
       {
         fprintf(stderr, "BUFFER FULL!!!\n");
       }
-         //else bufferstatus updated.
     }
   }
   else
   {
-    fprintf(stderr, "SvcPlayer::update Segment %s was dropped \n", (*current_segments.begin ())->toString().c_str());
+    NS_LOG_INFO("SvcPlayer::update Segment " << (*current_segments.begin ())->toString().c_str() << "was dropped \n");
   }
-  //else we dont download this segment;
 
   isStreaming = false;
   current_segments.erase (current_segments.begin ());

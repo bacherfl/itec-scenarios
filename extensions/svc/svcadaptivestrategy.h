@@ -96,8 +96,8 @@ void SVCAdaptiveStrategy<Parent>::OnInterest (Ptr< Face > face, Ptr< Interest > 
 
   if (tagExists && levelTag.Get () == 32) //TODO
   {
-    NS_LOG_UNCOND("Strategy: Dropping Interest " << interest->GetName ().toUri());
-    //fprintf(stderr, "Droped Interest %s\n", interest->GetName ().toUri().c_str());
+    NS_LOG_INFO("Strategy: Dropping Interest " << interest->GetName ().toUri());
+
     Ptr<Interest> nack = Create<Interest> (*interest);
     nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
 

@@ -15,14 +15,14 @@ ContentDst1   NA       2.5      6
 ContentDst2   NA       4.5      6
 ContentDst3   NA       5.5      6
 ContentDst4   NA       6        8
-ContentDst5   NA       2      8
+ContentDst5   NA       2        8
 
 link
 
 # srcNode       dstNode       bandwidth   metric    delay  queue
 ContentSrc1    Router0        2Mbps       1          2ms    30
 ContentSrc2    Router0        2Mbps       1          2ms    30
-Router2        Router1        10Mbps       1          5ms    30
+Router2        Router1        10Mbps      1          5ms    30
 Router3        Router1        5Mbps       1          2ms    30
 Router4        Router2        5Mbps       1          2ms    30
 Router5        Router3        5Mbps       1          2ms    30
