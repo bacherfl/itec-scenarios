@@ -22,6 +22,7 @@ void DashPlayer::play ()
 {
   NS_LOG_FUNCTION(this);
   isPlaying = true;
+  allSegmentsDownloaded = false;
   streaming ();
   Simulator::Schedule(Seconds(2.0), &DashPlayer::consume, this);
 }
@@ -36,7 +37,7 @@ void DashPlayer::streaming ()
     //check if last segment
     if(cur_seg == NULL)
     {
-      //isPlaying = false;
+      allSegmentsDownloaded = true;
       return;
     }
 
@@ -83,6 +84,12 @@ void DashPlayer::update ()
 
 void DashPlayer::consume ()
 {
+  if(allSegmentsDownloaded && buf->isEmpty ())
+  {
+    stop();
+    return;
+  }
+
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
     fprintf(stderr, "CONSUMED FAILED\n");
 

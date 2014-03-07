@@ -45,6 +45,8 @@ namespace ns3
       bool isStreaming;
       utils::Segment* cur_seg;
 
+      bool allSegmentsDownloaded;
+
       Time dlStartTime;
 
     };

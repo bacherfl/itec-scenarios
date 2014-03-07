@@ -43,7 +43,7 @@ unsigned int RateBasedAdaptationLogic::getAvgDLS ()
   if(counter > 0)
   {
     avg /= counter;
-    return avg * buf->fillPercentage ();
+    return avg * (buf->fillPercentage () + 0.15);
   }
   else
     return 0;
@@ -61,9 +61,6 @@ void RateBasedAdaptationLogic::updateStatistic(Time start, Time stop, unsigned i
   bits = bits * 1000;
   bits = bits / dif; // 1000 * bits / ms = bits / s
   //fprintf(stderr, "avg bits = %d\n", bits);
-  //bits = bits * 0.80; //introduce 20% safety
-
-  //fprintf(stderr, "avg kbits = %d\n", bits);
 
   avg_dl_rates[index++] = bits;
 }
