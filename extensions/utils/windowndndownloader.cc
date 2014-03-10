@@ -39,7 +39,8 @@ bool WindowNDNDownloader::download (Segment *s)
   uint64_t bitrate = d.GetBitRate();
 
   int max_packets = bitrate / (MAX_PACKET_PAYLOAD + 20) / 8;
-  //fprintf(stderr, "Max Packets per second = %d\n", max_packets);
+  /*fprintf(stderr, "Bitrate: %d\n", bitrate);
+  fprintf(stderr, "Max Packets per second = %d\n", max_packets);*/
 
   // set threshold to max_packets / 4
   cwnd.SetReceiverWindowSize(max_packets);

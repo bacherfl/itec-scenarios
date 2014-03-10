@@ -24,8 +24,8 @@ namespace ns3
     int GetWindowSize();
     int GetThreshold();
 
-    int IncreaseWindow();
-    int DecreaseWindow();
+    virtual int IncreaseWindow();
+    virtual int DecreaseWindow();
 
     void SetReceiverWindowSize(int recv_window);
     int GetReceiverWindowSize();

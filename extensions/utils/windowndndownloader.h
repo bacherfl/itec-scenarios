@@ -32,6 +32,7 @@
 
 #include "../utils/ndnsegmentstatus.h"
 #include "../utils/congestionwindow.h"
+#include "../utils/staticcongestionwindow.h"
 
 
 #define WINDOW_MAX_RTO 1.0
@@ -71,7 +72,7 @@ namespace ns3
 
       Ptr<ndn::RttEstimator> m_rtt;
 
-      CongestionWindow cwnd;
+      StaticCongestionWindow cwnd;
       NDNSegmentStatus curSegmentStatus;
 
       unsigned int packets_received;
