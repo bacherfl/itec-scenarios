@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
 
   // Install NDN stack on all normal nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Window",  "EnableNACKs", "true");
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate",  "EnableNACKs", "true");
   ndnHelper.EnableLimits (true, Seconds(0.2), 100, 4200);
   ndnHelper.Install(normalNodes);
 
@@ -101,18 +101,18 @@ int main(int argc, char* argv[])
   }
 
   //multimedia traffic
-  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  /*ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
+  ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);*/
 
 
-  /*ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
+  ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer svcContainer = svcRequesterHelper.Install(contentDst);*/
+  ApplicationContainer svcContainer = svcRequesterHelper.Install(contentDst);
 
   ndn::AppHelper cProviderHelper ("ContentProvider");
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
@@ -123,8 +123,8 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.AddOrigins("/itec/sintel", contentSrc);
 
   contentProvider.Start (Seconds(0.0));
-  //svcContainer.Start (Seconds(1.0));
-  dashContainer.Start (Seconds(1.0));
+  svcContainer.Start (Seconds(1.0));
+  //dashContainer.Start (Seconds(1.0));
   //dummyProducer.Start (Seconds(0.0));
   //dummyConsumer.Start (Seconds(5.0));
   //dummyConsumer.Stop (Seconds(10.0));

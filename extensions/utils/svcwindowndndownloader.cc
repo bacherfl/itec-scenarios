@@ -20,11 +20,9 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 {
   if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
   {
-    fprintf(stderr, "SVCWindow: Dropping wrong NACK - URI: %s\n", interest->GetName ().toUri().c_str());
+    fprintf(stderr, "SVCWindow: Dropping NACK from previous Request - URI: %s\n", interest->GetName ().toUri().c_str());
     return;
   }
-
-  fprintf(stderr, "SVCWindow: NACK - URI: %s\n", interest->GetName ().toUri().c_str());
 
   //check if packet was dropped on purpose.
   Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
@@ -33,12 +31,10 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   bool tagExists = packet->PeekPacketTag(levelTag);
   if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
   {
-    NS_LOG_FUNCTION("NACK %s was dropped on purpose\n" << interest->GetName());
+    NS_LOG_FUNCTION("Packet %s was dropped on purpose\n" << interest->GetName());
 
     CancelAllTimeoutEvents();
-
     lastDownloadSuccessful = false;
-
     notifyAll ();
     return; // stop downloading, do not fire OnNack of super class, we are done here!
   }
@@ -70,7 +66,6 @@ bool SVCWindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
 {
   if (!lastDownloadSuccessful)
   {
-    //fprintf(stderr, "RETURN false1\n");
     return false;
   }
 
@@ -81,10 +76,8 @@ bool SVCWindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
 
   if (curSegmentStatus.base_uri.compare (packetUri.substr (0,curSegmentStatus.base_uri.size ())) == 0)
   {
-    //fprintf(stderr, "RETURN true2\n");
     return true;
   }
 
-  //fprintf(stderr, "RETURN false3\n");
   return false;
 }

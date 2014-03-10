@@ -32,12 +32,9 @@ bool WindowNDNDownloader::download (Segment *s)
 
   // Get Device Bitrate
   Ptr<PointToPointNetDevice> nd1 = this->m_face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
-
-  DataRate d;
   DataRateValue dv;
-
   nd1->GetAttribute("DataRate", dv);
-  d = dv.Get();
+  DataRate d = dv.Get();
 
   uint64_t bitrate = d.GetBitRate();
 
@@ -85,8 +82,7 @@ bool WindowNDNDownloader::download (Segment *s)
      this->curSegmentStatus.base_uri.substr (0,7).compare ("http://") == 0)
   {
     this->curSegmentStatus.base_uri = std::string("/").append(
-          this->curSegmentStatus.base_uri.substr (7,this->curSegmentStatus.base_uri.length ())
-          );
+          this->curSegmentStatus.base_uri.substr (7,this->curSegmentStatus.base_uri.length ()));
   }
 
   NS_LOG_FUNCTION(this->curSegmentStatus.base_uri << this);
@@ -170,7 +166,6 @@ void WindowNDNDownloader::downloadChunk (int chunk_number)
     this->curSegmentStatus.chunk_timeout_events[chunk_number] =
       Simulator::Schedule(Seconds(rto), &WindowNDNDownloader::CheckRetrieveTimeout, this, chunk_number);
 
-
     // tell the RTO estimator that we sent out a packet
     m_rtt->SentSeq (SequenceNumber32 (chunk_number), 1);
 
@@ -185,11 +180,8 @@ void WindowNDNDownloader::downloadChunk (int chunk_number)
     }
 
     // extract the string level
-    // URI='/itec/bbb/bunny_svc_spatial_2s/bbb-svc.264.seg3-L32.svc/chunk_44'
-
     std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
-
-     uri = uri.substr(0, uri.find_first_of("."));
+    uri = uri.substr(0, uri.find_first_of("."));
 
     int level = atoi(uri.c_str());
 
@@ -214,7 +206,6 @@ void WindowNDNDownloader::CheckRetrieveTimeout(int c_chunk_number)
 
 void WindowNDNDownloader::OnTimeout (int c_chunk_number)
 {
-  NS_LOG_FUNCTION(this);
   NS_LOG_FUNCTION("Timeout on chunk " << c_chunk_number << ". " << this);
 
   fprintf(stderr, "Timeout chunk %d, cwnd = %d, in_flight=%d\n", c_chunk_number, cwnd.GetWindowSize(), this->packets_inflight);
@@ -249,6 +240,8 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   s = s.substr(pos1+1);
   int c_chunk_number = atoi(s.c_str());
 
+  fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
+
   NS_LOG_FUNCTION("NACK on chunk " << c_chunk_number << ". " << this);
 
   // make sure to cancel the OnTimeout event for this chunk
@@ -268,7 +261,6 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
   // make sure that the next packet is scheduled again
   ScheduleNextChunkDownload();
-
 }
 
 void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
@@ -313,7 +305,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   }
   else
   {
-    // cancel the next download timer, we have a higher congestion window now, which means less waiting time
+    // cancel the next download timer, we have a bigger congestion window now, which means less waiting time
     // make sure that the next packet is scheduled again
       ScheduleNextChunkDownload();
   }
