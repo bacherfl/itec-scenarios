@@ -140,55 +140,52 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
 
 }
 
+Ptr<ndn::Interest> WindowNDNDownloader::prepareInterstForDownload (int chunk_number)
+{
+  // set chunk status to requested
+  this->curSegmentStatus.chunk_status[chunk_number] = Requested;
+
+  // get current RTO
+  double rto = m_rtt->RetransmitTimeout().GetSeconds();
+  rto = std::min<double>(rto, WINDOW_MAX_RTO); // RTO must not be higher than 1 second here
+
+  std::stringstream ss;
+  ss << this->curSegmentStatus.base_uri << "/chunk_" << chunk_number;
+
+  Ptr<ndn::Name> prefix = Create<ndn::Name> (ss.str ().c_str());
+
+  // Create and configure ndn::Interest
+  Ptr<ndn::Interest> interest = Create<ndn::Interest> ();
+  UniformVariable rand (0,std::numeric_limits<uint32_t>::max ());
+  interest->SetNonce (rand.GetValue ());
+  interest->SetName (prefix);
+  interest->SetInterestLifetime (Seconds (rto)); // set interest life time equal to the event we are fireing
+
+  // get the timeout event set up
+  this->curSegmentStatus.chunk_timeout_events[chunk_number] =
+    Simulator::Schedule(Seconds(rto), &WindowNDNDownloader::CheckRetrieveTimeout, this, chunk_number);
+
+  // tell the RTO estimator that we sent out a packet
+  m_rtt->SentSeq (SequenceNumber32 (chunk_number), 1);
+
+  // increase packets_inflight
+  packets_inflight++;
+
+  //NS_LOG_FUNCTION("Sending Interest packet for " << *prefix << this);
+
+  if (this->scheduleDownloadTimer.IsExpired())
+  {
+    ScheduleNextChunkDownload();
+  }
+
+  return interest;
+}
 
 void WindowNDNDownloader::downloadChunk (int chunk_number)
 {
   if(this->curSegmentStatus.bytesToDownload > 0)
   {
-    // set chunk status to requested
-    this->curSegmentStatus.chunk_status[chunk_number] = Requested;
-
-    // get current RTO
-    double rto = m_rtt->RetransmitTimeout().GetSeconds();
-    rto = std::min<double>(rto, WINDOW_MAX_RTO); // RTO must not be higher than 1 second here
-
-    std::stringstream ss;
-    ss << this->curSegmentStatus.base_uri << "/chunk_" << chunk_number;
-
-    Ptr<ndn::Name> prefix = Create<ndn::Name> (ss.str ().c_str());
-
-    // Create and configure ndn::Interest
-    Ptr<ndn::Interest> interest = Create<ndn::Interest> ();
-    UniformVariable rand (0,std::numeric_limits<uint32_t>::max ());
-    interest->SetNonce (rand.GetValue ());
-    interest->SetName (prefix);
-    interest->SetInterestLifetime (Seconds (rto)); // set interest life time equal to the event we are fireing
-    // get the timeout event set up
-    this->curSegmentStatus.chunk_timeout_events[chunk_number] =
-      Simulator::Schedule(Seconds(rto), &WindowNDNDownloader::CheckRetrieveTimeout, this, chunk_number);
-
-    // tell the RTO estimator that we sent out a packet
-    m_rtt->SentSeq (SequenceNumber32 (chunk_number), 1);
-
-    // increase packets_inflight
-    packets_inflight++;
-
-    //NS_LOG_FUNCTION("Sending Interest packet for " << *prefix << this);
-
-    if (this->scheduleDownloadTimer.IsExpired())
-    {
-      ScheduleNextChunkDownload();
-    }
-
-    // extract the string level
-    std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
-    uri = uri.substr(0, uri.find_first_of("."));
-
-    int level = atoi(uri.c_str());
-
-    ndn::SVCLevelTag levelTag;
-    levelTag.Set(level);
-    interest->GetPayload ()->AddPacketTag (levelTag);
+    Ptr<ndn::Interest> interest = prepareInterstForDownload(chunk_number);
 
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);

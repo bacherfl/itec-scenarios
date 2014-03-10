@@ -61,6 +61,31 @@ void SVCWindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
 
 
+void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
+{
+  if(this->curSegmentStatus.bytesToDownload > 0)
+  {
+
+    Ptr<ndn::Interest> interest = prepareInterstForDownload (chunk_number);
+
+    // extract the string level
+    std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
+    uri = uri.substr(0, uri.find_first_of("."));
+
+    int level = atoi(uri.c_str());
+
+    ndn::SVCLevelTag levelTag;
+    levelTag.Set(level);
+    interest->GetPayload ()->AddPacketTag (levelTag);
+
+    // Todo add additinal addaptation information.
+
+    // Call trace (for logging purposes)
+    m_transmittedInterests (interest, this, m_face);
+    m_face->ReceiveInterest (interest);
+  }
+}
+
 
 bool SVCWindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
 {

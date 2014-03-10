@@ -66,6 +66,7 @@ namespace ns3
 
     protected:
       virtual void downloadChunk(int chunk_number);
+      virtual Ptr<ndn::Interest> prepareInterstForDownload(int chunk_number);
       virtual void ScheduleNextChunkDownload();
 
       virtual void CancelAllTimeoutEvents();
