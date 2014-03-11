@@ -31,8 +31,9 @@ public:
   void removeFace(Ptr<const Face> face);
   void setAvgPeriod (const Time &avgPeriod);
 
-  int getAvgInTrafficKbits(Ptr<const Face> face);
-  int getAvgOutTrafficKbits(Ptr<const Face> face);
+  unsigned int getAvgInTrafficBits(Ptr<const Face> face);
+  unsigned int getAvgOutTrafficBits(Ptr<const Face> face);
+  unsigned int getAvgTotalTrafficBits(Ptr<const Face> face);
 
   //todo implement public methods e.g. getAvgSpeed..etc
 

@@ -40,21 +40,27 @@ void ITracer::copyDataForAvgCalculation ()
   avgEvent = Simulator::Schedule (period, &ITracer::copyDataForAvgCalculation, this);
 }
 
-int ITracer::getAvgInTrafficKbits(Ptr<const Face> face)
+unsigned int ITracer::getAvgInTrafficBits(Ptr<const Face> face)
 {
   Stats s = measuredStats[face->GetId ()];
 
   int bits = (s.m_inDataSize + s.m_inInterestsSize + s.m_inNacksSize) * 8;
-  return ( bits / period.GetSeconds()) / 1000;
+  return ( bits / period.GetSeconds());
 }
 
-int ITracer::getAvgOutTrafficKbits(Ptr<const Face> face)
+unsigned int ITracer::getAvgOutTrafficBits(Ptr<const Face> face)
 {
   Stats s = measuredStats[face->GetId ()];
 
   int bits = (s.m_outDataSize + s.m_outInterestsSize + s.m_outNacksSize) *8;
-  return ( bits / period.GetSeconds()) / 1000;
+  return ( bits / period.GetSeconds());
 }
+
+unsigned int ITracer::getAvgTotalTrafficBits (Ptr<const Face> face)
+{
+  return getAvgInTrafficBits (face) + getAvgOutTrafficBits (face);
+}
+
 
 void ITracer::Connect ()
 {
