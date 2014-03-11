@@ -38,6 +38,9 @@ namespace ns3
 {
   namespace utils
   {
+    /**
+     * @brief The PipelineNDNDownloader class is DEPRECATED
+     */
     class PipelineNDNDownloader : public IDownloader, public ndn::App
     {
     public:
@@ -52,7 +55,6 @@ namespace ns3
         DownloadStatus* chunk_download_status;
         Time* chunk_download_time;
         unsigned int bytesToDownload;
-        unsigned int avgBitrate;
       };
 
       PipelineNDNDownloader();
