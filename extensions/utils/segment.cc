@@ -34,6 +34,11 @@ unsigned int Segment::getLevel ()
   return level;
 }
 
+unsigned int Segment::getAvgLvlBitrate()
+{
+  return avgLevelBitrate;
+}
+
 std::string Segment::toString ()
 {
   std::string ret("");

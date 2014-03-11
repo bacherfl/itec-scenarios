@@ -53,6 +53,9 @@ namespace ns3
 
     /** an Array with timeout events, so we can cancel them if needed */
     EventId* chunk_timeout_events;
+
+    /** the average bitrate of the current representation/quality-level */
+    unsigned int avgBitrate;
   };
 }
 

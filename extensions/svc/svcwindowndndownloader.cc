@@ -78,7 +78,9 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
     levelTag.Set(level);
     interest->GetPayload ()->AddPacketTag (levelTag);
 
-    // Todo add additinal addaptation information.
+    ndn::SVCBitrateTag bitrateTag;
+    bitrateTag.Set (curSegmentStatus.avgBitrate);
+    interest->GetPayload ()->AddPacketTag (bitrateTag);
 
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);

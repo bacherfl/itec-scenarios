@@ -63,6 +63,9 @@ bool WindowNDNDownloader::download (Segment *s)
   this->curSegmentStatus.chunk_status = new ns3::NDNDownloadStatus[this->curSegmentStatus.num_chunks]();
   this->curSegmentStatus.chunk_timeout_events = new ns3::EventId[this->curSegmentStatus.num_chunks]();
 
+  // set avgBitrate
+  curSegmentStatus.avgBitrate = s->getAvgLvlBitrate ();
+
   // init stats
   packets_received = 0;
   packets_timeout = 0;

@@ -74,3 +74,5 @@ extensions/svcsvcwindowndndownloader.h
 extensions/svc/svcwindowndndownloader.cc
 scenarios/largescenario.cc
 topologies/large.top
+extensions/svc/svcbitratetag.h
+extensions/svc/svcbitratetag.cc

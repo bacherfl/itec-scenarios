@@ -3,6 +3,7 @@
 
 #include "../utils/windowndndownloader.h"
 #include "svcleveltag.h"
+#include "svcbitratetag.h"
 
 
 namespace ns3
