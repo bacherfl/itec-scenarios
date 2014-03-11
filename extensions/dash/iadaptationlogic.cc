@@ -58,7 +58,7 @@ Segment *IAdaptationLogic::getNextSegment()
     uri.append (seg_name);
     currentSegmentNr++;
 
-    s = new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration());
+    s = new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration(), rep->GetBandwidth (), atoi(rep->GetId ().c_str ()));
   }
 
   return s;

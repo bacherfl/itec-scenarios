@@ -17,7 +17,7 @@
 #include "../../../ns-3/src/ndnSIM/model/fw/per-out-face-limits.h"
 
 #include "../utils/ndntracer.h"
-#include "../utils/svcleveltag.h"
+#include "svcleveltag.h"
 
 #include <stdio.h>
 

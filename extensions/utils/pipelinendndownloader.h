@@ -52,6 +52,7 @@ namespace ns3
         DownloadStatus* chunk_download_status;
         Time* chunk_download_time;
         unsigned int bytesToDownload;
+        unsigned int avgBitrate;
       };
 
       PipelineNDNDownloader();

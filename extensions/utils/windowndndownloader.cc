@@ -1,6 +1,4 @@
 #include "windowndndownloader.h"
-#include "ns3-dev/ns3/ndn-wire.h"
-#include "svcleveltag.h"
 
 using namespace ns3;
 using namespace ns3::utils;

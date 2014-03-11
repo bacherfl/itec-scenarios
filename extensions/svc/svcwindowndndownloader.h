@@ -1,7 +1,7 @@
 #ifndef SVCWINDOWNDNDOWNLOADER_H
 #define SVCWINDOWNDNDOWNLOADER_H
 
-#include "windowndndownloader.h"
+#include "../utils/windowndndownloader.h"
 #include "svcleveltag.h"
 
 
