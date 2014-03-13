@@ -43,7 +43,7 @@ TypeId AdaptiveQueue::GetTypeId (void)
 
 AdaptiveQueue::AdaptiveQueue () :
   Queue (),
-  m_packets (),
+  m_qpackets (),
   m_bytesInQueue (0)
 {
   NS_LOG_FUNCTION (this);
@@ -70,11 +70,11 @@ AdaptiveQueue::GetMode (void)
 
 
 
-bool AdaptiveQueue::DoNormalEnqueue (Ptr<Packet> p)
+bool AdaptiveQueue::DoEnqueue (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << p);
 
-  if (m_mode == QUEUE_MODE_PACKETS && (m_packets.size () >= m_maxPackets))
+  /*if (m_mode == QUEUE_MODE_PACKETS && (m_qpackets.size () >= m_maxPackets))
     {
       NS_LOG_LOGIC ("Queue full (at max packets) -- droppping pkt");
       Drop (p);
@@ -86,169 +86,121 @@ bool AdaptiveQueue::DoNormalEnqueue (Ptr<Packet> p)
       NS_LOG_LOGIC ("Queue full (packet would exceed max bytes) -- droppping pkt");
       Drop (p);
       return false;
+    }*/
+
+  ns3::ndn::SVCLevelTag tmpTag, tag;
+
+  if (!p->PeekPacketTag(tag))
+    tag.Set(0);
+
+
+
+#ifdef LISTQUEUE
+
+  // sorted enqueue
+
+  if (m_qpackets.size() == 0)
+  {
+    m_qpackets.push_back(p);
+  } else {
+    int i = 0;
+
+    fprintf(stderr, "AdaptiveQueue Size: %d\n", m_qpackets.size());
+
+    for (std::list < Ptr<Packet> >::iterator ci = m_qpackets.begin();
+         ci != m_qpackets.end() && i < m_maxPackets;
+         ++ci, i++)
+    {
+      Ptr < Packet > tmpP = *ci;
+      if (!tmpP->PeekPacketTag(tmpTag))
+        tmpTag.Set(0);
+
+
+
+      // insert before
+      if (tag.Get() < tmpTag.Get())
+      {
+        fprintf(stderr, "AdaptiveQueue Packet accepted - level: %d\n", tag.Get());
+        m_qpackets.insert(ci, p);
+        break;
+      }
     }
 
-  m_bytesInQueue += p->GetSize ();
-  m_packets.push (p);
+    if (i == m_maxPackets)
+    {
+      // drop that packet
+      Drop ( p );
+      fprintf(stderr, "AdaptiveQueue dropped ... queue full\n");
+      return false;
+    } else {
+      fprintf(stderr, "AdaptiveQueue Packet with tag %d is on queue position %d (size: %d)\n", tag.Get(), i, m_qpackets.size());
+    }
 
-  NS_LOG_LOGIC ("Number packets " << m_packets.size ());
+  }
+
+
+#else
+  if (!p->PeekPacketTag(tag))
+    tag.Set(0);
+
+  if (tag.Get() != 0 && m_qpackets.size() >= m_maxPackets)
+  {
+    fprintf(stderr, "dropping packet with tag %d (q size: %d)\n", tag.Get(), m_qpackets.size());
+
+    Drop ( p );
+
+    return false;
+  }
+
+  if (m_qpackets.size() >= m_maxPackets*4)
+  {
+    Drop( p );
+    return false;
+  }
+
+  m_qpackets.push( p );
+
+
+
+  fprintf(stderr, "Packet with tag %d is on queue position ? (size: %d)\n", tag.Get(), m_qpackets.size());
+#endif
+
+  m_bytesInQueue += p->GetSize ();
+
+
+  NS_LOG_LOGIC ("Number packets " << m_qpackets.size ());
   NS_LOG_LOGIC ("Number bytes " << m_bytesInQueue);
 
   return true;
 }
 
 
-bool AdaptiveQueue::DoSortedEnqueue (Ptr<Packet> p, int level)
-{
-  NS_LOG_FUNCTION (this << p << level);
-  // TODO: Add Adaptation Logic Here
-  if (level == 0 || level == 16)
-    return DoNormalEnqueue (p);
-
-  NS_LOG_UNCOND ("We dont want that packet with level " << level);
-  Drop (p);
-
-
-  return false;
-}
-
-
-bool
-AdaptiveQueue::DoEnqueue (Ptr<Packet> p)
-{
-  NS_LOG_FUNCTION (this << p);
-
-
-  std::stringstream os;
-  ns3::PacketTagIterator iter = p->GetPacketTagIterator();
-
-
-
-  bool normal = true;
-  int level = 0;
-
-
-  while (iter.HasNext())
-  {
-    ns3::PacketTagIterator::Item item2 = iter.Next();
-
-    if (item2.GetTypeId().GetName().compare("ns3::ndn::SVCLevelTag") == 0)
-    {
-      ns3::ndn::SVCLevelTag tag;
-
-
-      item2.GetTag(tag);
-
-
-      level = tag.Get();
-      normal = false;
-      break;
-    }
-    else
-    {
-      //NS_LOG_UNCOND("TypeName=" << item2.GetTypeId().GetName());
-
-    }
-  }
-
-  /*
-  PacketMetadata::ItemIterator  it = p->BeginItem();
-  while (it.HasNext())
-  {
-    PacketMetadata::Item item = it.Next ();
-    NS_LOG_UNCOND (this << "TYPE=" << item.tid.GetName());
-
-
-    switch (item.type) {
-      case PacketMetadata::Item::HEADER:
-      case PacketMetadata::Item::TRAILER:
-        if (item.tid.GetName().compare("ns3::ndn::Interest::ndnSIM") == 0)
-        {
-          NS_ASSERT (item.tid.HasConstructor ());
-          Callback<ObjectBase *> constructor = item.tid.GetConstructor ();
-          NS_ASSERT (!constructor.IsNull ());
-          ObjectBase *instance = constructor ();
-          NS_ASSERT (instance != 0);
-
-          ns3::ndn::wire::ndnSIM::Interest *chunk =
-              dynamic_cast<ns3::ndn::wire::ndnSIM::Interest *> (instance);
-
-          NS_ASSERT (chunk != 0);
-          chunk->Deserialize (item.current);
-
-          Ptr<ndn::Interest> interest = chunk->GetInterest();
-
-          std::string uri = interest->GetName().toUri();
-
-          //NS_LOG_UNCOND (this << "URI=" << uri);
-
-
-          if (uri.find("-L") != std::string::npos)
-          {
-            // URI='/itec/bbb/bunny_svc_spatial_2s/bbb-svc.264.seg3-L32.svc/chunk_44'
-            uri = uri.substr (uri.find_last_of ("-L")+1);
-
-            uri = uri.substr(0, uri.find_first_of("."));
-
-
-
-
-           // os << "LEVEL='" << uri;
-            level = atoi(uri.c_str());
-            normal = false;
-
-
-          }
-          else
-          {
-            // normal packet, just add it
-           // os << "Normal Packet" << std::endl;
-          }
-          //fprintf(stderr, "In Queue %p... %s\n", this, os.str().c_str());
-
-         // chunk->Print(os);
-
-          delete chunk;
-
-
-        }
-
-
-
-        break;
-      }
-
-  }
-
-  */
-
-
-  if (normal == true)
-  {
-    return DoNormalEnqueue(p);
-  } else {
-    return DoSortedEnqueue(p, level);
-  }
-}
 
 Ptr<Packet>
 AdaptiveQueue::DoDequeue (void)
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_packets.empty ())
+
+  if (m_qpackets.empty ())
     {
       NS_LOG_LOGIC ("Queue empty");
       return 0;
     }
 
-  Ptr<Packet> p = m_packets.front ();
-  m_packets.pop ();
+#ifdef LISTQUEUE
+  Ptr<Packet> p = m_qpackets.front ();
+  m_qpackets.pop_front();
+#else
+  Ptr<Packet> p = m_qpackets.top ();
+  m_qpackets.pop();
+#endif
   m_bytesInQueue -= p->GetSize ();
+
 
   NS_LOG_LOGIC ("Popped " << p);
 
-  NS_LOG_LOGIC ("Number packets " << m_packets.size ());
+  NS_LOG_LOGIC ("Number packets " << m_qpackets.size ());
   NS_LOG_LOGIC ("Number bytes " << m_bytesInQueue);
 
   return p;
@@ -259,15 +211,18 @@ AdaptiveQueue::DoPeek (void) const
 {
   NS_LOG_FUNCTION (this);
 
-  if (m_packets.empty ())
+  if (m_qpackets.empty ())
     {
       NS_LOG_LOGIC ("Queue empty");
       return 0;
     }
+#ifdef LISTQUEUE
+  Ptr<Packet> p = m_qpackets.front ();
+#else
+  Ptr<Packet> p = m_qpackets.top ();
+#endif
 
-  Ptr<Packet> p = m_packets.front ();
-
-  NS_LOG_LOGIC ("Number packets " << m_packets.size ());
+  NS_LOG_LOGIC ("Number packets " << m_qpackets.size ());
   NS_LOG_LOGIC ("Number bytes " << m_bytesInQueue);
 
   return p;
