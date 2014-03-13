@@ -1,7 +1,6 @@
 #ifndef SVCLEVELTAG_H
 #define SVCLEVELTAG_H
 
-
 #include "ns3-dev/ns3/tag.h"
 
 namespace ns3 {

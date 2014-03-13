@@ -38,6 +38,9 @@ namespace ns3
 {
   namespace utils
   {
+    /**
+     * @brief The PipelineNDNDownloader class is DEPRECATED
+     */
     class PipelineNDNDownloader : public IDownloader, public ndn::App
     {
     public:

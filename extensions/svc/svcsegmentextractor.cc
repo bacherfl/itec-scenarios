@@ -50,7 +50,7 @@ std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
           seg_name.append(rep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
           uri.append (seg_name);
 
-          segments.push_back (new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration(), atoi(rep->GetId ().c_str ())));
+          segments.push_back (new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration(), rep->GetBandwidth (), atoi(rep->GetId ().c_str ())));
         }
     }
   }

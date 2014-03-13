@@ -20,7 +20,8 @@ namespace ns3
       SimpleNDN,
       PipelineNDN,
       TimeoutNDN,
-      WindowNDN
+      WindowNDN,
+      SVCWindowNDN
     };
 
     class IDownloader : public utils::Observable

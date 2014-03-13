@@ -20,11 +20,9 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 {
   if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
   {
-    fprintf(stderr, "SVCWindow: Dropping wrong NACK - URI: %s\n", interest->GetName ().toUri().c_str());
+    fprintf(stderr, "SVCWindow: Dropping NACK from previous Request - URI: %s\n", interest->GetName ().toUri().c_str());
     return;
   }
-
-  fprintf(stderr, "SVCWindow: NACK - URI: %s\n", interest->GetName ().toUri().c_str());
 
   //check if packet was dropped on purpose.
   Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
@@ -33,12 +31,10 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   bool tagExists = packet->PeekPacketTag(levelTag);
   if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
   {
-    NS_LOG_FUNCTION("NACK %s was dropped on purpose\n" << interest->GetName());
+    NS_LOG_FUNCTION("Packet %s was dropped on purpose\n" << interest->GetName());
 
     CancelAllTimeoutEvents();
-
     lastDownloadSuccessful = false;
-
     notifyAll ();
     return; // stop downloading, do not fire OnNack of super class, we are done here!
   }
@@ -65,12 +61,38 @@ void SVCWindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
 
 
+void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
+{
+  if(this->curSegmentStatus.bytesToDownload > 0)
+  {
+
+    Ptr<ndn::Interest> interest = prepareInterstForDownload (chunk_number);
+
+    // extract the string level
+    std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
+    uri = uri.substr(0, uri.find_first_of("."));
+
+    int level = atoi(uri.c_str());
+
+    ndn::SVCLevelTag levelTag;
+    levelTag.Set(level);
+    interest->GetPayload ()->AddPacketTag (levelTag);
+
+    ndn::SVCBitrateTag bitrateTag;
+    bitrateTag.Set (curSegmentStatus.avgBitrate);
+    interest->GetPayload ()->AddPacketTag (bitrateTag);
+
+    // Call trace (for logging purposes)
+    m_transmittedInterests (interest, this, m_face);
+    m_face->ReceiveInterest (interest);
+  }
+}
+
 
 bool SVCWindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
 {
   if (!lastDownloadSuccessful)
   {
-    //fprintf(stderr, "RETURN false1\n");
     return false;
   }
 
@@ -81,10 +103,8 @@ bool SVCWindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
 
   if (curSegmentStatus.base_uri.compare (packetUri.substr (0,curSegmentStatus.base_uri.size ())) == 0)
   {
-    //fprintf(stderr, "RETURN true2\n");
     return true;
   }
 
-  //fprintf(stderr, "RETURN false3\n");
   return false;
 }

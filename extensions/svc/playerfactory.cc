@@ -58,6 +58,11 @@ IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Nod
     }
     case WindowNDN:
     {
+      d = new WindowNDNDownloader;
+      break;
+    }
+    case SVCWindowNDN:
+    {
       d = new SVCWindowNDNDownloader();
       break;
     }

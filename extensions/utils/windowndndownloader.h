@@ -25,6 +25,7 @@
 #include "ns3-dev/ns3/ndnSIM/utils/ndn-rtt-estimator.h"
 #include "ns3-dev/ns3/ndnSIM/utils/ndn-rtt-mean-deviation.h"
 #include <ns3-dev/ns3/ndn-l3-protocol.h>
+#include "ns3-dev/ns3/ndn-wire.h"
 
 #include <stdio.h>
 
@@ -66,6 +67,7 @@ namespace ns3
 
     protected:
       virtual void downloadChunk(int chunk_number);
+      virtual Ptr<ndn::Interest> prepareInterstForDownload(int chunk_number);
       virtual void ScheduleNextChunkDownload();
 
       virtual void CancelAllTimeoutEvents();
