@@ -86,6 +86,19 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
   Ptr<ndn::Data> data = Create<ndn::Data> (Create<Packet> (size));
   data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
 
+  // set svc level tag
+  ns3::ndn::SVCLevelTag tag;
+
+  Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
+
+
+  if (packet->PeekPacketTag(tag))
+  {
+    data->GetPayload()->AddPacketTag(tag);
+  }
+
+
+
   NS_LOG_FUNCTION("Sending data packet" << data->GetName() << "size" << size << this);
 
   // Call trace (for logging purposes)

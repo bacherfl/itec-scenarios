@@ -16,6 +16,9 @@
 #include "ns3-dev/ns3/ndn-fib.h"
 
 #include "utils/idownloader.h"
+#include "svc/svcleveltag.h"
+
+#include "ns3-dev/ns3/ndn-wire.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
