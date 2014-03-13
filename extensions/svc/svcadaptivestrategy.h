@@ -104,7 +104,7 @@ void SVCAdaptiveStrategy<Parent>::RemoveFace (Ptr<Face> face)
 {
   if(tracer != NULL)
     tracer->removeFace(face);
-  super::AddFace(face);
+  super::RemoveFace(face);
 }
 
 template<class Parent>

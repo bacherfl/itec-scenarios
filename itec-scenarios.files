@@ -76,3 +76,7 @@ scenarios/largescenario.cc
 topologies/large.top
 extensions/svc/svcbitratetag.h
 extensions/svc/svcbitratetag.cc
+extensions/svc/pitthresholdstrategy.h
+extensions/svc/pitthresholdstrategy.cc
+extensions/svc/facepitstatistic.h
+extensions/svc/facepitstatistic.cc
