@@ -14,6 +14,11 @@ PipelineNDNDownloader::PipelineNDNDownloader() : IDownloader()
   m_rtt = CreateObject<ndn::RttMeanDeviation> ();
 }
 
+bool PipelineNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
+{
+  return download(s);
+}
+
 bool PipelineNDNDownloader::download (Segment *s)
 {
   NS_LOG_FUNCTION(this);

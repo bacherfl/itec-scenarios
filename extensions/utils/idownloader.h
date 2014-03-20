@@ -32,6 +32,8 @@ namespace ns3
       bool wasSuccessfull();
 
       virtual bool download(Segment *s) = 0;
+      virtual bool downloadBefore(Segment *s, int miliSeconds) = 0;
+
       virtual void setNodeForNDN(Ptr <ns3::Node> node) = 0;
 
     protected:

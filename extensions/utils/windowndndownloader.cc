@@ -23,6 +23,12 @@ WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
   m_rtt->SetMinRto(Seconds(0.1));
 }
 
+
+bool WindowNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
+{
+  return download(s);
+}
+
 bool WindowNDNDownloader::download (Segment *s)
 {
   NS_LOG_FUNCTION(this);

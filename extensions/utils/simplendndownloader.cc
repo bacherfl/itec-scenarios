@@ -10,6 +10,11 @@ SimpleNDNDownloader::SimpleNDNDownloader() : IDownloader()
   chunk_number = 0;
 }
 
+bool SimpleNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
+{
+  return download(s);
+}
+
 bool SimpleNDNDownloader::download (Segment *s)
 {
   NS_LOG_FUNCTION(this);
