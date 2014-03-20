@@ -70,7 +70,7 @@ extensions/utils/itracer.h
 extensions/utils/itracer.cc
 extensions/utils/ndntracer.h
 extensions/utils/ndntracer.cc
-extensions/svcsvcwindowndndownloader.h
+extensions/svc/svcwindowndndownloader.h
 extensions/svc/svcwindowndndownloader.cc
 scenarios/largescenario.cc
 topologies/large.top
