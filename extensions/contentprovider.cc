@@ -76,30 +76,41 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
 
   unsigned int size = fstats.st_size;
 
+  Ptr<ndn::Data> data;
+
   int result;
   std::stringstream(chunk_nr) >> result;
-  size -= MAX_PACKET_PAYLOAD * result;
 
-  if(size > MAX_PACKET_PAYLOAD)
-    size = MAX_PACKET_PAYLOAD;
-
-  Ptr<ndn::Data> data = Create<ndn::Data> (Create<Packet> (size));
-  data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
-
-  // set svc level tag
-  ns3::ndn::SVCLevelTag tag;
-
-  Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
-
-
-  if (packet->PeekPacketTag(tag))
+  if (result == 0)
   {
-    data->GetPayload()->AddPacketTag(tag);
+    // return the file size only with the first chunk (as a uint8_t array)
+    data = Create<ndn::Data> (Create<Packet> ((uint8_t*)&size, sizeof(size)));
+    data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
+
+    NS_LOG_FUNCTION("Sending first data packet" << data->GetName() << "with content " << size << this);
+  } else {
+    // return an actual data packet
+
+    size -= MAX_PACKET_PAYLOAD * result;
+
+    if(size > MAX_PACKET_PAYLOAD)
+      size = MAX_PACKET_PAYLOAD;
+
+    data = Create<ndn::Data> (Create<Packet> (size));
+    data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
+
+    // set svc level tag
+    ns3::ndn::SVCLevelTag tag;
+    Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
+
+    if (packet->PeekPacketTag(tag))
+    {
+      data->GetPayload()->AddPacketTag(tag);
+    }
+
+
+    NS_LOG_FUNCTION("Sending data packet" << data->GetName() << "size" << size << this);
   }
-
-
-
-  NS_LOG_FUNCTION("Sending data packet" << data->GetName() << "size" << size << this);
 
   // Call trace (for logging purposes)
   m_transmittedDatas (data, this, m_face);
