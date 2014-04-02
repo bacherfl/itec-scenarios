@@ -82,3 +82,6 @@ extensions/svc/pitthresholdstrategy.h
 extensions/svc/pitthresholdstrategy.cc
 extensions/svc/facepitstatistic.h
 extensions/svc/facepitstatistic.cc
+scenarios/congestiontest.cc
+extensions/simplefilerequester.h
+extensions/simplefilerequester.cc
