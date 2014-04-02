@@ -82,3 +82,5 @@ extensions/svc/pitthresholdstrategy.h
 extensions/svc/pitthresholdstrategy.cc
 extensions/svc/facepitstatistic.h
 extensions/svc/facepitstatistic.cc
+extensions/svc/limitguidedstrategy.h
+extensions/svc/limitguidedstrategy.cc

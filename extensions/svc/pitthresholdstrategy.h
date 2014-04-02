@@ -199,6 +199,12 @@ void PitThresholdStrategy<Parent>::DidSendOutInterest ( Ptr< Face > inFace, Ptr<
 template<class Parent>
 void PitThresholdStrategy<Parent>::OnInterest (Ptr< Face > face, Ptr< Interest > interest)
 {
+
+  if(interest->GetNack () != ndn::Interest::NORMAL_INTEREST)
+  {
+    fprintf(stderr, "Receveid a NACK: TODO implement decrease of PIT entry counts\n");
+  }
+
   super::OnInterest(face,interest);
 }
 

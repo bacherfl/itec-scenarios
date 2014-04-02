@@ -27,3 +27,20 @@ unsigned int FacePITStatistic::getPendingInterestCount()
 {
   return pendingInterestCount;
 }
+
+unsigned int FacePITStatistic::getResidualBandwidth ()
+{
+  Ptr<PointToPointNetDevice> d = face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
+  DataRateValue dv;
+  d->GetAttribute("DataRate", dv);
+  DataRate rate = dv.Get();
+
+  uint64_t availableBitrate = rate.GetBitRate();
+
+  uint64_t residualBandwidth = 0;
+
+  if(availableBitrate > AVERAGE_DATAPACKET_SIZE * pendingInterestCount)
+    residualBandwidth = AVERAGE_DATAPACKET_SIZE * pendingInterestCount;
+
+  return residualBandwidth;
+}
