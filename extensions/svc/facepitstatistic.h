@@ -1,10 +1,12 @@
 #ifndef FACEPITSTATISTIC_H
 #define FACEPITSTATISTIC_H
 
-
+#include "ns3-dev/ns3/point-to-point-module.h"
+#include "ns3-dev/ns3/network-module.h"
 #include <ns3/log.h>
 #include <ns3/ndn-face.h>
 
+#define AVERAGE_DATAPACKET_SIZE 4200
 
 namespace ns3
 {
@@ -21,6 +23,7 @@ namespace ns3
        void decrease();
 
        unsigned int getPendingInterestCount();
+       unsigned int getResidualBandwidth();
 
       protected:
 

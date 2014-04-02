@@ -73,12 +73,12 @@ int main(int argc, char* argv[])
   // Install NDN stack on all normal nodes
   ndn::StackHelper ndnHelper;
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate",  "EnableNACKs", "true");
-  ndnHelper.EnableLimits (true, Seconds(0.2), 100, 4200);
+  ndnHelper.EnableLimits (true, Seconds(0.1), 100, 4200);
   ndnHelper.Install(normalNodes);
 
   //change strategy for adaptive NODE
-  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::PitThresholdStrategy", "EnableNACKs", "true");
-  ndnHelper.EnableLimits (false);
+  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::PerOutFaceLimits::LimitsGuidedStrategy", "Limit", "ns3::ndn::Limits::Rate","EnableNACKs", "true");
+  //ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNodes);
 
   // Installing global routing interface on all nodes

@@ -85,3 +85,5 @@ extensions/svc/facepitstatistic.cc
 scenarios/congestiontest.cc
 extensions/simplefilerequester.h
 extensions/simplefilerequester.cc
+extensions/svc/limitguidedstrategy.h
+extensions/svc/limitguidedstrategy.cc
