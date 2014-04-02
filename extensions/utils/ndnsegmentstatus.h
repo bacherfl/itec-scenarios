@@ -46,13 +46,15 @@ namespace ns3
     unsigned int num_chunks;
 
     /** an Array with the status of each chunk */
-    NDNDownloadStatus* chunk_status;
+    std::vector<NDNDownloadStatus> chunk_status;
+    //NDNDownloadStatus* chunk_status;
 
     /** an int value that states how many bytes we still have to download */
     int bytesToDownload;
 
     /** an Array with timeout events, so we can cancel them if needed */
-    EventId* chunk_timeout_events;
+    std::vector<EventId> chunk_timeout_events;
+    //EventId* chunk_timeout_events;
 
     /** the average bitrate of the current representation/quality-level */
     unsigned int avgBitrate;

@@ -102,16 +102,27 @@ bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
 }
 
 
+bool SVCWindowNDNDownloader::download(Segment *s)
+{
+  NS_LOG_FUNCTION(this);
+  // set avgBitrate
+  curSegmentStatus.avgBitrate = s->getAvgLvlBitrate ();
+
+  return WindowNDNDownloader::download(s);
+}
+
+
 void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
 {
-  if(this->curSegmentStatus.bytesToDownload > 0)
+  NS_LOG_FUNCTION(this << chunk_number);
+  if(this->curSegmentStatus.bytesToDownload != 0)
   {
-
     Ptr<ndn::Interest> interest = prepareInterstForDownload (chunk_number);
 
     // extract the string level
     std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
     uri = uri.substr(0, uri.find_first_of("."));
+
 
     int level = atoi(uri.c_str());
 

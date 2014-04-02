@@ -50,6 +50,8 @@ namespace ns3
 
       virtual bool download (Segment *s);
 
+      virtual bool download (std::string URI);
+
       virtual bool downloadBefore(Segment *s, int miliSeconds);
 
       // (overridden from ndn::App) Callback that will be called when Data arrives
@@ -70,6 +72,7 @@ namespace ns3
     protected:
       virtual void downloadChunk(int chunk_number);
       virtual Ptr<ndn::Interest> prepareInterstForDownload(int chunk_number);
+
       virtual void ScheduleNextChunkDownload();
 
       virtual void CancelAllTimeoutEvents();
