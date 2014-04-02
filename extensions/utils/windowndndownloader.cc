@@ -145,7 +145,7 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
 
   // calculate when to download the next chunk
   this->scheduleDownloadTimer =
-      Simulator::Schedule(Seconds(1.0/(float)this->cwnd.GetWindowSize()),
+      Simulator::Schedule(MilliSeconds(1000.0/(double)this->cwnd.GetWindowSize()),
                           &WindowNDNDownloader::downloadChunk, this, chunk_number);
 }
 
