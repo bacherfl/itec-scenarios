@@ -15,6 +15,11 @@ TimeoutNDNDownloader::TimeoutNDNDownloader() : IDownloader()
   m_rtt = CreateObject<ndn::RttMeanDeviation> ();
 }
 
+bool TimeoutNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
+{
+  return download(s);
+}
+
 bool TimeoutNDNDownloader::download (Segment *s)
 {
   NS_LOG_FUNCTION(this);

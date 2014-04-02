@@ -11,6 +11,7 @@ NS_LOG_COMPONENT_DEFINE ("SVCWindowNDNDownloader");
 
 SVCWindowNDNDownloader::SVCWindowNDNDownloader() : WindowNDNDownloader()
 {
+  this->needDownloadBeforeEvent = EventId();
 }
 
 
@@ -59,6 +60,46 @@ void SVCWindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   WindowNDNDownloader::OnData(contentObject);
 }
 
+
+
+
+// called, if the download was not finished on time
+void SVCWindowNDNDownloader::OnDownloadExpired()
+{
+  fprintf(stderr, ">>>>>> Download expired - cancelling....\n");
+
+
+  this->scheduleDownloadTimer.Cancel();
+
+  CancelAllTimeoutEvents();
+  lastDownloadSuccessful = false;
+  notifyAll ();
+
+}
+
+
+void SVCWindowNDNDownloader::notifyAll()
+{
+  // cancel the download expired event -j ust in case
+  this->needDownloadBeforeEvent.Cancel();
+  Observable::notifyAll();
+}
+
+
+bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
+{
+
+    // this means the last download probably was successful, cancel this event just in case
+    this->needDownloadBeforeEvent.Cancel();
+
+
+  // create a event
+  this->needDownloadBeforeEvent =
+      Simulator::Schedule(MilliSeconds(miliSeconds),
+                          &SVCWindowNDNDownloader::OnDownloadExpired, this);
+
+  return download(s);
+}
 
 
 void SVCWindowNDNDownloader::downloadChunk(int chunk_number)

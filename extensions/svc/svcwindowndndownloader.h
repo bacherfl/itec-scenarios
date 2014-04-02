@@ -22,10 +22,17 @@ namespace ns3
       // (overriden from WindowNDNDownloader) Call that will be called when a NACK arrives
       virtual void OnNack (Ptr<const ndn::Interest> interest);
 
+
+      virtual bool downloadBefore(Segment *s, int miliSeconds);
       virtual void downloadChunk(int chunk_number);
+      void notifyAll();
 
     protected:
       virtual bool isPartOfCurrentSegment(std::string packetUri);
+
+      virtual void OnDownloadExpired();
+
+      EventId needDownloadBeforeEvent;
     };
 
   }

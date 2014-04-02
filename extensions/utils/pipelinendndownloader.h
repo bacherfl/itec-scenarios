@@ -60,6 +60,7 @@ namespace ns3
       PipelineNDNDownloader();
 
       virtual bool download (Segment *s);
+      virtual bool downloadBefore(Segment *s, int miliSeconds);
 
       // (overridden from ndn::App) Callback that will be called when Data arrives
       virtual void OnData (Ptr<const ndn::Data> contentObject);

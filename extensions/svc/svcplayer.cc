@@ -66,7 +66,21 @@ void SvcPlayer::streaming ()
     }
 
     fprintf(stderr, "SvcPlayer::requesting Segment: %s\n", cur_seg->toString ().c_str ());
-    downloader->download (cur_seg);
+
+
+    // always download segment level 0
+    if (cur_seg->getLevel() == 0)
+    {
+      downloader->download(cur_seg);
+    } else
+    { // but if higher level, set a threshold time until the download MUST be completed to be useful
+      int best_before = buf->bufferedSeconds () * 1000 - 500;
+      if (best_before < 2000)
+        best_before = 2000;
+
+      downloader->downloadBefore (cur_seg, best_before);
+    }
+
     isStreaming = true;
   }
 }
