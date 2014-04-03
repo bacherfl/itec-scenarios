@@ -37,7 +37,8 @@
 
 
 #define WINDOW_MAX_RTO 1.0
-
+#define STATS_OUTPUT_TIMER_MS 10
+#define DEFAULT_MEAN_RTT_MS 100
 
 namespace ns3
 {
@@ -48,10 +49,13 @@ namespace ns3
     public:
       WindowNDNDownloader();
 
+      /* download Segment - calls download(URI) */
       virtual bool download (Segment *s);
 
+      /* download from URI */
       virtual bool download (std::string URI);
 
+      /* download segment before - not implemented here */
       virtual bool downloadBefore(Segment *s, int miliSeconds);
 
       // (overridden from ndn::App) Callback that will be called when Data arrives
@@ -71,7 +75,7 @@ namespace ns3
 
     protected:
       virtual void downloadChunk(int chunk_number);
-      virtual Ptr<ndn::Interest> prepareInterstForDownload(int chunk_number);
+      virtual Ptr<ndn::Interest> prepareInterestForDownload(int chunk_number);
 
       virtual void ScheduleNextChunkDownload();
 
@@ -79,15 +83,32 @@ namespace ns3
 
       Ptr<ndn::RttEstimator> m_rtt;
 
-      StaticCongestionWindow cwnd;
+      CongestionWindow cwnd;
       NDNSegmentStatus curSegmentStatus;
 
       unsigned int packets_received;
+      unsigned int packets_received_this_second;
+      unsigned int packets_sent_this_second;
       unsigned int packets_timeout;
       int packets_inflight;
       unsigned int packets_nack;
 
+
+      bool had_nack;
+      bool had_timeout;
+      bool had_ack;
+
       EventId scheduleDownloadTimer;
+
+      EventId resetStatisticsTimer;
+
+      EventId statsOutputTimer;
+
+      Time lastTimeout;
+      Time lastValidPacket;
+
+      void resetStatistics();
+      void collectStats();
 
       void CheckRetrieveTimeout(int c_chunk_number);
       void OnTimeout (int c_chunk_number);

@@ -117,7 +117,7 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
   NS_LOG_FUNCTION(this << chunk_number);
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
-    Ptr<ndn::Interest> interest = prepareInterstForDownload (chunk_number);
+    Ptr<ndn::Interest> interest = prepareInterestForDownload (chunk_number);
 
     // extract the string level
     std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
@@ -137,6 +137,8 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);
     m_face->ReceiveInterest (interest);
+
+    packets_sent_this_second++;
   }
 }
 

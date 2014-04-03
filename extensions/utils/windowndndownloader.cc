@@ -7,18 +7,34 @@ NS_LOG_COMPONENT_DEFINE ("WindowNDNDownloader");
 
 WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
 {
+  // init statistics
   packets_received = 0;
   packets_timeout = 0;
   packets_inflight = 0;
   packets_nack = 0;
+  packets_received_this_second = 0;
+  packets_sent_this_second = 0;
+  had_ack = had_nack = had_timeout = false;
 
-
-  this->cwnd.SetThreshold(33);
-  this->cwnd.SetReceiverWindowSize(101);
-
-
+  // create the mean RTT collector
   m_rtt = CreateObject<ndn::RttMeanDeviation> ();
-  m_rtt->SetMinRto(Seconds(0.1));
+  m_rtt->SetMinRto(MilliSeconds(DEFAULT_MEAN_RTT_MS));
+}
+
+
+void WindowNDNDownloader::collectStats()
+{
+  // reset had_ack, had_nack, had_timeout
+  had_ack = had_nack = had_timeout = false;
+
+  NS_LOG_INFO("stats(" << this << "," << Simulator::Now().ToDouble(Time::S) <<
+              "): cwnd=" <<
+              this->cwnd.GetWindowSize() <<
+              ", bytesToDownload=" <<
+              this->curSegmentStatus.bytesToDownload);
+
+  this->statsOutputTimer = Simulator::Schedule(MilliSeconds(STATS_OUTPUT_TIMER_MS),
+                                               &WindowNDNDownloader::collectStats, this);
 }
 
 
@@ -28,10 +44,53 @@ bool WindowNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
 }
 
 
+/* download file from URI */
 bool WindowNDNDownloader::download (std::string URI)
 {
   NS_LOG_FUNCTION(this);
   StartApplication ();
+
+  // init some stats
+  this->had_ack = false;
+  this->had_nack = false;
+  this->had_timeout = false;
+
+  /****
+  * STEP 0 - START SOME TIMERS
+  */
+  // check the stats timer, which collects statistics every 10 milliseconds
+  if (statsOutputTimer.IsExpired())
+  {
+    this->statsOutputTimer = Simulator::Schedule(MilliSeconds(10),
+                                               &WindowNDNDownloader::collectStats, this);
+  }
+
+  // check if resetStatisticsTimer is running
+  if (resetStatisticsTimer.IsExpired())
+  {
+    resetStatisticsTimer = Simulator::Schedule(Seconds(1.0),
+                                               &WindowNDNDownloader::resetStatistics, this);
+  }
+
+
+  // parse the URI
+  this->curSegmentStatus.base_uri = URI;
+  if(this->curSegmentStatus.base_uri.size () > 7 &&
+     this->curSegmentStatus.base_uri.substr (0,7).compare ("http://") == 0)
+  {
+    this->curSegmentStatus.base_uri = std::string("/").append(
+          this->curSegmentStatus.base_uri.substr (7,this->curSegmentStatus.base_uri.length ()));
+  }
+
+  NS_LOG_FUNCTION(this->curSegmentStatus.base_uri << this);
+  /****
+  * STEP 0 - DONE
+  */
+
+
+  /****
+  * STEP 1 - ESTIMATE RECEIVER WINDOW TO LIMIT THE CONGESTION WINDOW
+  */
 
   // Get Device Bitrate
   Ptr<PointToPointNetDevice> nd1 = this->m_face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
@@ -41,30 +100,33 @@ bool WindowNDNDownloader::download (std::string URI)
 
   uint64_t bitrate = d.GetBitRate();
 
-  int max_packets = bitrate / (MAX_PACKET_PAYLOAD ) / 8;
+  int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + 230 ) / 8;
 
-  // set threshold to max_packets / 4
+  // set threshold to max_packets / 2
   cwnd.SetReceiverWindowSize(max_packets);
   cwnd.SetThreshold(max_packets/2);
 
+  /*
+  * STEP 1 - DONE
+  */
 
-  this->curSegmentStatus.base_uri = URI;
-  // set bytesToDownload to -1 until we know how much it is
+  /****
+  * STEP 2 - INIT VECTORS FOR SEGMENT STATUS
+  */
+  /* set bytesToDownload to -1 for now;
+    chunk_1 will tell us how big the file actually is */
   this->curSegmentStatus.bytesToDownload = -1;
 
-  // init number of chunks with 10 for now
+  // init number of chunks with 10 for now - chunk_1 will tell us how many we will need
   this->curSegmentStatus.num_chunks = 10;
-  /*
-  this->curSegmentStatus.num_chunks =
-      (int) ceil ( (float)  (this->curSegmentStatus.bytesToDownload) / (float)MAX_PACKET_PAYLOAD );
-  */
-  // init the internal status arrays
+  // init the internal status vectors
 
   this->curSegmentStatus.chunk_status.clear();
   this->curSegmentStatus.chunk_timeout_events.clear();
 
   this->curSegmentStatus.chunk_status.resize(this->curSegmentStatus.num_chunks, NotInitiated);
   this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
+
 
   // init stats
   packets_received = 0;
@@ -73,25 +135,38 @@ bool WindowNDNDownloader::download (std::string URI)
   packets_nack = 0;
   lastDownloadSuccessful = true;
 
+
   // clear the last rtt information
   m_rtt->Reset();
   m_rtt->ClearSent();
+  /*
+  * STEP 2 - DONE
+  */
 
-  // reset the congestion window
-  //cwnd.Reset();
 
-  if(this->curSegmentStatus.base_uri.size () > 7 &&
-     this->curSegmentStatus.base_uri.substr (0,7).compare ("http://") == 0)
-  {
-    this->curSegmentStatus.base_uri = std::string("/").append(
-          this->curSegmentStatus.base_uri.substr (7,this->curSegmentStatus.base_uri.length ()));
-  }
-
-  NS_LOG_FUNCTION(this->curSegmentStatus.base_uri << this);
-
+  /*** STEP 3 - DOWNLOAD chunk_0 WHICH CONTAINS META DATA */
   downloadChunk(0);
 
   return true;
+}
+
+
+void WindowNDNDownloader::resetStatistics()
+{
+  packets_received_this_second = 0;
+  packets_sent_this_second = 0;
+
+  if (resetStatisticsTimer.IsExpired())
+  {
+    resetStatisticsTimer = Simulator::Schedule(Seconds(1.0),  &WindowNDNDownloader::resetStatistics, this);
+  }
+  // also make sure that the download timer is running again (if it stopped, which is most likely)
+  if (this->scheduleDownloadTimer.IsExpired())
+  {
+    this->scheduleDownloadTimer =
+      Simulator::Schedule(MilliSeconds(1),
+                          &WindowNDNDownloader::ScheduleNextChunkDownload, this);
+  }
 }
 
 bool WindowNDNDownloader::download (Segment *s)
@@ -136,22 +211,24 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
 
   if (chunk_number == -1)
   {
-    //fprintf(stderr, "in WindowNDNDownloader::ScheduleNextChunkDownload() - no chunks available to download (bytesToDownload = %d)\n", this->curSegmentStatus.bytesToDownload);
+    // NO chunks available, dont do anything for now
     return;
   }
 
+  // cancel the timer in case it is already running
   this->scheduleDownloadTimer.Cancel();
 
-
-  // calculate when to download the next chunk
+  /* calculate when to download the next chunk
+  * make sure to use Double and Seconds here, to get an accurate timer!
+  */
   this->scheduleDownloadTimer =
-      Simulator::Schedule(MilliSeconds(1000.0/(double)this->cwnd.GetWindowSize()),
+      Simulator::Schedule(Seconds(1.0/(double)this->cwnd.GetWindowSize()),
                           &WindowNDNDownloader::downloadChunk, this, chunk_number);
 }
 
 
 
-Ptr<ndn::Interest> WindowNDNDownloader::prepareInterstForDownload (int chunk_number)
+Ptr<ndn::Interest> WindowNDNDownloader::prepareInterestForDownload (int chunk_number)
 {
   NS_LOG_FUNCTION(this << chunk_number);
   // set chunk status to requested
@@ -160,6 +237,8 @@ Ptr<ndn::Interest> WindowNDNDownloader::prepareInterstForDownload (int chunk_num
   // get current RTO
   double rto = m_rtt->RetransmitTimeout().GetSeconds();
   rto = std::min<double>(rto, WINDOW_MAX_RTO); // RTO must not be higher than 1 second here
+
+  //fprintf(stderr, "RTO=%f\n", rto);
 
   std::stringstream ss;
   ss << this->curSegmentStatus.base_uri << "/chunk_" << chunk_number;
@@ -199,13 +278,15 @@ void WindowNDNDownloader::downloadChunk (int chunk_number)
   NS_LOG_FUNCTION(this << chunk_number);
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
-    int  t = Simulator::Now().ToInteger(Time::MS);
-    fprintf(stderr, "t=%d\n", t);
-    Ptr<ndn::Interest> interest = prepareInterstForDownload(chunk_number);
+    float  t = Simulator::Now().ToDouble(Time::MS);
+   // fprintf(stderr, "t=%f\n", t);
+    Ptr<ndn::Interest> interest = prepareInterestForDownload(chunk_number);
 
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);
     m_face->ReceiveInterest (interest);
+
+    packets_sent_this_second++;
   }
 }
 
@@ -220,27 +301,34 @@ void WindowNDNDownloader::CheckRetrieveTimeout(int c_chunk_number)
 
 void WindowNDNDownloader::OnTimeout (int c_chunk_number)
 {
-  NS_LOG_FUNCTION("Timeout on chunk " << c_chunk_number << ". " << this);
+  NS_LOG_FUNCTION("TIMEOUT: chunk=" << c_chunk_number << ";" << this);
 
-  fprintf(stderr, "Timeout chunk %d, cwnd = %d, in_flight=%d\n", c_chunk_number, cwnd.GetWindowSize(), this->packets_inflight);
+  fprintf(stderr, "WindowNDNDownloader::OnTimeout chunk %d, cwnd = %d, in_flight=%d\n", c_chunk_number, cwnd.GetWindowSize(), this->packets_inflight);
 
   // adjust stats
   this->packets_inflight--;
   this->packets_timeout++;
 
-  // adjust windows/rto
+
+
+  int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastTimeout.ToInteger(Time::MS);
+
+  if (diff > m_rtt->RetransmitTimeout().ToInteger(Time::MS))
+  {
+    had_timeout = true;
+    lastTimeout = Simulator::Now();
+    cwnd.DecreaseWindow();
+    cwnd.SetThreshold(this->packets_inflight);
+  }
+
   m_rtt->IncreaseMultiplier ();
-  cwnd.DecreaseWindow();
 
   // re-request the packet
   this->curSegmentStatus.chunk_status[c_chunk_number] = Timeout;
 
-
   // make sure that the next packet is scheduled again
-  if (this->scheduleDownloadTimer.IsExpired())
-  {
-    ScheduleNextChunkDownload();
-  }
+  ScheduleNextChunkDownload();
+
 }
 
 
@@ -254,9 +342,20 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   s = s.substr(pos1+1);
   int c_chunk_number = atoi(s.c_str());
 
+  int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastTimeout.ToInteger(Time::MS);
+
+  if (diff > m_rtt->RetransmitTimeout().ToInteger(Time::MS))
+  {
+    had_nack = true;
+    lastTimeout = Simulator::Now();
+    cwnd.DecreaseWindow();
+    cwnd.SetThreshold(this->packets_inflight);
+  }
+
+
   fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
 
-  NS_LOG_FUNCTION("NACK on chunk " << c_chunk_number << ". " << this);
+  NS_LOG_FUNCTION("NACK: chunk=" << c_chunk_number << "; " << this);
 
   // make sure to cancel the OnTimeout event for this chunk
   this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
@@ -265,13 +364,11 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   this->packets_inflight--;
   this->packets_nack++;
 
-  // adjust windows/rto
-  m_rtt->IncreaseMultiplier ();
-  //cwnd.DecreaseWindow();
+  // adjust rto
+  m_rtt->IncreaseMultiplier();
 
   // re-request the packet
   this->curSegmentStatus.chunk_status[c_chunk_number] = Timeout;
-  this->scheduleDownloadTimer.Cancel();
 
   // make sure that the next packet is scheduled again
   ScheduleNextChunkDownload();
@@ -281,10 +378,23 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 {
   NS_LOG_FUNCTION(this);
 
+  packets_received_this_second++;
   packets_received++;
-  fprintf(stderr, "packets_received=%d, bytesToDownload=%d, curPacketSize=%d\n", packets_received,
-          this->curSegmentStatus.bytesToDownload, contentObject->GetPayload()->GetSize ());
   packets_inflight--;
+
+
+  int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastValidPacket.ToInteger(Time::MS);
+
+  if (diff > m_rtt->RetransmitTimeout().ToInteger(Time::MS))
+  {
+    had_ack = true;
+    // only increase if there was no nack/timeout recently
+    if (!had_nack && !had_timeout)
+    {
+      lastValidPacket = Simulator::Now();
+      cwnd.IncreaseWindow();
+    }
+  }
 
   // find out what chunk this is
   std::string s =  contentObject->GetName().toUri().c_str();
@@ -297,7 +407,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   // tell the RTO estimator that we received the packet with chunk_number
   m_rtt->AckSeq (SequenceNumber32 (c_chunk_number));
   // tell the congestion window that we received the packet as we expected to receive it
-  cwnd.IncreaseWindow();
+  //cwnd.IncreaseWindow();
 
   // Set the chunk status to received
   this->curSegmentStatus.chunk_status[c_chunk_number] = Received;
@@ -307,7 +417,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
   if (c_chunk_number == 0) // this is the first chunk - it contains the file size
   {
-    fprintf(stderr, "chunk number 0 received\n");
+    //fprintf(stderr, "chunk number 0 received\n");
     Ptr<Packet> pack = contentObject->GetPayload()->Copy();
     unsigned int buffer = 0;
     pack->CopyData((uint8_t*)&buffer, 4);
@@ -336,12 +446,12 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
   if (this->curSegmentStatus.bytesToDownload < 0)
   {
-    fprintf(stderr, "< 0...\n");
+    fprintf(stderr, "WARNING: bytesToDownload=%d < 0...\n", this->curSegmentStatus.bytesToDownload);
   }
 
   if(this->curSegmentStatus.bytesToDownload == 0)
   {
-    fprintf(stderr, "BytesToDownload=0\n");
+    //fprintf(stderr, "BytesToDownload=0\n");
     // cancel the scheduled download timer
     this->scheduleDownloadTimer.Cancel();
 
@@ -350,9 +460,12 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   }
   else
   {
+    if (this->scheduleDownloadTimer.IsExpired())
+    {
     // cancel the next download timer, we have a bigger congestion window now, which means less waiting time
     // make sure that the next packet is scheduled again
       ScheduleNextChunkDownload();
+    }
   }
 }
 
