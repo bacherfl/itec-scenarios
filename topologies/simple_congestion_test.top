@@ -1,0 +1,25 @@
+router
+
+# node  comment     yPos    xPos
+
+ContentDst1  NA       4       0
+ContentDst2  NA       3       0
+ContentDst3  NA       2       0
+ContentDst4  NA       1       0
+ContentDst5  NA       0.01    0
+ISP1         NA       2       2
+ISP2         NA       2       3
+ContentSrc1  NA       1       5
+ContentSrc2  NA       3       5
+
+link
+
+# srcNode     dstNode       bandwidth   metric    delay  queue
+ContentDst1   ISP1            1Mbps       1        5ms    150
+ContentDst2   ISP1            2Mbps       1        5ms    150
+ContentDst3   ISP1            4Mbps       1        5ms    150
+ContentDst4   ISP1            8Mbps       1        5ms    150
+ContentDst5   ISP1            16Mbps       1        5ms    150
+ISP1          ISP2            15Mbps      1        5ms    150
+ISP2          ContentSrc1     50Mbps      1        5ms    150
+ISP2          ContentSrc2     10Mbps      1        5ms    150
