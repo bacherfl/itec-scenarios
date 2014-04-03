@@ -383,24 +383,11 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 {
   NS_LOG_FUNCTION(this);
+  bool duplicate = false;
 
   packets_received_this_second++;
   packets_received++;
-  packets_inflight--;
 
-
-  int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastValidPacket.ToInteger(Time::MS);
-
-  if (diff > m_rtt->RetransmitTimeout().ToInteger(Time::MS))
-  {
-    had_ack = true;
-    // only increase if there was no nack/timeout recently
-    if (!had_nack && !had_timeout)
-    {
-      lastValidPacket = Simulator::Now();
-      cwnd.IncreaseWindow();
-    }
-  }
 
   // find out what chunk this is
   std::string s =  contentObject->GetName().toUri().c_str();
@@ -410,44 +397,71 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   s = s.substr(pos1+1);
   int c_chunk_number = atoi(s.c_str());
 
-  // tell the RTO estimator that we received the packet with chunk_number
-  m_rtt->AckSeq (SequenceNumber32 (c_chunk_number));
-  // tell the congestion window that we received the packet as we expected to receive it
-  //cwnd.IncreaseWindow();
 
-  // Set the chunk status to received
-  this->curSegmentStatus.chunk_status[c_chunk_number] = Received;
+  // check if that chunk was already received (--> duplicate ack)
+  if (this->curSegmentStatus.chunk_status[c_chunk_number] == Received)
+  {
+    // should not have happened, but it happened - okay. just make sure to not increase stats
+    duplicate = true;
+    fprintf(stderr, "Duplicate packet received\n");
+  } else
+  {
+    // Set the chunk status to received
+    this->curSegmentStatus.chunk_status[c_chunk_number] = Received;
+
+    packets_inflight--;
+    // tell the RTO estimator that we received the packet with chunk_number
+    m_rtt->AckSeq (SequenceNumber32 (c_chunk_number));
+
+
+    int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastValidPacket.ToInteger(Time::MS);
+
+    if (diff > m_rtt->RetransmitTimeout().ToInteger(Time::MS))
+    {
+      had_ack = true;
+      // only increase if there was no nack/timeout recently
+      if (!had_nack && !had_timeout)
+      {
+        lastValidPacket = Simulator::Now();
+        cwnd.IncreaseWindow();
+      }
+    }
+  }
+
 
   // make sure to cancel the OnTimeout event for this chunk
   this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
 
-  if (c_chunk_number == 0) // this is the first chunk - it contains the file size
+  if (!duplicate)
   {
-    //fprintf(stderr, "chunk number 0 received\n");
-    Ptr<Packet> pack = contentObject->GetPayload()->Copy();
-    unsigned int buffer = 0;
-    pack->CopyData((uint8_t*)&buffer, 4);
+    if (c_chunk_number == 0) // this is the first chunk - it contains the file size
+    {
+      //fprintf(stderr, "chunk number 0 received\n");
+      Ptr<Packet> pack = contentObject->GetPayload()->Copy();
+      unsigned int buffer = 0;
+      pack->CopyData((uint8_t*)&buffer, 4);
 
-    // set bytesToDownload
-    this->curSegmentStatus.bytesToDownload += buffer + 1;
+      // set bytesToDownload
+      this->curSegmentStatus.bytesToDownload += buffer + 1;
 
-    // init number of chunks
-    this->curSegmentStatus.num_chunks =
-        (int) ceil ( (float)  (this->curSegmentStatus.bytesToDownload) / (float)MAX_PACKET_PAYLOAD );
-    // increase by 1, because chunk number 0 is a meta packet
-    this->curSegmentStatus.num_chunks++;
+      // init number of chunks
+      this->curSegmentStatus.num_chunks =
+          (int) ceil ( (double)  (buffer) / (double)MAX_PACKET_PAYLOAD );
+      // increase by 1, because chunk number 0 is a meta packet
+      this->curSegmentStatus.num_chunks++;
 
-    NS_LOG_FUNCTION(std::string("Received first chunk with payload (=bytesToDownload): ")
-                    << buffer << std::string("Num_chunks=") << curSegmentStatus.num_chunks << this);
+      NS_LOG_FUNCTION(std::string("Received first chunk with payload (=bytesToDownload): ")
+                      << buffer << std::string("Num_chunks=") << curSegmentStatus.num_chunks << this);
 
 
-    // reserving memory for num_chunks
-    this->curSegmentStatus.chunk_status.resize(this->curSegmentStatus.num_chunks, NotInitiated);
-    this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
+      // reserving memory for num_chunks
+      this->curSegmentStatus.chunk_status.resize(this->curSegmentStatus.num_chunks, NotInitiated);
+      this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
 
-  } else {
-    NS_LOG_FUNCTION(this << std::string("received payload with size") << contentObject->GetPayload()->GetSize ());
-    this->curSegmentStatus.bytesToDownload -= contentObject->GetPayload()->GetSize ();
+    } else {
+      NS_LOG_FUNCTION(this << std::string("received payload with size") << contentObject->GetPayload()->GetSize ());
+      this->curSegmentStatus.bytesToDownload -= contentObject->GetPayload()->GetSize ();
+    }
   }
 
   if (this->curSegmentStatus.bytesToDownload < 0)
