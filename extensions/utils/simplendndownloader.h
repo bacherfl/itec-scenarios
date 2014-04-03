@@ -3,6 +3,12 @@
 
 #include "idownloader.h"
 
+#include "ns3-dev/ns3/core-module.h"
+#include "ns3-dev/ns3/network-module.h"
+#include "ns3-dev/ns3/ndnSIM-module.h"
+#include "ns3-dev/ns3/point-to-point-module.h"
+
+
 #include "ns3-dev/ns3/ndn-app.h"
 #include "ns3-dev/ns3/simulator.h"
 #include "ns3-dev/ns3/string.h"
@@ -16,8 +22,12 @@
 #include "ns3-dev/ns3/ndn-interest.h"
 #include "ns3-dev/ns3/ndn-data.h"
 #include "ns3-dev/ns3/ndn-fib.h"
+#include "ns3-dev/ns3/ndnSIM/utils/ndn-rtt-estimator.h"
+#include "ns3-dev/ns3/ndnSIM/utils/ndn-rtt-mean-deviation.h"
+#include "ns3-dev/ns3/ndn-l3-protocol.h"
+#include "ns3-dev/ns3/ndn-wire.h"
 
-#include <ns3-dev/ns3/ndn-l3-protocol.h>
+
 
 #include <stdio.h>
 
@@ -45,6 +55,9 @@ namespace ns3
       virtual void StopApplication ();
 
       virtual void setNodeForNDN (Ptr<Node> node);
+
+      // gets the physical available bitrate
+      uint64_t getPhysicalBitrate();
 
       unsigned int bytesToDownload;
       unsigned int chunk_number;

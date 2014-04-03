@@ -11,6 +11,7 @@
 #include "svcsegmentextractor.h"
 
 #define CONSUME_INTERVALL 1.0
+#define REDUCED_BANDWITH 0.75 // estimating we always have max. 75% of the full available bandwidth
 
 namespace ns3
 {

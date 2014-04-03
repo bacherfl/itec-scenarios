@@ -44,6 +44,19 @@ bool WindowNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
 }
 
 
+uint64_t WindowNDNDownloader::getPhysicalBitrate()
+{
+  // Get Device Bitrate
+  Ptr<PointToPointNetDevice> nd1 =
+      this->m_face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
+  DataRateValue dv;
+  nd1->GetAttribute("DataRate", dv);
+  DataRate d = dv.Get();
+  return d.GetBitRate();
+}
+
+
+
 /* download file from URI */
 bool WindowNDNDownloader::download (std::string URI)
 {
@@ -91,14 +104,7 @@ bool WindowNDNDownloader::download (std::string URI)
   /****
   * STEP 1 - ESTIMATE RECEIVER WINDOW TO LIMIT THE CONGESTION WINDOW
   */
-
-  // Get Device Bitrate
-  Ptr<PointToPointNetDevice> nd1 = this->m_face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
-  DataRateValue dv;
-  nd1->GetAttribute("DataRate", dv);
-  DataRate d = dv.Get();
-
-  uint64_t bitrate = d.GetBitRate();
+  uint64_t bitrate = this->getPhysicalBitrate();
 
   int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + 230 ) / 8;
 

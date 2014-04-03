@@ -51,7 +51,7 @@ void SvcPlayer::streaming ()
 
     utils::Segment* cur_seg = current_segments.at(0);
 
-   //w8 if buffer is full
+    //wait if buffer is full
     if(buf->bufferedSeconds () >= (buf->maxBufferSeconds () - cur_seg->getDuration ()))
     {
       Simulator::Schedule(MilliSeconds (100), &SvcPlayer::streaming, this);
@@ -59,7 +59,7 @@ void SvcPlayer::streaming ()
     }
 
     //check if connection is open or buffer is full...
-    while(isStreaming || (buf->bufferedSeconds () >= (buf->maxBufferSeconds () - cur_seg->getDuration ())))
+    if(isStreaming || (buf->bufferedSeconds () >= (buf->maxBufferSeconds () - cur_seg->getDuration ())))
     {
       Simulator::Schedule(MilliSeconds (1), &SvcPlayer::streaming, this);
       return;
@@ -77,6 +77,18 @@ void SvcPlayer::streaming ()
       int best_before = buf->bufferedSeconds () * 1000 - 500;
       if (best_before < 2000)
         best_before = 2000;
+
+      // check if it is feasible to download this segment
+      if (cur_seg->getAvgLvlBitrate() > downloader->getPhysicalBitrate() * REDUCED_BANDWITH)
+      {
+        fprintf(stderr, "SvcPlayer::aborting segment %s because of bandwidth\n", cur_seg->toString ().c_str ());
+
+        current_segments.erase (current_segments.begin ());
+
+        // just get the next segment
+        Simulator::Schedule(MilliSeconds (1), &SvcPlayer::streaming, this);
+        return;
+      }
 
       downloader->downloadBefore (cur_seg, best_before);
     }

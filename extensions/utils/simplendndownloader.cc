@@ -15,6 +15,18 @@ bool SimpleNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
   return download(s);
 }
 
+uint64_t SimpleNDNDownloader::getPhysicalBitrate()
+{
+  // Get Device Bitrate
+  Ptr<PointToPointNetDevice> nd1 =
+      this->m_face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
+  DataRateValue dv;
+  nd1->GetAttribute("DataRate", dv);
+  DataRate d = dv.Get();
+  return d.GetBitRate();
+}
+
+
 bool SimpleNDNDownloader::download (Segment *s)
 {
   NS_LOG_FUNCTION(this);

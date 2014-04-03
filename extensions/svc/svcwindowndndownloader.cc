@@ -88,23 +88,27 @@ void SVCWindowNDNDownloader::notifyAll()
 
 bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
 {
+  bool retValue = download(s);
 
-    // this means the last download probably was successful, cancel this event just in case
-    this->needDownloadBeforeEvent.Cancel();
+  // this means the last download probably was successful, cancel this event just in case
+  this->needDownloadBeforeEvent.Cancel();
 
-
-  // create a event
+  // create a new event
   this->needDownloadBeforeEvent =
       Simulator::Schedule(MilliSeconds(miliSeconds),
                           &SVCWindowNDNDownloader::OnDownloadExpired, this);
 
-  return download(s);
+  return retValue;
 }
 
 
 bool SVCWindowNDNDownloader::download(Segment *s)
 {
   NS_LOG_FUNCTION(this);
+
+  // this means the last download probably was successful, cancel this event just in case
+  this->needDownloadBeforeEvent.Cancel();
+
   // set avgBitrate
   curSegmentStatus.avgBitrate = s->getAvgLvlBitrate ();
 

@@ -18,8 +18,6 @@ namespace ns3
     enum DownloaderType
     {
       SimpleNDN,
-      PipelineNDN,
-      TimeoutNDN,
       WindowNDN,
       SVCWindowNDN
     };
@@ -35,6 +33,8 @@ namespace ns3
       virtual bool downloadBefore(Segment *s, int miliSeconds) = 0;
 
       virtual void setNodeForNDN(Ptr <ns3::Node> node) = 0;
+
+      virtual uint64_t getPhysicalBitrate() = 0;
 
     protected:
       bool lastDownloadSuccessful;

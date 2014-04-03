@@ -27,8 +27,6 @@ extensions/utils/idownloader.h
 extensions/utils/idownloader.cc
 extensions/utils/simplendndownloader.h
 extensions/utils/simplendndownloader.cc
-extensions/utils/pipelinendndownloader.h
-extensions/utils/pipelinendndownloader.cc
 extensions/dash/playerfactory.h
 extensions/dash/playerfactory.cc
 extensions/dash/alwayslowestadaptationlogic.h
@@ -46,8 +44,6 @@ extensions/svcrequester.h
 extensions/svcrequester.cc
 extensions/svc/svcsegmentextractor.h
 extensions/svc/svcsegmentextractor.cc
-extensions/utils/timeoutndndownloader.h
-extensions/utils/timeoutndndownloader.cc
 extensions/utils/congestionwindow.h
 extensions/utils/congestionwindow.cc
 extensions/utils/windowndndownloader.h

@@ -14,3 +14,6 @@ bool IDownloader::wasSuccessfull()
 {
   return lastDownloadSuccessful;
 }
+
+
+
