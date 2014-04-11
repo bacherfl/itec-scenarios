@@ -51,8 +51,6 @@ IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, d
       return new AlwaysLowestAdaptationLogic(mpd, dataset_path, buf);
     case dashimpl::RateBased:
       return new RateBasedAdaptationLogic(mpd, dataset_path, buf);
-  case dashimpl::BufferBased:
-    return new BufferBasedAdaptationLogic(mpd, dataset_path, buf);
     default:
       return new AlwaysLowestAdaptationLogic(mpd, dataset_path, buf);
   }

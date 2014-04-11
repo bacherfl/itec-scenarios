@@ -26,7 +26,6 @@
 
 #include "alwayslowestadaptationlogic.h"
 #include "ratebasedadaptationlogic.h"
-#include "bufferbasedadaptationlogic.h"
 
 #include "../utils/idownloader.h"
 #include "../utils/buffer.h"

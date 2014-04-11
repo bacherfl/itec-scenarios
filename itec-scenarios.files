@@ -34,8 +34,6 @@ extensions/dash/alwayslowestadaptationlogic.cc
 extensions/dash/iadaptationlogic.cc
 extensions/dash/ratebasedadaptationlogic.h
 extensions/dash/ratebasedadaptationlogic.cc
-extensions/dash/bufferbasedadaptationlogic.h
-extensions/dash/bufferbasedadaptationlogic.cc
 extensions/svc/svcplayer.h
 extensions/svc/svcplayer.cc
 extensions/svc/playerfactory.h

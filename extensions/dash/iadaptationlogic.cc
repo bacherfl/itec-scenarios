@@ -43,22 +43,58 @@ dash::mpd::IRepresentation* IAdaptationLogic::getBestRepresentation(dash::mpd::I
   return best;
 }
 
-Segment *IAdaptationLogic::getNextSegment()
+std::vector<Segment *> IAdaptationLogic::getNextSegments()
 {
   dash::mpd::IRepresentation* rep = getOptimalRepresentation(currentPeriod);
 
-  Segment *s = NULL;
+
+  //check if we have svc content or not
+  bool stack = false;
+  if(rep->GetCodecs ().size () > 0 && rep->GetCodecs().at(0).compare("svc") == 0)
+  {
+    stack = true;
+    //fprintf(stderr, "SVC-Content dedected. Stacking segments..\n");
+  }
+
+  std::vector<Segment *> s;
   std::string uri("");
   std::string seg_name("");
 
   if(rep->GetSegmentList ()->GetSegmentURLs().size() > currentSegmentNr)
   {
-    uri.append (base_url);
-    seg_name.append(rep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
-    uri.append (seg_name);
-    currentSegmentNr++;
 
-    s = new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration(), rep->GetBandwidth (), atoi(rep->GetId ().c_str ()));
+    if(stack)
+    {
+      //we assume here exactly one adaptation set
+      std::vector<dash::mpd::IRepresentation*> reps =  currentPeriod->GetAdaptationSets ().at(0)->GetRepresentation();
+
+      for(size_t j = 0; j < reps.size(); j++)
+      {
+        if(rep->GetId () < reps.at (j)->GetId())
+          break;
+
+        uri.clear ();
+        seg_name.clear ();
+
+        uri.append (base_url);
+        seg_name.append(reps.at(j)->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
+        uri.append (seg_name);
+
+        s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name), reps.at(j)->GetSegmentList()->GetDuration(), reps.at(j)->GetBandwidth (),
+                                 atoi(reps.at(j)->GetId ().c_str ())));/*svc level is set to rep level.*/
+      }
+
+      currentSegmentNr++;
+    }
+    else
+    {
+      uri.append (base_url);
+      seg_name.append(rep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
+      uri.append (seg_name);
+      currentSegmentNr++;
+
+      s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration(), rep->GetBandwidth (), atoi(rep->GetId ().c_str ())));
+    }
   }
 
   return s;
