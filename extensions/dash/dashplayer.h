@@ -18,35 +18,98 @@ namespace ns3
 {
   namespace dashimpl
   {
-    //abstract class
+
+    /*!
+     * \brief Implements a DASH PLayer implements Observer pattern
+     */
     class DashPlayer : utils::Observer
     {
     public:
 
+      /*!
+       * \brief DashPlayer
+       * \param mpd The MPD.
+       * \param alogic The AdaptationLogic
+       * \param buf The buffer for the video data.
+       * \param downloader The Downloader that is used to retrieve Segments.
+       */
       DashPlayer(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic* alogic, ns3::utils::Buffer* buf, utils::IDownloader* downloader);
+
+      /*!
+       * \brief Deconstructor ~DashPlayer
+       */
       virtual ~DashPlayer(){}
 
+      /*!
+       * \brief Starts the playback.
+       */
       virtual void play();
+
+      /*!
+       * \brief Stops the Playback
+       */
       virtual void stop();
 
+      /*!
+       * \brief Update method for Observer pattern.
+       */
       virtual void update();
+
+      /*!
+       * \brief Consume simulates the playback of video.
+       */
       virtual void consume();
 
     private:
 
+      /*!
+       * \brief Starts the streaming of a Segment.
+       */
       virtual void streaming();
 
+      /*!
+       * \brief The MPD.
+       */
       dash::mpd::IMPD* mpd;
+
+      /*!
+       * \brief The AdaptationLogic
+       */
       dashimpl::IAdaptationLogic* alogic;
+
+      /*!
+       * \brief The Downloader
+       */
       utils::IDownloader* downloader;
+
+      /*!
+       * \brief The video buffer.
+       */
       ns3::utils::Buffer* buf;
 
+      /*!
+       * \brief Flag if player is playing the video.
+       */
       bool isPlaying;
+
+      /*!
+       * \brief Flag if player is streaming some data.
+       */
       bool isStreaming;
+
+      /*!
+       * \brief List of segments that are currently in the download queue.
+       */
       std::vector<utils::Segment*> current_segments;
 
+      /*!
+       * \brief Flag that signals if all Segments of the downloaded queue are downloaded.
+       */
       bool allSegmentsDownloaded;
 
+      /*!
+       * \brief Start time of a particular download.
+       */
       Time dlStartTime;
 
     };
