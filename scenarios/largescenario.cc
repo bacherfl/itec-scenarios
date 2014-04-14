@@ -111,7 +111,8 @@ int main(int argc, char* argv[])
 
 
   //change strategy for adaptive NODE
-  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy", "EnableNACKs", "true");
+  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy",
+                                  "EnableNACKs", "true", "LevelCount", "3");
   ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNode);
 

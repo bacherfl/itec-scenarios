@@ -53,9 +53,9 @@
 
 
 #define UPDATE_ALPHA 0.2
-#define NUM_LEVELS   3
 #define RESET_STATISTICS_TIMER 1.0
 
+#define DEFAULT_AMOUNT_LEVELS 1
 // set the default content level (default: 0) - set to 1 if you want to punish non svc content
 #define DEFAULT_CONTENT_LEVEL 0
 
@@ -81,7 +81,7 @@ public:
     randomNumber = UniformVariable(0,1);
 
     // init amount of levels
-    //stats.CreateLevels(NUM_LEVELS);
+    //stats.CreateLevels(m_levelCount);
 
     // schedule first reset event
     ResetStatisticsTimer = Simulator::Schedule(Seconds(RESET_STATISTICS_TIMER), &SVCCountingStrategy::resetLevelCount, this);
@@ -116,6 +116,8 @@ protected:
 
   FacePacketStatisticMap map;
 
+  int m_levelCount;
+
 
   static LogComponent g_log;
 
@@ -131,7 +133,11 @@ TypeId SVCCountingStrategy<Parent>::GetTypeId (void)
   static TypeId tid = TypeId ((super::GetTypeId ().GetName ()+"::SVCCountingStrategy").c_str ())
       .SetGroupName ("Ndn")
       .template SetParent <super> ()
-      .template AddConstructor <SVCCountingStrategy> ();
+      .template AddConstructor <SVCCountingStrategy> ()
+      .template AddAttribute("LevelCount", "The amount of levels as a positive integer > 0",
+                    IntegerValue(DEFAULT_AMOUNT_LEVELS),
+                    MakeIntegerAccessor(&SVCCountingStrategy<Parent>::m_levelCount),
+                             MakeIntegerChecker<int32_t>());
   return tid;
 }
 
@@ -199,7 +205,7 @@ void SVCCountingStrategy<Parent>::AddFace (Ptr<Face> face)
   // add face to our map
   map[face->GetId ()] = new svc::FacePacketStatistic();
   // tell the stats how many levels we will have
-  map[face->GetId ()]->getStats()->CreateLevels(NUM_LEVELS);
+  map[face->GetId ()]->getStats()->CreateLevels(m_levelCount);
 
   // add face to faces vector
   faces.push_back (face);
