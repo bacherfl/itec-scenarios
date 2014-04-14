@@ -96,3 +96,5 @@ extensions/droppingPolicy/levelstatistics.cc
 extensions/droppingPolicy/droppingpolicy.cc
 extensions/svc/facepacketstatistic.h
 extensions/svc/facepacketstatistic.cc
+extensions/utils/playerlevelhistory.h
+extensions/utils/playerlevelhistory.cc
