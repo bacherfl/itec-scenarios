@@ -3,6 +3,7 @@
 
 #include "../utils/windowndndownloader.h"
 #include "svcleveltag.h"
+#include "../utils/deadlinetag.h"
 #include "svcbitratetag.h"
 
 
@@ -35,6 +36,8 @@ namespace ns3
       virtual void OnDownloadExpired();
 
       EventId needDownloadBeforeEvent;
+
+      uint64_t deadline;
     };
 
   }

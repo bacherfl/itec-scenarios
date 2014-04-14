@@ -88,6 +88,8 @@ void SVCWindowNDNDownloader::notifyAll()
 
 bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
 {
+  this->deadline = Simulator::Now().ToInteger(Time::MS) + miliSeconds;
+
   bool retValue = download(s);
 
   // this means the last download probably was successful, cancel this event just in case
@@ -137,6 +139,10 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
     ndn::SVCBitrateTag bitrateTag;
     bitrateTag.Set (curSegmentStatus.avgBitrate);
     interest->GetPayload ()->AddPacketTag (bitrateTag);
+
+    ndn::DeadlineTag deadlineTag;
+    deadlineTag.Set ( this->deadline - Simulator::Now().ToInteger(Time::MS) );
+    interest->GetPayload ()->AddPacketTag (deadlineTag);
 
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);
