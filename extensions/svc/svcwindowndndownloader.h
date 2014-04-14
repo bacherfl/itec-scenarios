@@ -40,6 +40,8 @@ namespace ns3
 
       EventId needDownloadBeforeEvent;
 
+      ns3::utils::Segment* curSegment;
+
       uint64_t deadline;
     };
 

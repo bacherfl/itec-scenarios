@@ -25,19 +25,23 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
     return;
   }
 
-  //check if packet was dropped on purpose.
-  Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
-  ndn::SVCLevelTag levelTag;
-
-  bool tagExists = packet->PeekPacketTag(levelTag);
-  if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
+  // check if this is level 0 - we are not dropping level 0 = baselayer on purpose.
+  if (this->curSegment->getLevel() != 0)
   {
-    NS_LOG_FUNCTION("Packet %s was dropped on purpose\n" << interest->GetName());
+    //check if packet was dropped on purpose.
+    Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
+    ndn::SVCLevelTag levelTag;
 
-    CancelAllTimeoutEvents();
-    lastDownloadSuccessful = false;
-    notifyAll (Observer::No_Message);
-    return; // stop downloading, do not fire OnNack of super class, we are done here!
+    bool tagExists = packet->PeekPacketTag(levelTag);
+    if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
+    {
+      NS_LOG_FUNCTION("Packet %s was dropped on purpose\n" << interest->GetName());
+
+      CancelAllTimeoutEvents();
+      lastDownloadSuccessful = false;
+      notifyAll (Observer::No_Message);
+      return; // stop downloading, do not fire OnNack of super class, we are done here!
+    }
   }
 
   // continue with super::OnNack
@@ -107,6 +111,8 @@ bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
 bool SVCWindowNDNDownloader::download(Segment *s)
 {
   NS_LOG_FUNCTION(this);
+
+  this->curSegment = s;
 
   // this means the last download probably was successful, cancel this event just in case
   this->needDownloadBeforeEvent.Cancel();
