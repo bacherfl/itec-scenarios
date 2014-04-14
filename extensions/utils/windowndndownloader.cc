@@ -106,7 +106,7 @@ bool WindowNDNDownloader::download (std::string URI)
   */
   uint64_t bitrate = this->getPhysicalBitrate();
 
-  int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + 230 ) / 8;
+  int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
 
   // set threshold to max_packets / 2
   cwnd.SetReceiverWindowSize(max_packets);
