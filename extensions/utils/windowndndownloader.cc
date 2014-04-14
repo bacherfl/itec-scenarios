@@ -307,6 +307,15 @@ void WindowNDNDownloader::CheckRetrieveTimeout(int c_chunk_number)
 
 void WindowNDNDownloader::OnTimeout (int c_chunk_number)
 {
+  // do not timeout on requests that have status != Requested
+  // e.g. packet has already been received or NACK'ed
+  if (this->curSegmentStatus.chunk_status[c_chunk_number] != Requested)
+  {
+    // this case should not happen, but it does happen (rarely)
+    return;
+  }
+
+
   NS_LOG_FUNCTION("TIMEOUT: chunk=" << c_chunk_number << ";" << this);
 
   fprintf(stderr, "WindowNDNDownloader::OnTimeout chunk %d, cwnd = %d, in_flight=%d\n", c_chunk_number, cwnd.GetWindowSize(), this->packets_inflight);
@@ -348,36 +357,43 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   s = s.substr(pos1+1);
   int c_chunk_number = atoi(s.c_str());
 
-  int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastTimeout.ToInteger(Time::MS);
 
-  if (diff > m_rtt->RetransmitTimeout().ToInteger(Time::MS))
+  // check if we requested that chunk (else it probably already timed out or was received
+  if(this->curSegmentStatus.chunk_status[c_chunk_number] == Requested)
   {
-    had_nack = true;
-    lastTimeout = Simulator::Now();
-    cwnd.DecreaseWindow();
-    cwnd.SetThreshold(this->packets_inflight);
+    int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastTimeout.ToInteger(Time::MS);
+
+    if (diff > m_rtt->RetransmitTimeout().ToInteger(Time::MS))
+    {
+      had_nack = true;
+      lastTimeout = Simulator::Now();
+      cwnd.DecreaseWindow();
+      cwnd.SetThreshold(this->packets_inflight);
+    }
+
+
+    fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
+
+    NS_LOG_FUNCTION("NACK: chunk=" << c_chunk_number << "; " << this);
+
+    // make sure to cancel the OnTimeout event for this chunk
+    this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
+
+    // adjust stats
+    this->packets_inflight--;
+    this->packets_nack++;
+
+    // adjust rto
+    m_rtt->IncreaseMultiplier();
+
+    // re-request the packet
+    this->curSegmentStatus.chunk_status[c_chunk_number] = Timeout;
+
+    // make sure that the next packet is scheduled again
+    ScheduleNextChunkDownload();
+  } else {
+    // packet was already received or timed out - do nothing
   }
-
-
-  fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
-
-  NS_LOG_FUNCTION("NACK: chunk=" << c_chunk_number << "; " << this);
-
-  // make sure to cancel the OnTimeout event for this chunk
-  this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
-
-  // adjust stats
-  this->packets_inflight--;
-  this->packets_nack++;
-
-  // adjust rto
-  m_rtt->IncreaseMultiplier();
-
-  // re-request the packet
-  this->curSegmentStatus.chunk_status[c_chunk_number] = Timeout;
-
-  // make sure that the next packet is scheduled again
-  ScheduleNextChunkDownload();
 }
 
 void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
@@ -406,10 +422,20 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     fprintf(stderr, "Duplicate packet received\n");
   } else
   {
+    // only reduce inflight if status = Requested (else it already was reduced)
+    if (this->curSegmentStatus.chunk_status[c_chunk_number] ==  Requested)
+    {
+      //fprintf(stderr, "Interest %s, Reducing in flight to %d\n", contentObject->GetName().toUri().c_str(), packets_inflight-1);
+      packets_inflight--;
+    } else {
+      //fprintf(stderr, "Interest %s timed out, but received anyway...\n", contentObject->GetName().toUri().c_str());
+    }
+
+
+
     // Set the chunk status to received
     this->curSegmentStatus.chunk_status[c_chunk_number] = Received;
 
-    packets_inflight--;
     // tell the RTO estimator that we received the packet with chunk_number
     m_rtt->AckSeq (SequenceNumber32 (c_chunk_number));
 
