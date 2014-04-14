@@ -80,8 +80,10 @@ std::vector<Segment *> IAdaptationLogic::getNextSegments()
         seg_name.append(reps.at(j)->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
         uri.append (seg_name);
 
-        s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name), reps.at(j)->GetSegmentList()->GetDuration(), reps.at(j)->GetBandwidth (),
-                                 atoi(reps.at(j)->GetId ().c_str ())));/*svc level is set to rep level.*/
+        s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name),
+                                 reps.at(j)->GetSegmentList()->GetDuration(),
+                                 reps.at(j)->GetBandwidth (),
+                                 atoi(reps.at(j)->GetId ().c_str ()), currentSegmentNr));/*svc level is set to rep level.*/
       }
 
       currentSegmentNr++;
@@ -93,7 +95,9 @@ std::vector<Segment *> IAdaptationLogic::getNextSegments()
       uri.append (seg_name);
       currentSegmentNr++;
 
-      s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name), rep->GetSegmentList()->GetDuration(), rep->GetBandwidth (), atoi(rep->GetId ().c_str ())));
+      s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name),
+                               rep->GetSegmentList()->GetDuration(),
+                               rep->GetBandwidth (), atoi(rep->GetId ().c_str ()), currentSegmentNr));
     }
   }
 

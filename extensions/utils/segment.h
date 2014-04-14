@@ -13,13 +13,16 @@ namespace ns3
     class Segment
     {
     public:
-      Segment(std::string uri, unsigned int size, unsigned int duration, unsigned int avgLevelBitrate, unsigned int level = 0);
+      Segment(std::string uri, unsigned int size,
+              unsigned int duration, unsigned int avgLevelBitrate,
+              unsigned int level, unsigned int segmentNumber);
 
       unsigned int getSize();
       std::string getUri();
       unsigned int getDuration();
       unsigned int getAvgLvlBitrate();
       unsigned int getLevel ();
+      unsigned int getSegmentNumber ();
 
       std::string toString();
 
@@ -30,6 +33,7 @@ namespace ns3
       unsigned int duration;
       unsigned int avgLevelBitrate;
       unsigned int level;
+      unsigned int segmentNumber;
 
       std::string convertInt(unsigned int number);
 
