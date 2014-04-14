@@ -27,12 +27,13 @@ void WindowNDNDownloader::collectStats()
   // reset had_ack, had_nack, had_timeout
   had_ack = had_nack = had_timeout = false;
 
+  /*
   NS_LOG_INFO("stats(" << this << "," << Simulator::Now().ToDouble(Time::S) <<
               "): cwnd=" <<
               this->cwnd.GetWindowSize() <<
               ", bytesToDownload=" <<
               this->curSegmentStatus.bytesToDownload);
-
+  */
   this->statsOutputTimer = Simulator::Schedule(MilliSeconds(STATS_OUTPUT_TIMER_MS),
                                                &WindowNDNDownloader::collectStats, this);
 }
@@ -318,7 +319,7 @@ void WindowNDNDownloader::OnTimeout (int c_chunk_number)
 
   NS_LOG_FUNCTION("TIMEOUT: chunk=" << c_chunk_number << ";" << this);
 
-  fprintf(stderr, "WindowNDNDownloader::OnTimeout chunk %d, cwnd = %d, in_flight=%d\n", c_chunk_number, cwnd.GetWindowSize(), this->packets_inflight);
+  //fprintf(stderr, "WindowNDNDownloader::OnTimeout chunk %d, cwnd = %d, in_flight=%d\n", c_chunk_number, cwnd.GetWindowSize(), this->packets_inflight);
 
   // adjust stats
   this->packets_inflight--;
@@ -372,7 +373,7 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
     }
 
 
-    fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
+    //fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
 
     NS_LOG_FUNCTION("NACK: chunk=" << c_chunk_number << "; " << this);
 
