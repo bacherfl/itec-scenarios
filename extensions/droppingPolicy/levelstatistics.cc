@@ -131,8 +131,11 @@ void LevelStatistics::RefreshStatistics()
 {
     unsigned int cnt = GetTotalLevelCounter();
 
-    for (int i = 0; i < this->GetAmountOfLevels(); i++)
+    if (cnt != 0)
     {
-        this->levelProbs[i] = (double)this->levelCounting[i] / (double)cnt;
+      for (int i = 0; i < this->GetAmountOfLevels(); i++)
+      {
+          this->levelProbs[i] = (double)this->levelCounting[i] / (double)cnt;
+      }
     }
 }

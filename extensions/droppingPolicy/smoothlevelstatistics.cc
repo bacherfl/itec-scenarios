@@ -41,9 +41,19 @@ void SmoothLevelStatistics::RefreshStatistics()
         //cout << "p_new=" << p_new << ", sum=" << sum << ", prob(l)=" << levelProbs[i] << endl;
     }
 
-    // normalize the vector so that sum(levelProbs) = 1
-    for (int i = 0; i < this->GetAmountOfLevels(); i++)
+    if (sum != 0)
     {
-        this->levelProbs[i] = this->levelProbs[i] / sum;
+      // normalize the vector so that sum(levelProbs) = 1
+      for (int i = 0; i < this->GetAmountOfLevels(); i++)
+      {
+          this->levelProbs[i] = this->levelProbs[i] / sum;
+      }
+    } else {
+      // uniform distributed
+      // normalize the vector so that sum(levelProbs) = 1
+      for (int i = 0; i < this->GetAmountOfLevels(); i++)
+      {
+        this->levelProbs[i] = 1.0 / (double) this->GetAmountOfLevels();
+      }
     }
 }

@@ -2,6 +2,8 @@
 
 DroppingPolicy::DroppingPolicy()
 {
+  // init metric with 0.0
+  metric = 0.0;
 }
 
 

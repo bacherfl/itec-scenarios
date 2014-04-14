@@ -94,7 +94,7 @@ public:
       Refreshes the statistics/probabilities, but does not touch the counters.
       Important: This method normalizes the vector so that sum(levelProbs) = 1
       */
-    void RefreshStatistics();
+    virtual void RefreshStatistics();
 
 protected:
     std::vector<unsigned int> levelCounting;
