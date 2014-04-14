@@ -12,6 +12,8 @@
 #include <unistd.h>
 #include "ns3-dev/ns3/simulator.h"
 
+#include <vector>
+
 #define CONSUME_INTERVALL 1.0
 
 namespace ns3
@@ -33,7 +35,7 @@ namespace ns3
        * \param buf The buffer for the video data.
        * \param downloader The Downloader that is used to retrieve Segments.
        */
-      DashPlayer(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic* alogic, ns3::utils::Buffer* buf, utils::IDownloader* downloader);
+      DashPlayer(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic* alogic, ns3::utils::Buffer* buf, std::vector<utils::IDownloader*> downloaders);
 
       /*!
        * \brief Deconstructor ~DashPlayer
@@ -53,7 +55,7 @@ namespace ns3
       /*!
        * \brief Update method for Observer pattern.
        */
-      virtual void update();
+      virtual void update(ObserverMessage msg);
 
       /*!
        * \brief Consume simulates the playback of video.
@@ -80,7 +82,7 @@ namespace ns3
       /*!
        * \brief The Downloader
        */
-      utils::IDownloader* downloader;
+      std::vector<utils::IDownloader*> downloaders;
 
       /*!
        * \brief The video buffer.
@@ -111,6 +113,8 @@ namespace ns3
        * \brief Start time of a particular download.
        */
       Time dlStartTime;
+
+      int downloaderChooser;
 
     };
   }

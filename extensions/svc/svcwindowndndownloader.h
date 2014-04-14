@@ -28,7 +28,10 @@ namespace ns3
 
       virtual bool downloadBefore(Segment *s, int miliSeconds);
       virtual void downloadChunk(int chunk_number);
-      void notifyAll();
+
+      virtual DownloaderType getDownloaderType ();
+
+      void notifyAll(Observer::ObserverMessage msg);
 
     protected:
       virtual bool isPartOfCurrentSegment(std::string packetUri);

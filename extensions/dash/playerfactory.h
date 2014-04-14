@@ -32,6 +32,8 @@
 #include "../utils/simplendndownloader.h"
 #include "../utils/windowndndownloader.h"
 
+#define NUMBER_OF_DOWNLOADERS 2
+
 namespace ns3
 {
   namespace dashimpl

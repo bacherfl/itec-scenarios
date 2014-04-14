@@ -37,6 +37,8 @@ namespace ns3
 
       virtual uint64_t getPhysicalBitrate() = 0;
 
+      virtual DownloaderType getDownloaderType() = 0;
+
     protected:
       bool lastDownloadSuccessful;
     };

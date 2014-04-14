@@ -5,13 +5,16 @@ using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("DashPlayer");
 
-DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf, IDownloader *downloader)
+DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf, std::vector<IDownloader*> downloaders)
 {
   this->mpd = mpd;
   this->alogic = alogic;
   this->buf = buf;
-  this->downloader = downloader;
-  this->downloader->addObserver (this);
+  this->downloaders = downloaders;
+  this->downloaderChooser = 0;
+
+  for(int i = 0; i < downloaders.size (); i++)
+    this->downloaders[i]->addObserver (this);
 
   isPlaying = false;
   isStreaming = false;
@@ -58,7 +61,10 @@ void DashPlayer::streaming ()
 
     dlStartTime = Simulator::Now ();
     fprintf(stderr, "DashPlayer::requesting Segment: %s\n", cur_seg->getUri ().c_str ());
-    downloader->download (cur_seg);
+
+    downloaders[downloaderChooser++]->download (cur_seg);
+    downloaderChooser = downloaderChooser % downloaders.size ();
+
     isStreaming = true;
   }
 }
@@ -69,7 +75,7 @@ void DashPlayer::stop ()
   isPlaying = false;
 }
 
-void DashPlayer::update ()
+void DashPlayer::update (ObserverMessage msg)
 {
   //fprintf(stderr, "NOTIFYED\n");
 

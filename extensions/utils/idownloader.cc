@@ -16,4 +16,3 @@ bool IDownloader::wasSuccessfull()
 }
 
 
-

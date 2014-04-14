@@ -36,7 +36,7 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
     CancelAllTimeoutEvents();
     lastDownloadSuccessful = false;
-    notifyAll ();
+    notifyAll (Observer::No_Message);
     return; // stop downloading, do not fire OnNack of super class, we are done here!
   }
 
@@ -73,16 +73,16 @@ void SVCWindowNDNDownloader::OnDownloadExpired()
 
   CancelAllTimeoutEvents();
   lastDownloadSuccessful = false;
-  notifyAll ();
+  notifyAll (Observer::No_Message);
 
 }
 
 
-void SVCWindowNDNDownloader::notifyAll()
+void SVCWindowNDNDownloader::notifyAll(Observer::ObserverMessage msg)
 {
   // cancel the download expired event -j ust in case
   this->needDownloadBeforeEvent.Cancel();
-  Observable::notifyAll();
+  WindowNDNDownloader::notifyAll(msg);
 }
 
 
@@ -171,4 +171,9 @@ bool SVCWindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
   }
 
   return false;
+}
+
+DownloaderType SVCWindowNDNDownloader::getDownloaderType ()
+{
+  return SVCWindowNDN;
 }

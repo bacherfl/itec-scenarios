@@ -476,7 +476,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     this->scheduleDownloadTimer.Cancel();
 
     NS_LOG_FUNCTION(std::string("Finally received segment: ").append(curSegmentStatus.base_uri.substr (0,curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
-    notifyAll (); //notify observers
+    notifyAll (Observer::No_Message); //notify observers
   }
   else
   {
@@ -520,4 +520,9 @@ void WindowNDNDownloader::setNodeForNDN (Ptr<Node> node)
 {
   NS_LOG_FUNCTION(this);
   SetNode(node);
+}
+
+DownloaderType WindowNDNDownloader::getDownloaderType ()
+{
+  return WindowNDN;
 }

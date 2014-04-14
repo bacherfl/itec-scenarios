@@ -14,9 +14,9 @@ namespace ns3
     {
     public:
 
-      bool addObserver(Observer *obs);
-      bool removeObserver(Observer *obs);
-      void notifyAll();
+      virtual bool addObserver(Observer *obs);
+      virtual bool removeObserver(Observer *obs);
+      virtual void notifyAll(Observer::ObserverMessage msg);
 
     private:
       std::vector<Observer*> observers;

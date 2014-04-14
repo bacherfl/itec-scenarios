@@ -36,7 +36,7 @@ namespace ns3
       bool isPlaying;
       bool isStreaming;
 
-      virtual void update();
+      virtual void update(ObserverMessage msg);
 
       void streaming();
       void consume();

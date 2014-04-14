@@ -82,8 +82,13 @@ void SimpleNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   {
     chunk_number = 0;
     NS_LOG_FUNCTION(std::string("Finally received segment: ").append(cur_chunk_uri.substr (0,cur_chunk_uri.find_last_of ("/chunk_"))) << this);
-    notifyAll (); //notify observers
+    notifyAll (Observer::No_Message); //notify observers
   }
+}
+
+DownloaderType SimpleNDNDownloader::getDownloaderType ()
+{
+  return SimpleNDN;
 }
 
 // Processing upon start of the application

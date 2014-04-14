@@ -7,9 +7,19 @@ namespace ns3
   {
     class Observer
     {
+
     public:
+
+      enum ObserverMessage
+      {
+          No_Message,
+          SegmentReceived,
+          NackReceived,
+          Segment95PercentReceived
+      };
+
       virtual ~Observer(){}
-      virtual void update() = 0;
+      virtual void update(ObserverMessage msg) = 0;
     };
   }
 }

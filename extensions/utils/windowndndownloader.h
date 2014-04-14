@@ -75,6 +75,8 @@ namespace ns3
       // get the physical available bitrate
       virtual uint64_t getPhysicalBitrate();
 
+      virtual DownloaderType getDownloaderType ();
+
 
     protected:
       virtual void downloadChunk(int chunk_number);

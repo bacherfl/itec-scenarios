@@ -97,7 +97,7 @@ void SvcPlayer::streaming ()
   }
 }
 
-void SvcPlayer::update ()
+void SvcPlayer::update (ObserverMessage msg)
 {
   //fprintf(stderr, "NOTIFYED\n");
   //alogic->updateStatistic (dlStartTime, Simulator::Now (), cur_seg->getSize ());

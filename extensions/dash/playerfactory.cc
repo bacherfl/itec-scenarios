@@ -33,14 +33,19 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
     return NULL;
   }
 
-  IDownloader* dwn = resolveDownloader(downloader, node);
-  if(dwn == NULL)
-  {
-    fprintf(stderr, "ERROR: PlayerFactory::createPlayer::downloader is NULL\n");
-    return NULL;
-  }
+  std::vector<IDownloader*> downloaders;
 
-  return new DashPlayer(mpd, logic, buffer, dwn);
+  for(int i = 0; i < NUMBER_OF_DOWNLOADERS; i++)
+  {
+    IDownloader* dwn = resolveDownloader(downloader, node);
+    if(dwn == NULL)
+    {
+      fprintf(stderr, "ERROR: PlayerFactory::createPlayer::downloader is NULL\n");
+      return NULL;
+    }
+    downloaders.push_back (dwn);
+  }
+  return new DashPlayer(mpd, logic, buffer, downloaders);
 }
 
 IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf)

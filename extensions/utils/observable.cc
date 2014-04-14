@@ -25,11 +25,11 @@ bool Observable::removeObserver(Observer *obs)
   return false;
 }
 
-void Observable::notifyAll()
+void Observable::notifyAll(Observer::ObserverMessage msg)
 {
   for(std::vector<Observer*>::iterator it = observers.begin (); it != observers.end (); ++it)
   {
-    (*it)->update();
+    (*it)->update(msg);
   }
 }
 
