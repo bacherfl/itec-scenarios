@@ -82,8 +82,8 @@ int main(int argc, char* argv[])
   ndnHelper.Install(normalNodes);
 
   //change strategy for adaptive NODE
-  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::PerOutFaceLimits::LimitsGuidedStrategy", "Limit", "ns3::ndn::Limits::Rate","EnableNACKs", "true");
-  //ndnHelper.EnableLimits (false);
+  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy", "EnableNACKs", "true");
+  ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNodes);
 
   // Installing global routing interface on all nodes

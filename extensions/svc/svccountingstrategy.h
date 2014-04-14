@@ -88,14 +88,19 @@ public:
   }
 
   virtual void OnInterest(Ptr< Face > inface, Ptr< Interest > interest);
-  virtual void AddFace(Ptr<Face> face);
-  virtual void RemoveFace(Ptr<Face> face);
+  virtual void AddFace(Ptr< Face> face);
+  virtual void RemoveFace(Ptr< Face > face);
+  virtual bool CanSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace,
+                                   Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
+  virtual void DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest,
+                                            Ptr<pit::Entry> pitEntry);
 
 
   static uint64_t getPhysicalBitrate(Ptr<Face> face);
 
 protected:
   void resetLevelCount();
+  bool HasEnoughResourcesToSend(Ptr< Face > face, Ptr< const Interest > interest);
 
   UniformVariable randomNumber;
 
@@ -229,14 +234,28 @@ void SVCCountingStrategy<Parent>::RemoveFace (Ptr<Face> face)
   super::RemoveFace (face);
 }
 
-
-
 template<class Parent>
-void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
+bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
+    ( Ptr< Face > face, Ptr< const Interest > interest )
 {
   // get the actual packet so we can access tags
   Ptr<Packet> packet = Wire::FromInterest (interest);
 
+  // extract level tag from packet
+  SVCLevelTag levelTag;
+  bool svcLevelTagExists = packet->PeekPacketTag (levelTag);
+
+  int level = DEFAULT_CONTENT_LEVEL;
+  if (svcLevelTagExists)
+  {
+    level = levelTag.Get ();
+  }
+  if (level == 16)
+    level = 1;
+  if (level == 32)
+    level = 2;
+  else
+    level = 0;
 
   /* DeadlineTag deadlineTag;
 
@@ -255,57 +274,97 @@ void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest 
   } */
 
 
-  // STEP 0: Check if duplicate request
-
-
-  // STEP 1: check if SVC base layer or enhancement layer
-  // STEP 1a: map SVC Layer to a layer between 0 and 2
-  SVCLevelTag levelTag;
-  bool svcLevelTagExists = packet->PeekPacketTag (levelTag);
-
-  int level = DEFAULT_CONTENT_LEVEL;
-  if (svcLevelTagExists)
-  {
-    level = levelTag.Get ();
-  }
-  if (level == 16)
-    level = 1;
-  if (level == 32)
-    level = 2;
-  else
-    level = 0;
-
-
-
-  // STEP 1: Check if inface can handle the return packet
-
   // increase level counter for that face
-  this->map[inface->GetId ()]->IncreasePackets (level);
+  this->map[face->GetId ()]->IncreasePackets (level);
 
   // check if RandomNumber(0,1) < DropProbability
-  // if yes --> drop
-  // draw a random number
-  double val = this->map[inface->GetId ()]->GetDropProbability (level);
+  // if yes --> drop (=  NOT CanSendOutInterest)
+  double dropProbability = this->map[face->GetId ()]->GetDropProbability (level);
 
-  if (randomNumber.GetValue() < val)
+  return ( randomNumber.GetValue() >= dropProbability );
+}
+
+template<class Parent>
+bool SVCCountingStrategy<Parent>::CanSendOutInterest (
+    Ptr< Face > inFace, Ptr< Face > outFace,
+    Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
+{
+  // if we can not send out an interest, return false for this face
+  if (!HasEnoughResourcesToSend(outFace, interest))
+    return false;
+  // else: let parent class decide
+
+  return super::CanSendOutInterest(inFace, outFace, interest, pitEntry);
+}
+
+
+template<class Parent>
+void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
+{
+  SVCLevelTag levelTag;
+
+  // lookup pit entry for interest (if exists)
+  Ptr<pit::Entry> pitEntry = SVCCountingStrategy<Parent>::m_pit->Lookup (*interest);
+
+  // check if duplicate interest first
+  bool isDuplicate = false;
+  if (pitEntry != 0)
   {
-    // DROP
-    // NS_LOG_UNCOND("Strategy: Dropping Interest " << interest->GetName ().toUri());
-
-    Ptr<Interest> nack = Create<Interest> (*interest);
-    nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
-
-    levelTag.Set (-1); // means packet dropped on purpose
-    nack->GetPayload ()->AddPacketTag (levelTag);
-
-
-    inface->SendInterest (nack);
-    SVCCountingStrategy<Parent>::m_outNacks (nack, inface);
-    return;
+    isDuplicate = pitEntry->IsNonceSeen (interest->GetNonce () );
   }
 
+  // check if duplicate interest first
+  if (! isDuplicate)
+  {
+    // check if interest can be returned using the inface
+    if (! HasEnoughResourcesToSend (inface, interest) )
+    {
+      // DROP
+      // NS_LOG_UNCOND("Strategy: Dropping Interest " << interest->GetName ().toUri());
 
+      Ptr<Interest> nack = Create<Interest> (*interest);
+      nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
+
+      levelTag.Set (-1); // means packet dropped on purpose
+      nack->GetPayload ()->AddPacketTag (levelTag);
+
+
+      inface->SendInterest (nack);
+      SVCCountingStrategy<Parent>::m_outNacks (nack, inface);
+      // nack sent - we dont need anything else --> return
+      return;
+    }
+  }
+
+  // let parent continue with the interest
   super::OnInterest(inface,interest);
+}
+
+
+template<class Parent>
+void SVCCountingStrategy<Parent>::DidExhaustForwardingOptions
+            (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
+{
+  // create the nack packet
+  SVCLevelTag levelTag;
+  Ptr<Interest> nack = Create<Interest> (*interest);
+  nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
+
+  levelTag.Set (-1); // means packet dropped on purpose
+  nack->GetPayload ()->AddPacketTag (levelTag);
+
+  BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
+  {
+    NS_LOG_DEBUG ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
+    incoming.m_face->SendInterest (nack);
+    SVCCountingStrategy<Parent>::m_outNacks (nack, incoming.m_face);
+  }
+
+  pitEntry->ClearOutgoing (); // to force erasure of the record
+
+  // do not call super::DidExhaust... as we are sending our own Nack;
+  // Call ForwardingStrategy::DidExhaust instead
+  ForwardingStrategy::DidExhaustForwardingOptions (inFace, interest, pitEntry);
 }
 
 } // namespace fw
