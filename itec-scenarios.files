@@ -94,3 +94,5 @@ extensions/droppingPolicy/smoothlevelstatistics.cc
 extensions/droppingPolicy/packetbaseddroppingpolicy.cc
 extensions/droppingPolicy/levelstatistics.cc
 extensions/droppingPolicy/droppingpolicy.cc
+extensions/svc/facepacketstatistic.h
+extensions/svc/facepacketstatistic.cc
