@@ -32,14 +32,22 @@ DroppingPolicy* FacePacketStatistic::getPolicy()
   return policy;
 }
 
-void FacePacketStatistic::UpdatePolicy()
+void FacePacketStatistic::UpdatePolicy(double metric)
 {
   // Refresh statistics
   this->stats->RefreshStatistics();
+
+  this->stats->Print(cout);
+
+  // set metric
+  this->policy->SetMetric(metric);
+
   // update (= feed) policy
   this->policy->Feed(*(this->stats));
   // reset stats counters
   this->stats->ResetCounters();
+
+  this->policy->Print(cout);
 }
 
 

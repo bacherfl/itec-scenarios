@@ -31,7 +31,7 @@ namespace ns3
         double GetDropProbability(unsigned int level);
 
 
-        void UpdatePolicy();
+        void UpdatePolicy(double metric);
 
       protected:
         unsigned int packets_per_time;

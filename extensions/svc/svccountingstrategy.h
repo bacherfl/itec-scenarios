@@ -166,6 +166,10 @@ void SVCCountingStrategy<Parent>::resetLevelCount() {
     // calculate max_packets and metric
     uint64_t bitrate = getPhysicalBitrate(face);
     int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
+
+    // just in case...
+    max_packets = max_packets * 0.85;
+
     double metric = 0.0;
 
     // get last packets
@@ -175,9 +179,8 @@ void SVCCountingStrategy<Parent>::resetLevelCount() {
     if (last_packets_ps > max_packets)
       metric = ((double)(last_packets_ps-max_packets)) / (double)(last_packets_ps);
 
-
     // refresh statistics, update the policy (= feed policy and then reset stats )
-    this->map[face->GetId ()]->UpdatePolicy ();
+    this->map[face->GetId ()]->UpdatePolicy (metric);
 
     // reset packets per second
     this->map[face->GetId ()]->SetPacketsPerTime (0);
@@ -252,10 +255,12 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
   }
   if (level == 16)
     level = 1;
-  if (level == 32)
+  else if (level == 32)
     level = 2;
   else
     level = 0;
+
+
 
   /* DeadlineTag deadlineTag;
 
