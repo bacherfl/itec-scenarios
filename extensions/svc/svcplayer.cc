@@ -65,7 +65,7 @@ void SvcPlayer::streaming ()
       return;
     }
 
-    fprintf(stderr, "SvcPlayer::requesting Segment: %s\n", cur_seg->toString ().c_str ());
+    //fprintf(stderr, "SvcPlayer::requesting Segment: %s\n", cur_seg->toString ().c_str ());
 
 
     // always download segment level 0

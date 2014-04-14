@@ -86,26 +86,55 @@ int main(int argc, char* argv[])
     router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   }
 
+
+
+  NodeContainer adaptiveNodes;
+  nodeIndex = 0;
+  nodeNamePrefix = std::string("AdaptiveNode");
+  Ptr<Node> adaptiveNode = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
+  while(router != NULL)
+  {
+    adaptiveNodes.Add (adaptiveNode);
+    adaptiveNode = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
+  }
+
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate",  "EnableNACKs", "true");
   ndnHelper.EnableLimits (true, Seconds(0.2), 100, 4200);
-  ndnHelper.Install(bbbProvider);
-  ndnHelper.Install(bbbStreamers);
+  ndnHelper.Install (bbbProvider);
+  ndnHelper.Install (bbbStreamers);
 
   //routers become a special cache:
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "10000"); // caches 10k chunks
-  ndnHelper.Install(routers);
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "100"); // caches 10k chunks
+  ndnHelper.Install (routers);
+
+
+  //change strategy for adaptive NODE
+  ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy", "EnableNACKs", "true");
+  ndnHelper.EnableLimits (false);
+  ndnHelper.Install (adaptiveNode);
+
+
 
   // Installing global routing interface on all nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.InstallAll ();
 
    //consumer
-  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  /*ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer dashContainer = dashRequesterHelper.Install(bbbStreamers);
+  */
+
+  ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
+  //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
+  //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
+  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
+  svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
+  ApplicationContainer svcContainer = svcRequesterHelper.Install(bbbStreamers);
+
 
   //provider
   ndn::AppHelper cProviderHelper ("ContentProvider");
@@ -117,7 +146,7 @@ int main(int argc, char* argv[])
   contentProvider.Start (Seconds(0.0));
 
   srand (time(NULL));
-  for (ApplicationContainer::Iterator i = dashContainer.Begin (); i != dashContainer.End (); ++i)
+  for (ApplicationContainer::Iterator i = svcContainer.Begin (); i != svcContainer.End (); ++i)
   {
     int startTime = rand() % 30 + 1; //1-30
 

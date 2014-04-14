@@ -145,9 +145,9 @@ std::string SVCCountingStrategy<Parent>::GetLogName ()
 template<class Parent>
 uint64_t SVCCountingStrategy<Parent>::getPhysicalBitrate(Ptr<Face> face)
 {
-  // Get Device Bitrate
+  // Get Device Bitrate of that face (make sure to call face->Getid()
   Ptr<PointToPointNetDevice> nd1 =
-      face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
+      face->GetNode()->GetDevice(face->GetId())->GetObject<PointToPointNetDevice>();
   DataRateValue dv;
   nd1->GetAttribute("DataRate", dv);
   DataRate d = dv.Get();

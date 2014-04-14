@@ -5,11 +5,11 @@ router
 ContentSrc1   NA       3       11
 ContentSrc2   NA       5       11
 Router0       NA       4       10
-Router1       NA       4        9
-Router2       NA       3        8
-Router3       NA       5        8
-Router4       NA       3        7
-Router5       NA       5        7
+AdaptiveNode0       NA       4        9
+Router1       NA       3        8
+Router2       NA       5        8
+Router3       NA       3        7
+Router4       NA       5        7
 ContentDst0   NA       3.5      6
 ContentDst1   NA       2.5      6
 ContentDst2   NA       4.5      6
@@ -22,14 +22,14 @@ link
 # srcNode       dstNode       bandwidth   metric    delay  queue
 ContentSrc1    Router0        2Mbps       1          2ms    30
 ContentSrc2    Router0        2Mbps       1          2ms    30
-Router2        Router1        10Mbps      1          5ms    30
+Router1        AdaptiveNode0        10Mbps      1          5ms    30
+Router2        AdaptiveNode0        5Mbps       1          2ms    30
 Router3        Router1        5Mbps       1          2ms    30
 Router4        Router2        5Mbps       1          2ms    30
-Router5        Router3        5Mbps       1          2ms    30
-Router0        Router1        5Mbps       1          2ms    30
-ContentDst0    Router4        2Mbps       1          2ms    30
-ContentDst1    Router4        2Mbps       1          2ms    30
-ContentDst2    Router5        2Mbps       1          2ms    30
-ContentDst3    Router5        2Mbps       1          2ms    30
-ContentDst4    Router3        2Mbps       1          2ms    30
-ContentDst5    Router2        2Mbps       1          2ms    30
+Router0        AdaptiveNode0        1Mbps       1          2ms    30
+ContentDst0    Router3        2Mbps       1          2ms    30
+ContentDst1    Router3        2Mbps       1          2ms    30
+ContentDst2    Router4        2Mbps       1          2ms    30
+ContentDst3    Router4        2Mbps       1          2ms    30
+ContentDst4    Router2        2Mbps       1          2ms    30
+ContentDst5    Router1        2Mbps       1          2ms    30
