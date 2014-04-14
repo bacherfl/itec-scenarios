@@ -25,7 +25,7 @@ void PacketBasedDroppingPolicy::CalculateDroppingProbabilities(LevelStatistics& 
     }
     while (sum < metric && l >= 0);
 
-    cout << "Current Metric: " << metric << ", Current Sum: " << sum << ", l=" << l << endl;
+    //cout << "Current Metric: " << metric << ", Current Sum: " << sum << ", l=" << l << endl;
 
     // calculate s_l for the last l
     l = l + 1;
