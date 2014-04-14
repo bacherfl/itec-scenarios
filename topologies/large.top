@@ -26,7 +26,7 @@ Router1        AdaptiveNode0        10Mbps      1          5ms    30
 Router2        AdaptiveNode0        5Mbps       1          2ms    30
 Router3        Router1        5Mbps       1          2ms    30
 Router4        Router2        5Mbps       1          2ms    30
-Router0        AdaptiveNode0        1Mbps       1          2ms    30
+Router0        AdaptiveNode0     3Mbps       1          2ms    30
 ContentDst0    Router3        2Mbps       1          2ms    30
 ContentDst1    Router3        2Mbps       1          2ms    30
 ContentDst2    Router4        2Mbps       1          2ms    30
