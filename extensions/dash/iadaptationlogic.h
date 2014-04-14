@@ -18,6 +18,9 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
+#include <vector>
+#include <algorithm>
+
 namespace ns3
 {
   namespace dashimpl
@@ -35,11 +38,10 @@ namespace ns3
     {
     public:
 
-      //TODO
       IAdaptationLogic(dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf);
 
       virtual ~IAdaptationLogic(){}
-      virtual utils::Segment* getNextSegment();
+      virtual std::vector<utils::Segment*> getNextSegments();
       virtual void updateStatistic(Time start, Time stop, unsigned int segment_size) = 0;
 
     protected:

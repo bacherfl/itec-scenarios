@@ -43,7 +43,7 @@ namespace ns3
 
       bool isPlaying;
       bool isStreaming;
-      utils::Segment* cur_seg;
+      std::vector<utils::Segment*> current_segments;
 
       bool allSegmentsDownloaded;
 

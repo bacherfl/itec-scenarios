@@ -15,7 +15,6 @@ DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::util
 
   isPlaying = false;
   isStreaming = false;
-  cur_seg = NULL;
 }
 
 void DashPlayer::play ()
@@ -31,15 +30,17 @@ void DashPlayer::streaming ()
 {
   if(isPlaying)
   {
-    if(cur_seg == NULL) // else prior segment has not been downloaded
-      cur_seg = alogic->getNextSegment();
+    if(current_segments.size () == 0) // else prior segment(s) has not been downloaded completely
+      current_segments = alogic->getNextSegments();
 
     //check if last segment
-    if(cur_seg == NULL)
+    if(current_segments.size () == 0)
     {
       allSegmentsDownloaded = true;
       return;
     }
+
+    Segment* cur_seg = current_segments.front ();
 
    //w8 if buffer is full
     if(buf->bufferedSeconds () >= (buf->maxBufferSeconds () - cur_seg->getDuration ()))
@@ -72,13 +73,17 @@ void DashPlayer::update ()
 {
   //fprintf(stderr, "NOTIFYED\n");
 
-  alogic->updateStatistic (dlStartTime, Simulator::Now (), cur_seg->getSize ());
+  alogic->updateStatistic (dlStartTime, Simulator::Now (), current_segments.front()->getSize ());
 
-  if(!buf->addData (cur_seg->getDuration ()))
-    fprintf(stderr, "BUFFER FULL!!!\n");
+  //this means we succesfuly download a dash segment or a bunch of svc-dash segments
+  if(current_segments.size () == 1)
+  {
+    if(!buf->addData (current_segments.front()->getDuration ()))
+      fprintf(stderr, "BUFFER FULL!!!\n");
+  }
 
   isStreaming = false;
-  cur_seg = NULL;
+  current_segments.erase (current_segments.begin ());
   streaming ();
 }
 
