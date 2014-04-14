@@ -13,8 +13,11 @@ FacePacketStatistic::FacePacketStatistic()
 
 FacePacketStatistic::~FacePacketStatistic()
 {
-  delete policy;
-  delete stats;
+  if(policy != NULL)
+    delete policy;
+
+  if(stats != NULL)
+    delete stats;
 }
 
 
