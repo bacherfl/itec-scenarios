@@ -9,6 +9,9 @@ namespace ns3
 {
   namespace dashimpl
   {
+    /*!
+     * \brief The RateBasedAdaptationLogic is an AdaptationLogic that considers the average download speed of SEGMENT_HISTORY segments and the buffer fillstate. \see updateStatistic() for the forumla.
+     */
     class RateBasedAdaptationLogic : public IAdaptationLogic
     {
     public:

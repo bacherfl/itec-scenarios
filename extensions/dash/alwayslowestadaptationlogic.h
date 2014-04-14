@@ -9,6 +9,10 @@ namespace ns3
 {
   namespace dashimpl
   {
+
+    /*!
+     * \brief The AlwaysLowestAdaptationLogic. Returns always the lowest Represntation for a Period in a MPD.
+     */
     class AlwaysLowestAdaptationLogic : public IAdaptationLogic
     {
     public:
