@@ -86,3 +86,11 @@ extensions/svc/svccountingstrategy.h
 extensions/svc/svccountingstrategy.cc
 extensions/utils/deadlinetag.h
 extensions/utils/deadlinetag.cc
+extensions/droppingPolicy/smoothlevelstatistics.h
+extensions/droppingPolicy/packetbaseddroppingpolicy.h
+extensions/droppingPolicy/levelstatistics.h
+extensions/droppingPolicy/droppingpolicy.h
+extensions/droppingPolicy/smoothlevelstatistics.cc
+extensions/droppingPolicy/packetbaseddroppingpolicy.cc
+extensions/droppingPolicy/levelstatistics.cc
+extensions/droppingPolicy/droppingpolicy.cc
