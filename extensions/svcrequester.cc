@@ -31,7 +31,8 @@ void SvcRequester::StartApplication ()
 {
   // initialize ndn::App
   ndn::App::StartApplication ();
-  player = svc::PlayerFactory::getInstance()->createPlayer(mpd_path, 30, utils::SVCWindowNDN, 1280, 720, GetNode());
+  player = svc::PlayerFactory::getInstance()->createPlayer(
+        mpd_path, 30, utils::SVCWindowNDN, 1280, 720, GetNode());
   player->play();
 }
 

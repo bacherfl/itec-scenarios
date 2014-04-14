@@ -5,7 +5,8 @@ using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("DashPlayer");
 
-DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf, std::vector<IDownloader*> downloaders)
+DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf, std::vector<IDownloader*> downloaders,
+                       std::string nodeName)
 {
   this->mpd = mpd;
   this->alogic = alogic;
@@ -18,11 +19,13 @@ DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::util
 
   isPlaying = false;
   isStreaming = false;
+
+  this->m_nodeName = nodeName;
 }
 
 void DashPlayer::play ()
 {
-  NS_LOG_FUNCTION(this);
+  NS_LOG_FUNCTION(m_nodeName << this);
   isPlaying = true;
   allSegmentsDownloaded = false;
   streaming ();
@@ -71,7 +74,8 @@ void DashPlayer::streaming ()
 
 void DashPlayer::stop ()
 {
-  NS_LOG_FUNCTION(this);
+  NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stop");
+  this->WriteToFile(m_nodeName + ".txt");
   isPlaying = false;
 }
 
@@ -81,11 +85,19 @@ void DashPlayer::update (ObserverMessage msg)
 
   alogic->updateStatistic (dlStartTime, Simulator::Now (), current_segments.front()->getSize ());
 
+  utils::Segment *s = current_segments.at(0);
+  this->SetPlayerLevel(s->getSegmentNumber()-1, s->getLevel(), buf->bufferedSeconds());
+
+  NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Segment successful: " << (*current_segments.begin ())->toString().c_str());
+
   //this means we succesfuly download a dash segment or a bunch of svc-dash segments
   if(current_segments.size () == 1)
   {
     if(!buf->addData (current_segments.front()->getDuration ()))
-      fprintf(stderr, "BUFFER FULL!!!\n");
+    {
+      //fprintf(stderr, "BUFFER FULL!!!\n");
+      NS_LOG_INFO("DashPlayer(" << m_nodeName << "): BUFFER FULL");
+    }
   }
 
   isStreaming = false;
@@ -97,12 +109,16 @@ void DashPlayer::consume ()
 {
   if(allSegmentsDownloaded && buf->isEmpty ())
   {
+    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): All Done");
     stop();
     return;
   }
 
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
-    fprintf(stderr, "CONSUMED FAILED\n");
+  {
+    NS_LOG_ERROR("DashPlayer(" << m_nodeName << "): CONSUME FAILED");
+    //fprintf(stderr, "CONSUMED FAILED\n");
+  }
 
   Simulator::Schedule(Seconds (CONSUME_INTERVALL), &DashPlayer::consume, this);
 }

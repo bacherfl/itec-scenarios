@@ -11,7 +11,8 @@ PlayerFactory::PlayerFactory()
 }
 
 SvcPlayer* PlayerFactory::createPlayer(std::string mpd_path, unsigned int buffer_size, utils::DownloaderType downloader,
-                                       unsigned int maxWidth, unsigned int maxHeight, Ptr<ns3::Node> node)
+                                       unsigned int maxWidth, unsigned int maxHeight,
+                                       Ptr<ns3::Node> node)
 {
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
   if(mpd == NULL)
@@ -32,7 +33,8 @@ SvcPlayer* PlayerFactory::createPlayer(std::string mpd_path, unsigned int buffer
     return NULL;
   }
 
-  return new SvcPlayer(mpd, dataset_path, dwn, buffer, maxWidth, maxHeight);
+  return new SvcPlayer(mpd, dataset_path, dwn, buffer, maxWidth, maxHeight,
+                       Names::FindName (node));
 }
 
 IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Node> node)

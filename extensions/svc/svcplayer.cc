@@ -5,7 +5,8 @@ using namespace ns3::svc;
 NS_LOG_COMPONENT_DEFINE ("SvcPlayer");
 
 SvcPlayer::SvcPlayer(dash::mpd::IMPD *mpd, std::string dataset_path, utils::IDownloader *downloader,
-                     utils::Buffer *buf, unsigned int maxWidth, unsigned int maxHeight)
+                     utils::Buffer *buf, unsigned int maxWidth, unsigned int maxHeight,
+                     std::string nodeName)
 {
   this->mpd = mpd;
   this->buf = buf;
@@ -17,13 +18,15 @@ SvcPlayer::SvcPlayer(dash::mpd::IMPD *mpd, std::string dataset_path, utils::IDow
 
   this->isPlaying = false;
   this->isStreaming = false;
+
+  this->m_nodeName = nodeName;
 }
 
 void SvcPlayer::play()
 {
-
-  NS_LOG_FUNCTION(this);
+  NS_LOG_FUNCTION(m_nodeName << this);
   isPlaying = true;
+  allSegmentsDownloaded = false;
   streaming ();
   Simulator::Schedule(Seconds(2.0), &SvcPlayer::consume, this);
 
@@ -46,6 +49,7 @@ void SvcPlayer::streaming ()
     if(current_segments.size () == 0)
     {
       isPlaying = false;
+      allSegmentsDownloaded = true;
       return;
     }
 
@@ -81,8 +85,8 @@ void SvcPlayer::streaming ()
       // check if it is feasible to download this segment
       if (cur_seg->getAvgLvlBitrate() > downloader->getPhysicalBitrate() * REDUCED_BANDWITH)
       {
-        fprintf(stderr, "SvcPlayer::aborting segment %s because of bandwidth\n", cur_seg->toString ().c_str ());
-
+        //fprintf(stderr, "SvcPlayer::aborting segment %s because of bandwidth\n", cur_seg->toString ().c_str ());
+        //NS_LOG_WARN("SVCPlayer(" << m_nodeName << "): Aborting segment because of bandwidth; " << cur_seg->toString());
         current_segments.erase (current_segments.begin ());
 
         // just get the next segment
@@ -104,17 +108,23 @@ void SvcPlayer::update (ObserverMessage msg)
 
   if(downloader->wasSuccessfull())
   {
+    utils::Segment *s = current_segments.at(0);
+    this->SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds());
+
+
+    NS_LOG_INFO("SVCPlayer(" << m_nodeName << "): Segment successful: " << (*current_segments.begin ())->toString().c_str());
     if(current_segments.at(0)->getLevel() == 0) // only baselayer increases buffer fillstate
     {
       if(!buf->addData(current_segments.at(0)->getDuration()))
       {
-        fprintf(stderr, "BUFFER FULL!!!\n");
+        //fprintf(stderr, "BUFFER FULL!!!\n");
+        NS_LOG_INFO("SVCPlayer(" << m_nodeName << "): BUFFER FULL");
       }
     }
   }
   else
   {
-    NS_LOG_INFO("SvcPlayer::update Segment " << (*current_segments.begin ())->toString().c_str() << "was dropped \n");
+    NS_LOG_ERROR("SVCPlayer(" << m_nodeName << ")::update Segment " << (*current_segments.begin ())->toString().c_str() << "was dropped \n");
   }
 
   isStreaming = false;
@@ -124,14 +134,25 @@ void SvcPlayer::update (ObserverMessage msg)
 
 void SvcPlayer::stop ()
 {
-  NS_LOG_FUNCTION(this);
+  NS_LOG_FUNCTION(this << m_nodeName);
+  this->WriteToFile(m_nodeName + ".txt");
   isPlaying = false;
 }
 
 void SvcPlayer::consume ()
 {
+  if(allSegmentsDownloaded && buf->isEmpty ())
+  {
+    NS_LOG_INFO("SVCPlayer(" << m_nodeName << "): All Done");
+    stop();
+    return;
+  }
+
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
-    fprintf(stderr, "CONSUMED FAILED\n");
+  {
+    NS_LOG_ERROR("SVCPlayer(" << m_nodeName << "): CONSUME FAILED");
+    //fprintf(stderr, "CONSUMED FAILED\n");
+  }
 
   Simulator::Schedule(Seconds (CONSUME_INTERVALL), &SvcPlayer::consume, this);
 }

@@ -12,7 +12,8 @@ PlayerFactory::PlayerFactory()
   manager = CreateDashManager();
 }
 
-DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size, DownloaderType downloader, Ptr<Node> node)
+DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size,
+                                        DownloaderType downloader, Ptr<Node> node)
 {
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
   if(mpd == NULL)
@@ -45,7 +46,7 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
     }
     downloaders.push_back (dwn);
   }
-  return new DashPlayer(mpd, logic, buffer, downloaders);
+  return new DashPlayer(mpd, logic, buffer, downloaders, Names::FindName (node));
 }
 
 IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf)
