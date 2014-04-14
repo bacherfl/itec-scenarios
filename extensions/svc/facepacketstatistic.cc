@@ -37,7 +37,7 @@ void FacePacketStatistic::UpdatePolicy(double metric)
   // Refresh statistics
   this->stats->RefreshStatistics();
 
-  this->stats->Print(cout);
+  //this->stats->Print(cout);
 
   // set metric
   this->policy->SetMetric(metric);
@@ -47,7 +47,7 @@ void FacePacketStatistic::UpdatePolicy(double metric)
   // reset stats counters
   this->stats->ResetCounters();
 
-  this->policy->Print(cout);
+  //this->policy->Print(cout);
 }
 
 
