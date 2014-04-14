@@ -35,3 +35,9 @@ Makefile
 
 #exclude the libdash directory
 libdash/
+/output/ContentDst0.txt
+/output/ContentDst1.txt
+/output/ContentDst2.txt
+/output/ContentDst3.txt
+/output/ContentDst4.txt
+/output/ContentDst5.txt
