@@ -86,7 +86,7 @@ void DashPlayer::update (ObserverMessage msg)
   alogic->updateStatistic (dlStartTime, Simulator::Now (), current_segments.front()->getSize ());
 
   utils::Segment *s = current_segments.at(0);
-  this->SetPlayerLevel(s->getSegmentNumber()-1, s->getLevel(), buf->bufferedSeconds());
+  this->SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds());
 
   NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Segment successful: " << (*current_segments.begin ())->toString().c_str());
 
