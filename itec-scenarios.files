@@ -98,3 +98,5 @@ extensions/svc/facepacketstatistic.h
 extensions/svc/facepacketstatistic.cc
 extensions/utils/playerlevelhistory.h
 extensions/utils/playerlevelhistory.cc
+extensions/utils/downloadmanager.h
+extensions/utils/downloadmanager.cc

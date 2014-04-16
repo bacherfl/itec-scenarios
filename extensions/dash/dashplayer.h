@@ -7,6 +7,7 @@
 #include "../utils/buffer.h"
 #include "../utils/segment.h"
 #include "../utils/playerlevelhistory.h"
+#include "../utils/downloadmanager.h"
 
 #include "libdash/libdash.h"
 
@@ -25,7 +26,7 @@ namespace ns3
     /*!
      * \brief Implements a DASH PLayer implements Observer pattern and uses PlayerLevelHistory
      */
-    class DashPlayer : utils::Observer, PlayerLevelHistory
+    class DashPlayer : public utils::Observer, PlayerLevelHistory
     {
     public:
 
@@ -36,7 +37,7 @@ namespace ns3
        * \param buf The buffer for the video data.
        * \param downloader The Downloader that is used to retrieve Segments.
        */
-      DashPlayer(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic* alogic, ns3::utils::Buffer* buf, std::vector<utils::IDownloader*> downloaders,
+      DashPlayer(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic* alogic, ns3::utils::Buffer* buf, utils::DownloadManager* dwnManager,
                  std::string nodeName);
 
       /*!
@@ -82,9 +83,9 @@ namespace ns3
       dashimpl::IAdaptationLogic* alogic;
 
       /*!
-       * \brief The Downloader
+       * \brief The DownloadManager
        */
-      std::vector<utils::IDownloader*> downloaders;
+      utils::DownloadManager* dwnManager;
 
       /*!
        * \brief The video buffer.
@@ -95,11 +96,6 @@ namespace ns3
        * \brief Flag if player is playing the video.
        */
       bool isPlaying;
-
-      /*!
-       * \brief Flag if player is streaming some data.
-       */
-      bool isStreaming;
 
       /*!
         \brief Name of the node the dash player is on
@@ -120,8 +116,6 @@ namespace ns3
        * \brief Start time of a particular download.
        */
       Time dlStartTime;
-
-      int downloaderChooser;
 
     };
   }

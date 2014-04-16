@@ -15,7 +15,7 @@ namespace ns3
           No_Message,
           SegmentReceived,
           NackReceived,
-          Segment95PercentReceived
+          SoonFinished
       };
 
       virtual ~Observer(){}

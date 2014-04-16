@@ -2,7 +2,7 @@
 #define PLAYERLEVELHISTORY_H
 
 
-#include <vector>
+#include <map>
 #include <string>
 #include <fstream>
 
@@ -14,13 +14,11 @@ public:
   PlayerLevelHistory();
 
   void SetPlayerLevel(unsigned int segmentNumber, unsigned int level, unsigned int buffer);
-
-
   bool WriteToFile(std::string FileName);
 
 protected:
-  std::vector<unsigned int> levelHistory;
-  std::vector<unsigned int> bufferHistory;
+  std::map<int, unsigned int> levelHistory;
+  std::map<int, unsigned int> bufferHistory;
 };
 
 #endif // PLAYERLEVELHISTORY_H

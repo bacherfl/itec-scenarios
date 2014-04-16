@@ -108,7 +108,8 @@ int main(int argc, char* argv[])
 
   //multimedia traffic
   ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
-  dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
+  //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
+  dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
 

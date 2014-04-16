@@ -29,6 +29,9 @@ namespace ns3
       IDownloader();
 
       bool wasSuccessfull();
+      bool downloadFinished();
+      bool isBussy();
+      void reset();
 
       virtual bool download(Segment *s) = 0;
       virtual bool downloadBefore(Segment *s, int miliSeconds) = 0;
@@ -39,8 +42,13 @@ namespace ns3
 
       virtual DownloaderType getDownloaderType() = 0;
 
+      virtual Segment* getSegment(){return segment;}
+
     protected:
+      Segment* segment;
       bool lastDownloadSuccessful;
+      bool bussy;
+      bool finished;
     };
   }
 }

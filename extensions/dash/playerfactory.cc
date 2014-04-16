@@ -13,7 +13,7 @@ PlayerFactory::PlayerFactory()
 }
 
 DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size,
-                                        DownloaderType downloader, Ptr<Node> node)
+                                        DownloaderType dwnType, Ptr<Node> node)
 {
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
   if(mpd == NULL)
@@ -34,19 +34,9 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
     return NULL;
   }
 
-  std::vector<IDownloader*> downloaders;
+  DownloadManager *dwnManager = new DownloadManager(dwnType, node);
 
-  for(int i = 0; i < NUMBER_OF_DOWNLOADERS; i++)
-  {
-    IDownloader* dwn = resolveDownloader(downloader, node);
-    if(dwn == NULL)
-    {
-      fprintf(stderr, "ERROR: PlayerFactory::createPlayer::downloader is NULL\n");
-      return NULL;
-    }
-    downloaders.push_back (dwn);
-  }
-  return new DashPlayer(mpd, logic, buffer, downloaders, Names::FindName (node));
+  return new DashPlayer(mpd, logic, buffer, dwnManager, Names::FindName (node));
 }
 
 IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf)
@@ -60,30 +50,6 @@ IAdaptationLogic* PlayerFactory::resolveAdaptation(AdaptationLogicType alogic, d
     default:
       return new AlwaysLowestAdaptationLogic(mpd, dataset_path, buf);
   }
-}
-
-IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Node> node)
-{
-  IDownloader* d = NULL;
-
-  switch(downloader)
-  {
-    case SimpleNDN:
-    {
-      d = new SimpleNDNDownloader();
-      break;
-    }
-    case WindowNDN:
-    {
-      d = new WindowNDNDownloader();
-      break;
-    }
-    default:
-      d = new SimpleNDNDownloader();
-  }
-
-  d->setNodeForNDN (node);
-  return d;
 }
 
 dash::mpd::IMPD* PlayerFactory::resolveMPD(std::string mpd_path)

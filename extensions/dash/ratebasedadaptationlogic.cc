@@ -43,7 +43,7 @@ unsigned int RateBasedAdaptationLogic::getAvgDLS ()
   if(counter > 0)
   {
     avg /= counter;
-    return avg * (buf->fillPercentage () + 0.15);
+    return avg * (buf->fillPercentage () + 0.25);
   }
   else
     return 0;

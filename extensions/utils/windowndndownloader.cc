@@ -7,6 +7,10 @@ NS_LOG_COMPONENT_DEFINE ("WindowNDNDownloader");
 
 WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
 {
+
+  //init status
+  reset();
+
   // init statistics
   packets_received = 0;
   packets_timeout = 0;
@@ -56,11 +60,21 @@ uint64_t WindowNDNDownloader::getPhysicalBitrate()
   return d.GetBitRate();
 }
 
+bool WindowNDNDownloader::download (Segment *s)
+{
+  NS_LOG_FUNCTION(this);
 
+  this->segment = s;
+  return download(s->getUri());
+}
 
 /* download file from URI */
 bool WindowNDNDownloader::download (std::string URI)
 {
+
+  // this downloader is now bussy
+  bussy = true;
+
   NS_LOG_FUNCTION(this);
   StartApplication ();
 
@@ -157,6 +171,26 @@ bool WindowNDNDownloader::download (std::string URI)
   return true;
 }
 
+void WindowNDNDownloader::downloadChunk (int chunk_number)
+{
+  NS_LOG_FUNCTION(this << chunk_number);
+  if(this->curSegmentStatus.bytesToDownload != 0)
+  {
+   // fprintf(stderr, "t=%f\n", t);
+    Ptr<ndn::Interest> interest = prepareInterestForDownload(chunk_number);
+
+    // Call trace (for logging purposes)
+    m_transmittedInterests (interest, this, m_face);
+    m_face->ReceiveInterest (interest);
+
+    packets_sent_this_second++;
+  }
+  else
+  {
+    notifyAll(Observer::SoonFinished);
+  }
+
+}
 
 void WindowNDNDownloader::resetStatistics()
 {
@@ -175,13 +209,6 @@ void WindowNDNDownloader::resetStatistics()
                           &WindowNDNDownloader::ScheduleNextChunkDownload, this);
   }
 }
-
-bool WindowNDNDownloader::download (Segment *s)
-{
-  NS_LOG_FUNCTION(this);
-  return download(s->getUri());
-}
-
 
 int WindowNDNDownloader::GetNextNeededChunkNumber()
 {
@@ -218,7 +245,8 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
 
   if (chunk_number == -1)
   {
-    // NO chunks available, dont do anything for now
+    // NO chunks available, SAY we will be finished soon and return
+    notifyAll (Observer::SoonFinished);
     return;
   }
 
@@ -279,24 +307,6 @@ Ptr<ndn::Interest> WindowNDNDownloader::prepareInterestForDownload (int chunk_nu
   }
   return interest;
 }
-
-void WindowNDNDownloader::downloadChunk (int chunk_number)
-{
-  NS_LOG_FUNCTION(this << chunk_number);
-  if(this->curSegmentStatus.bytesToDownload != 0)
-  {
-    float  t = Simulator::Now().ToDouble(Time::MS);
-   // fprintf(stderr, "t=%f\n", t);
-    Ptr<ndn::Interest> interest = prepareInterestForDownload(chunk_number);
-
-    // Call trace (for logging purposes)
-    m_transmittedInterests (interest, this, m_face);
-    m_face->ReceiveInterest (interest);
-
-    packets_sent_this_second++;
-  }
-}
-
 
 void WindowNDNDownloader::CheckRetrieveTimeout(int c_chunk_number)
 {
@@ -421,25 +431,25 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     // should not have happened, but it happened - okay. just make sure to not increase stats
     duplicate = true;
     fprintf(stderr, "Duplicate packet received\n");
-  } else
+  }
+  else
   {
     // only reduce inflight if status = Requested (else it already was reduced)
     if (this->curSegmentStatus.chunk_status[c_chunk_number] ==  Requested)
     {
       //fprintf(stderr, "Interest %s, Reducing in flight to %d\n", contentObject->GetName().toUri().c_str(), packets_inflight-1);
       packets_inflight--;
-    } else {
+    }
+    else
+    {
       //fprintf(stderr, "Interest %s timed out, but received anyway...\n", contentObject->GetName().toUri().c_str());
     }
-
-
 
     // Set the chunk status to received
     this->curSegmentStatus.chunk_status[c_chunk_number] = Received;
 
     // tell the RTO estimator that we received the packet with chunk_number
     m_rtt->AckSeq (SequenceNumber32 (c_chunk_number));
-
 
     int64_t diff = Simulator::Now().ToInteger(Time::MS) - lastValidPacket.ToInteger(Time::MS);
 
@@ -485,12 +495,14 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
       this->curSegmentStatus.chunk_status.resize(this->curSegmentStatus.num_chunks, NotInitiated);
       this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
 
-    } else {
+    } else
+    {
       NS_LOG_FUNCTION(this << std::string("received payload with size") << contentObject->GetPayload()->GetSize ());
       this->curSegmentStatus.bytesToDownload -= contentObject->GetPayload()->GetSize ();
     }
   }
 
+  //this can occur if the first chunk is delayed. its often not a problem but may indicate one.
   if (this->curSegmentStatus.bytesToDownload < 0)
   {
     fprintf(stderr, "WARNING: bytesToDownload=%d < 0...\n", this->curSegmentStatus.bytesToDownload);
@@ -503,7 +515,12 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     this->scheduleDownloadTimer.Cancel();
 
     NS_LOG_FUNCTION(std::string("Finally received segment: ").append(curSegmentStatus.base_uri.substr (0,curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
-    notifyAll (Observer::No_Message); //notify observers
+
+    //this download is now finished and was succesfull
+    finished = true;
+    lastDownloadSuccessful = true;
+    //let the downloader state bussy UNTIL the result has been feteched by the MANAGER
+    notifyAll (Observer::SegmentReceived); //notify observers
   }
   else
   {

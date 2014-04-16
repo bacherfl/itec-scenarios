@@ -5,21 +5,17 @@ using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("DashPlayer");
 
-DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf, std::vector<IDownloader*> downloaders,
+DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::utils::Buffer* buf, utils::DownloadManager* dwnManager,
                        std::string nodeName)
 {
   this->mpd = mpd;
   this->alogic = alogic;
   this->buf = buf;
-  this->downloaders = downloaders;
-  this->downloaderChooser = 0;
+  this->dwnManager = dwnManager;
 
-  for(int i = 0; i < downloaders.size (); i++)
-    this->downloaders[i]->addObserver (this);
+  this->dwnManager->addObserver(this);
 
   isPlaying = false;
-  isStreaming = false;
-
   this->m_nodeName = nodeName;
 }
 
@@ -36,8 +32,8 @@ void DashPlayer::streaming ()
 {
   if(isPlaying)
   {
-    if(current_segments.size () == 0) // else prior segment(s) has not been downloaded completely
-      current_segments = alogic->getNextSegments();
+    if(current_segments.size ()== 0)
+     current_segments = alogic->getNextSegments();
 
     //check if last segment
     if(current_segments.size () == 0)
@@ -46,29 +42,22 @@ void DashPlayer::streaming ()
       return;
     }
 
-    Segment* cur_seg = current_segments.front ();
-
    //w8 if buffer is full
-    if(buf->bufferedSeconds () >= (buf->maxBufferSeconds () - cur_seg->getDuration ()))
+    Segment* sample = current_segments.front ();
+    if(buf->bufferedSeconds () >= (buf->maxBufferSeconds () - sample->getDuration ()))
     {
       Simulator::Schedule(MilliSeconds (100), &DashPlayer::streaming, this);
       return;
     }
 
-    //check if connection is open or buffer is full...
-    while(isStreaming || (buf->bufferedSeconds () >= (buf->maxBufferSeconds () - cur_seg->getDuration ())))
+    fprintf(stderr, "Requesting SegmentBunch:\n");
+    for(int i = 0; i < current_segments.size (); i++)
     {
-      Simulator::Schedule(MilliSeconds (1), &DashPlayer::streaming, this);
-      return;
+      fprintf(stderr, "DashPlayer::requesting Segment: %s\n", current_segments.at(i)->getUri ().c_str ());
     }
 
     dlStartTime = Simulator::Now ();
-    fprintf(stderr, "DashPlayer::requesting Segment: %s\n", cur_seg->getUri ().c_str ());
-
-    downloaders[downloaderChooser++]->download (cur_seg);
-    downloaderChooser = downloaderChooser % downloaders.size ();
-
-    isStreaming = true;
+    dwnManager->enque(current_segments);
   }
 }
 
@@ -83,25 +72,26 @@ void DashPlayer::update (ObserverMessage msg)
 {
   //fprintf(stderr, "NOTIFYED\n");
 
-  alogic->updateStatistic (dlStartTime, Simulator::Now (), current_segments.front()->getSize ());
+  std::vector<Segment*> received_segs = dwnManager->retriveFinishedSegments ();
 
-  utils::Segment *s = current_segments.at(0);
-  this->SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds());
+  unsigned int total_size = 0;
 
-  NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Segment successful: " << (*current_segments.begin ())->toString().c_str());
-
-  //this means we succesfuly download a dash segment or a bunch of svc-dash segments
-  if(current_segments.size () == 1)
+  for(int i = 0; i < received_segs.size (); i++)
   {
-    if(!buf->addData (current_segments.front()->getDuration ()))
-    {
-      //fprintf(stderr, "BUFFER FULL!!!\n");
-      NS_LOG_INFO("DashPlayer(" << m_nodeName << "): BUFFER FULL");
-    }
+    total_size += received_segs.at (i)->getSize();
+    SetPlayerLevel(received_segs.at(i)->getSegmentNumber(), received_segs.at(i)->getLevel(), buf->bufferedSeconds());
   }
 
-  isStreaming = false;
-  current_segments.erase (current_segments.begin ());
+  fprintf(stderr, "DASH-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
+
+  alogic->updateStatistic (dlStartTime, Simulator::Now (), total_size);
+
+  if(!buf->addData (current_segments.front()->getDuration ()))
+  {
+    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): BUFFER FULL");
+  }
+
+  current_segments.clear ();
   streaming ();
 }
 
@@ -114,9 +104,11 @@ void DashPlayer::consume ()
     return;
   }
 
+  fprintf(stderr, "buf->bufferedSeconds = %u \n", buf->bufferedSeconds ());
+
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
   {
-    NS_LOG_ERROR("DashPlayer(" << m_nodeName << "): CONSUME FAILED");
+    NS_LOG_UNCOND("DashPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     //fprintf(stderr, "CONSUMED FAILED\n");
   }
 

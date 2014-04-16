@@ -29,10 +29,7 @@
 
 #include "../utils/idownloader.h"
 #include "../utils/buffer.h"
-#include "../utils/simplendndownloader.h"
-#include "../utils/windowndndownloader.h"
-
-#define NUMBER_OF_DOWNLOADERS 2
+#include "../utils/downloadmanager.h"
 
 namespace ns3
 {
@@ -55,7 +52,7 @@ namespace ns3
       \param node Pointer to ns3 Node Object on which the DashPlayer will run.
        \return A DashPlayer Instance.
        */
-      DashPlayer* createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size, utils::DownloaderType downloader, Ptr<ns3::Node> node);
+      DashPlayer* createPlayer(std::string mpd_path, AdaptationLogicType alogic, unsigned int buffer_size, utils::DownloaderType dwnType, Ptr<ns3::Node> node);
 
       /*!
        * \brief getInstance
@@ -86,14 +83,6 @@ namespace ns3
        * \return Pointer to IMPD according to LibDASH
        */
       dash::mpd::IMPD* resolveMPD(std::string mpd_path) ;
-
-      /*!
-       * \brief Resolves the Downloader
-       * \param downloader The type of the downloader that is used to download segments.
-       * \param node Pointer to ns3 Node which will be used by the Downloader.
-       * \return Downloader
-       */
-      utils::IDownloader* resolveDownloader(utils::DownloaderType downloader, Ptr<Node> node);
 
       /*!
        * \brief Determines the current user's homepath.

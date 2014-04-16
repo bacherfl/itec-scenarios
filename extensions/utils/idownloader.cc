@@ -15,4 +15,20 @@ bool IDownloader::wasSuccessfull()
   return lastDownloadSuccessful;
 }
 
+bool IDownloader::isBussy ()
+{
+  return bussy;
+}
+
+bool IDownloader::downloadFinished ()
+{
+  return finished;
+}
+
+void IDownloader::reset ()
+{
+  lastDownloadSuccessful = false;
+  bussy = false;
+  finished = false;
+}
 
