@@ -12,6 +12,7 @@ using namespace ns3;
 void parseParameters(int argc, char* argv[], bool &background_traffic)
 {
   bool v0 = false, v1 = false, v2 = false;
+  bool vN = false;
 
   std::string top_path = "topologies/simple_ina.top";
 
@@ -19,26 +20,33 @@ void parseParameters(int argc, char* argv[], bool &background_traffic)
   cmd.AddValue ("v0", "Prints all log messages >= LOG_DEBUG. (OPTIONAL)", v0);
   cmd.AddValue ("v1", "Prints all log messages >= LOG_INFO. (OPTIONAL)", v1);
   cmd.AddValue ("v2", "Prints all log messages. (OPTIONAL)", v2);
+  cmd.AddValue ("vN", "Disable all internal logging parameters, use NS_LOG instead", vN);
   cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
   cmd.AddValue ("bg", "Enable background traffic. (OPTIONAL", background_traffic);
 
 
   cmd.Parse (argc, argv);
 
-  LogComponentEnableAll (LOG_ALL);
 
-  if(!v2)
+  if (vN == false)
   {
-    LogComponentDisableAll (LOG_LOGIC);
-    LogComponentDisableAll (LOG_FUNCTION);
-  }
-  if(!v1 && !v2)
-  {
-    LogComponentDisableAll (LOG_INFO);
-  }
-  if(!v0 && !v1 && !v2)
-  {
-    LogComponentDisableAll (LOG_DEBUG);
+    LogComponentEnableAll (LOG_ALL);
+
+    if(!v2)
+    {
+      LogComponentDisableAll (LOG_LOGIC);
+      LogComponentDisableAll (LOG_FUNCTION);
+    }
+    if(!v1 && !v2)
+    {
+      LogComponentDisableAll (LOG_INFO);
+    }
+    if(!v0 && !v1 && !v2)
+    {
+      LogComponentDisableAll (LOG_DEBUG);
+    }
+  } else {
+    NS_LOG_UNCOND("Disabled internal logging parameters, using NS_LOG as parameter.");
   }
   AnnotatedTopologyReader topologyReader ("", 20);
   topologyReader.SetFileName (top_path);

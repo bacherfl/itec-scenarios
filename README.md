@@ -31,6 +31,15 @@ Install Guide (testet on Ubuntu 12.04 64bit)
     * ./waf configure
     * ./waf 
     * ./waf --run example --vis
+    
+# Logging:
+    # Logging Parameters
+    # --v2: Enable very verpose output (everything) for all components
+    # --v1: Enable verbose output (>= LOG_INFO) for all components
+    # --v0: Enable debug output (>= LOG_DEBUG) for all components
+    # --vN: Do not disable or enable any logging, use NS_LOG console parameter instead
+    # Example given for NS_LOG for DashPlayer with all output of DashPlayer being logged:
+    * NS_LOG=DashPlayer=level_all ./waf --run example
 
 #some examples
 		* git clone https://github.com/cawka/ndnSIM-ddos-interest-flooding.git
