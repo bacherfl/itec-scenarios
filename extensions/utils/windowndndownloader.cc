@@ -48,18 +48,6 @@ bool WindowNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
   return download(s);
 }
 
-
-uint64_t WindowNDNDownloader::getPhysicalBitrate()
-{
-  // Get Device Bitrate
-  Ptr<PointToPointNetDevice> nd1 =
-      this->m_face->GetNode()->GetDevice(0)->GetObject<PointToPointNetDevice>();
-  DataRateValue dv;
-  nd1->GetAttribute("DataRate", dv);
-  DataRate d = dv.Get();
-  return d.GetBitRate();
-}
-
 bool WindowNDNDownloader::download (Segment *s)
 {
   NS_LOG_FUNCTION(this);
@@ -226,7 +214,8 @@ int WindowNDNDownloader::GetNextNeededChunkNumber(int start_chunk_number)
     while (i < this->curSegmentStatus.num_chunks)
     {
       if (this->curSegmentStatus.chunk_status[i] != Received &&
-          this->curSegmentStatus.chunk_status[i] != Requested)
+          this->curSegmentStatus.chunk_status[i] != Requested &&
+          this->curSegmentStatus.chunk_status[i] != Aborted)
       {
         return i;
       }
@@ -409,6 +398,19 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
 void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 {
+
+  //check of chunk corresponds to current segment.
+   if(contentObject->GetName ().toUri().find(curSegmentStatus.base_uri) == std::string::npos)
+   {
+     //fprintf(stderr, "The received packet is not relevant for this downloader\n");
+     return;
+   }
+
+  //fprintf(stderr, "contentObject->GetName () = %s\n", contentObject->GetName ().toUri ().c_str ());
+  //fprintf(stderr, "curSegmentStatus.base_uri = %s\n", curSegmentStatus.base_uri.c_str ());
+
+
+  //fprintf(stderr, "ONDATA %s \n", contentObject->GetName ().toUri ().c_str ());
   NS_LOG_FUNCTION(this);
   bool duplicate = false;
 
@@ -533,7 +535,24 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   }
 }
 
+void WindowNDNDownloader::abortDownload ()
+{
+  this->scheduleDownloadTimer.Cancel ();
+  CancelAllTimeoutEvents();
 
+  //abort all segments
+  for (int i = 0; i < this->curSegmentStatus.num_chunks; i++)
+  {
+    if (this->curSegmentStatus.chunk_status[i] != Received)
+    {
+      this->curSegmentStatus.chunk_status[i] = Aborted;
+    }
+  }
+
+  //todo clear the pit
+
+  //StopApplication ();
+}
 
 void WindowNDNDownloader::CancelAllTimeoutEvents()
 {
@@ -569,4 +588,15 @@ void WindowNDNDownloader::setNodeForNDN (Ptr<Node> node)
 DownloaderType WindowNDNDownloader::getDownloaderType ()
 {
   return WindowNDN;
+}
+
+uint64_t WindowNDNDownloader::getPhysicalBitrate()
+{
+  // Get Device Bitrate
+  Ptr<PointToPointNetDevice> nd1 =
+  m_face->GetNode ()->GetDevice(0)->GetObject<PointToPointNetDevice>();
+  DataRateValue dv;
+  nd1->GetAttribute("DataRate", dv);
+  DataRate d = dv.Get();
+  return d.GetBitRate();
 }

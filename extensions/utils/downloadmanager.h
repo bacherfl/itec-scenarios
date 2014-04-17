@@ -35,6 +35,8 @@ namespace ns3
 
       void enque(std::vector<Segment*> segments);
 
+      uint64_t getPhysicalBitrate();
+
       std::vector<Segment*> retriveFinishedSegments();
       std::vector<Segment*> retriveUnfinishedSegments();
 
@@ -50,7 +52,10 @@ namespace ns3
 
       void addToFinished(Segment* seg);
 
+      Ptr<ns3::Node> node;
+
       std::vector<IDownloader*> getAllNonBussyDownloaders();
+      std::vector<IDownloader*> getAllBussyDownloaders();
       IDownloader* getFreeDownloader();
       void downloadSegments();
 

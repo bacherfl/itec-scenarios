@@ -33,7 +33,7 @@
 
 namespace ns3
 {
-  enum NDNDownloadStatus { NotInitiated= 0, Requested= 1, Received= 2, Timeout=3 };
+  enum NDNDownloadStatus { NotInitiated= 0, Requested= 1, Received= 2, Timeout=3, Aborted=4 };
 
 
   class NDNSegmentStatus

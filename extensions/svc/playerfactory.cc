@@ -10,7 +10,7 @@ PlayerFactory::PlayerFactory()
    manager = CreateDashManager();
 }
 
-SvcPlayer* PlayerFactory::createPlayer(std::string mpd_path, unsigned int buffer_size, utils::DownloaderType downloader,
+SvcPlayer* PlayerFactory::createPlayer(std::string mpd_path, unsigned int buffer_size, utils::DownloaderType dwnType,
                                        unsigned int maxWidth, unsigned int maxHeight,
                                        Ptr<ns3::Node> node)
 {
@@ -26,44 +26,9 @@ SvcPlayer* PlayerFactory::createPlayer(std::string mpd_path, unsigned int buffer
 
   utils::Buffer* buffer = new utils::Buffer(buffer_size);
 
-  IDownloader* dwn = resolveDownloader(downloader, node);
-  if(dwn == NULL)
-  {
-    fprintf(stderr, "ERROR: PlayerFactory::createPlayer::downloader is NULL\n");
-    return NULL;
-  }
+  DownloadManager *dwnManager = new DownloadManager(dwnType, node);
 
-  return new SvcPlayer(mpd, dataset_path, dwn, buffer, maxWidth, maxHeight,
-                       Names::FindName (node));
-}
-
-IDownloader* PlayerFactory::resolveDownloader(DownloaderType downloader, Ptr<Node> node)
-{
-  IDownloader* d = NULL;
-
-  switch(downloader)
-  {
-    case SimpleNDN:
-    {
-      d = new SimpleNDNDownloader();
-      break;
-    }
-    case WindowNDN:
-    {
-      d = new WindowNDNDownloader;
-      break;
-    }
-    case SVCWindowNDN:
-    {
-      d = new SVCWindowNDNDownloader();
-      break;
-    }
-    default:
-      d = new SimpleNDNDownloader();
-  }
-
-  d->setNodeForNDN (node);
-  return d;
+  return new SvcPlayer(mpd, dataset_path, dwnManager, buffer, maxWidth, maxHeight, Names::FindName (node));
 }
 
 dash::mpd::IMPD* PlayerFactory::resolveMPD(std::string mpd_path)

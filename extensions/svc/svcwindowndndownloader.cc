@@ -1,25 +1,18 @@
 #include "svcwindowndndownloader.h"
 
-
-
 using namespace ns3;
 using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("SVCWindowNDNDownloader");
 
-
-
 SVCWindowNDNDownloader::SVCWindowNDNDownloader() : WindowNDNDownloader()
 {
-  this->needDownloadBeforeEvent = EventId();
+  //this->needDownloadBeforeEvent = EventId();
 }
-
-
-
 
 void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 {
-  if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
+  /*if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
   {
     fprintf(stderr, "SVCWindow: Dropping NACK from previous Request - URI: %s\n", interest->GetName ().toUri().c_str());
     return;
@@ -44,12 +37,9 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
     }
   }
 
-  // continue with super::OnNack
+  // continue with super::OnNack*/
   WindowNDNDownloader::OnNack(interest);
 }
-
-
-
 
 
 void SVCWindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
@@ -65,13 +55,10 @@ void SVCWindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 }
 
 
-
-
 // called, if the download was not finished on time
-void SVCWindowNDNDownloader::OnDownloadExpired()
+/*void SVCWindowNDNDownloader::OnDownloadExpired()
 {
   fprintf(stderr, ">>>>>> Download expired - cancelling....\n");
-
 
   this->scheduleDownloadTimer.Cancel();
 
@@ -79,20 +66,19 @@ void SVCWindowNDNDownloader::OnDownloadExpired()
   lastDownloadSuccessful = false;
   notifyAll (Observer::No_Message);
 
-}
-
+}*/
 
 void SVCWindowNDNDownloader::notifyAll(Observer::ObserverMessage msg)
 {
   // cancel the download expired event -j ust in case
-  this->needDownloadBeforeEvent.Cancel();
+  //this->needDownloadBeforeEvent.Cancel();
   WindowNDNDownloader::notifyAll(msg);
 }
 
 
 bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
 {
-  this->deadline = Simulator::Now().ToInteger(Time::MS) + miliSeconds;
+  /*this->deadline = Simulator::Now().ToInteger(Time::MS) + miliSeconds;
 
   bool retValue = download(s);
 
@@ -104,7 +90,8 @@ bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
       Simulator::Schedule(MilliSeconds(miliSeconds),
                           &SVCWindowNDNDownloader::OnDownloadExpired, this);
 
-  return retValue;
+  return retValue;*/
+  download (s);
 }
 
 
@@ -115,7 +102,7 @@ bool SVCWindowNDNDownloader::download(Segment *s)
   this->curSegment = s;
 
   // this means the last download probably was successful, cancel this event just in case
-  this->needDownloadBeforeEvent.Cancel();
+  //this->needDownloadBeforeEvent.Cancel();
 
   // set avgBitrate
   curSegmentStatus.avgBitrate = s->getAvgLvlBitrate ();
@@ -146,9 +133,9 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
     bitrateTag.Set (curSegmentStatus.avgBitrate);
     interest->GetPayload ()->AddPacketTag (bitrateTag);
 
-    ndn::DeadlineTag deadlineTag;
+    /*ndn::DeadlineTag deadlineTag;
     deadlineTag.Set ( this->deadline - Simulator::Now().ToInteger(Time::MS) );
-    interest->GetPayload ()->AddPacketTag (deadlineTag);
+    interest->GetPayload ()->AddPacketTag (deadlineTag);*/
 
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);

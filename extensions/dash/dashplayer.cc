@@ -104,7 +104,7 @@ void DashPlayer::consume ()
     return;
   }
 
-  fprintf(stderr, "buf->bufferedSeconds = %u \n", buf->bufferedSeconds ());
+  //fprintf(stderr, "buf->bufferedSeconds = %u \n", buf->bufferedSeconds ());
 
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
   {

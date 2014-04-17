@@ -35,10 +35,9 @@ namespace ns3
 
       virtual bool download(Segment *s) = 0;
       virtual bool downloadBefore(Segment *s, int miliSeconds) = 0;
+      virtual void abortDownload() = 0;
 
       virtual void setNodeForNDN(Ptr <ns3::Node> node) = 0;
-
-      virtual uint64_t getPhysicalBitrate() = 0;
 
       virtual DownloaderType getDownloaderType() = 0;
 

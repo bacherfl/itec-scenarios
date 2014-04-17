@@ -121,14 +121,14 @@ int main(int argc, char* argv[])
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
 
-
-  /*ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
+/*
+  ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
-  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
+  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer svcContainer = svcRequesterHelper.Install(contentDst);
-  */
+*/
 
   ndn::AppHelper cProviderHelper ("ContentProvider");
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));

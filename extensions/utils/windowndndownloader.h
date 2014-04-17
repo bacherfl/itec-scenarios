@@ -72,6 +72,8 @@ namespace ns3
 
       virtual void setNodeForNDN (Ptr<Node> node);
 
+      virtual void abortDownload ();
+
       // get the physical available bitrate
       virtual uint64_t getPhysicalBitrate();
 

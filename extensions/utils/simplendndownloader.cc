@@ -110,3 +110,8 @@ void SimpleNDNDownloader::setNodeForNDN (Ptr<Node> node)
   NS_LOG_FUNCTION(this);
   SetNode(node);
 }
+
+void SimpleNDNDownloader::abortDownload ()
+{
+  //do something;
+}

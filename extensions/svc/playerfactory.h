@@ -12,11 +12,7 @@
 
 #include "../utils/idownloader.h"
 #include "../utils/buffer.h"
-#include "../utils/simplendndownloader.h"
-#include "../utils/windowndndownloader.h"
-#include "svcwindowndndownloader.h"
-
-
+#include "../utils/downloadmanager.h"
 
 namespace ns3
 {
@@ -25,14 +21,13 @@ namespace ns3
     class PlayerFactory
     {
     public:
-      SvcPlayer* createPlayer(std::string mpd_path, unsigned int buffer_size, utils::DownloaderType downloader,
+      SvcPlayer* createPlayer(std::string mpd_path, unsigned int buffer_size, utils::DownloaderType dwnType,
                               unsigned int maxWidth, unsigned int maxHeight, Ptr<ns3::Node> node);
       static PlayerFactory* getInstance();
 
     private:
       PlayerFactory();
 
-      utils::IDownloader* resolveDownloader(utils::DownloaderType downloader, Ptr<Node> node);
       dash::mpd::IMPD* resolveMPD(std::string mpd_path) ;
 
       static PlayerFactory* instance;

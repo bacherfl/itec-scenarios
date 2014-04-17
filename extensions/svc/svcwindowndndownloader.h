@@ -36,13 +36,13 @@ namespace ns3
     protected:
       virtual bool isPartOfCurrentSegment(std::string packetUri);
 
-      virtual void OnDownloadExpired();
+      //virtual void OnDownloadExpired();
 
-      EventId needDownloadBeforeEvent;
+     // EventId needDownloadBeforeEvent;
 
       ns3::utils::Segment* curSegment;
 
-      uint64_t deadline;
+      //uint64_t deadline;
     };
 
   }

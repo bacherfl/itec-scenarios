@@ -5,6 +5,9 @@ using namespace ns3::utils;
 DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
 {
   //make downloaders ready
+
+  this->node = node;
+
   IDownloader* d = NULL;
   for(int i = 0; i < DOWNLOADER_NUMBER; i++)
   {
@@ -120,6 +123,17 @@ std::vector<IDownloader*> DownloadManager::getAllNonBussyDownloaders()
   return dwn;
 }
 
+std::vector<IDownloader*> DownloadManager::getAllBussyDownloaders()
+{
+  std::vector<IDownloader*> dwn;
+
+  for(int i = 0; i < downloaders.size (); i++)
+    if(downloaders.at (i)->isBussy())
+      dwn.push_back (downloaders.at (i));
+
+  return dwn;
+}
+
 IDownloader* DownloadManager::getFreeDownloader ()
 {
   std::vector<IDownloader*> dls = getAllNonBussyDownloaders();
@@ -137,7 +151,26 @@ std::vector<Segment*> DownloadManager::retriveFinishedSegments()
 
 std::vector<Segment *> DownloadManager::retriveUnfinishedSegments()
 {
-  return std::vector<Segment*>();
+   //we cant return anything just continue download player will stall
+  if(finishedSegments.size () < 1)
+    return std::vector<Segment*> ();
+
+  // turn off all downloaders segments are too late now
+  std::vector<IDownloader*> dwn = getAllBussyDownloaders ();
+  for(int i = 0; i < dwn.size (); i++)
+  {
+    if(!dwn.at(i)->downloadFinished())
+    {
+      dwn.at(i)->abortDownload();
+      dwn.at(i)->reset();
+    }
+  }
+
+  std::vector<Segment*> return_segs = finishedSegments;
+  enquedSegments.clear ();
+  finishedSegments.clear ();
+
+  return return_segs;
 }
 
 IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, Ptr<Node> node)
@@ -163,3 +196,15 @@ IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, Ptr<N
   d->setNodeForNDN (node);
   return d;
 }
+
+uint64_t DownloadManager::getPhysicalBitrate()
+{
+  // Get Device Bitrate
+  Ptr<PointToPointNetDevice> nd1 =
+  node->GetDevice(0)->GetObject<PointToPointNetDevice>();
+  DataRateValue dv;
+  nd1->GetAttribute("DataRate", dv);
+  DataRate d = dv.Get();
+  return d.GetBitRate();
+}
+
