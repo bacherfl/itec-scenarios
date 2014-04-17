@@ -90,44 +90,25 @@ void SvcPlayer::update (ObserverMessage msg)
 
 void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
 {
-  fprintf(stderr, "received_segs.size () = %d\n",received_segs.size ());
+  fprintf(stderr, "received_segs.size () = %d\n",(int) received_segs.size ());
   if(received_segs.size () == 0)
   {
     fprintf(stderr, "Cant fetch unfinished data, since even the segment with level 0 is not finished yet..\n");
     return;
   }
 
-  std::vector<utils::Segment *> checked_segs;
-  //check if segment levels are continous.
-  bool foundLayer = false;
+  unsigned int total_size = 0;
   for(int i = 0; i < received_segs.size (); i++)
   {
-    for(int j = 0; j < received_segs.size (); j++)
-    {
-      if(received_segs.at (j)->getLevel() == i)
-      {
-        checked_segs.push_back (received_segs.at (j));
-        foundLayer = true;
-        break;
-      }
-    }
-    if(!foundLayer)
-      break;
-    foundLayer = false;
-  }
-
-  unsigned int total_size = 0;
-  for(int i = 0; i < checked_segs.size (); i++)
-  {
     fprintf(stderr, "SVC-Player received for segNumber %u in level %u with size of %u\n",
-            checked_segs.at(i)->getSegmentNumber(), checked_segs.at(i)->getLevel(), checked_segs.at(i)->getSize());
+            received_segs.at(i)->getSegmentNumber(), received_segs.at(i)->getLevel(), received_segs.at(i)->getSize());
 
 
-    total_size += checked_segs.at(i)->getSize();
-    SetPlayerLevel(checked_segs.at(i)->getSegmentNumber(), checked_segs.at(i)->getLevel(), buf->bufferedSeconds());
+    total_size += received_segs.at(i)->getSize();
+    SetPlayerLevel(received_segs.at(i)->getSegmentNumber(), received_segs.at(i)->getLevel(), buf->bufferedSeconds());
   }
 
-  fprintf(stderr, "SVC-Player received %d segments for segNumber %u with total size of %u\n", (int)checked_segs.size (), checked_segs.at(0)->getSegmentNumber(), total_size);
+  fprintf(stderr, "SVC-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
 
   if(!buf->addData (current_segments.front()->getDuration ()))
   {

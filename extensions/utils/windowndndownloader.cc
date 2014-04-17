@@ -548,9 +548,6 @@ void WindowNDNDownloader::abortDownload ()
       this->curSegmentStatus.chunk_status[i] = Aborted;
     }
   }
-
-  //todo clear the pit
-
   //StopApplication ();
 }
 

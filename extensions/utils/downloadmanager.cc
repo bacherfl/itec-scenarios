@@ -155,6 +155,32 @@ std::vector<Segment *> DownloadManager::retriveUnfinishedSegments()
   if(finishedSegments.size () < 1)
     return std::vector<Segment*> ();
 
+  //check if base layer is here and order segments
+  std::vector<utils::Segment *> checked_segs;
+  //check if segment levels are continous.
+  bool foundLayer = false;
+  for(int i = 0; i < finishedSegments.size (); i++)
+  {
+    for(int j = 0; j < finishedSegments.size (); j++)
+    {
+      if(finishedSegments.at (j)->getLevel() == i)
+      {
+        checked_segs.push_back (finishedSegments.at (j));
+        foundLayer = true;
+        break;
+      }
+    }
+    if(!foundLayer)
+      break;
+    foundLayer = false;
+  }
+
+  if(checked_segs.size () == 0)
+  {
+    //fprintf(stderr, "Base layer is missing.\n");
+    return std::vector<Segment*> ();
+  }
+
   // turn off all downloaders segments are too late now
   std::vector<IDownloader*> dwn = getAllBussyDownloaders ();
   for(int i = 0; i < dwn.size (); i++)
@@ -166,7 +192,7 @@ std::vector<Segment *> DownloadManager::retriveUnfinishedSegments()
     }
   }
 
-  std::vector<Segment*> return_segs = finishedSegments;
+  std::vector<Segment*> return_segs = checked_segs;
   enquedSegments.clear ();
   finishedSegments.clear ();
 

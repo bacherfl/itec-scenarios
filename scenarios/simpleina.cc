@@ -115,20 +115,20 @@ int main(int argc, char* argv[])
   }
 
   //multimedia traffic
-  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  /*ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
+*/
 
-/*
   ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer svcContainer = svcRequesterHelper.Install(contentDst);
-*/
+
 
   ndn::AppHelper cProviderHelper ("ContentProvider");
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
@@ -139,8 +139,8 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.AddOrigins("/itec/sintel", contentSrc);
 
   contentProvider.Start (Seconds(0.0));
-  //svcContainer.Start (Seconds(1.0));
-  dashContainer.Start (Seconds(1.0));
+  svcContainer.Start (Seconds(1.0));
+  //dashContainer.Start (Seconds(1.0));
   //dummyProducer.Start (Seconds(0.0));
   //dummyConsumer.Start (Seconds(5.0));
   //dummyConsumer.Stop (Seconds(10.0));
