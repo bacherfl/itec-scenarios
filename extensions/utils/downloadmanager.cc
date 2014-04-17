@@ -24,6 +24,7 @@ void DownloadManager::update(ObserverMessage msg)
   {
     case Observer::NackReceived:
     {
+      specialNACKreceived();
       break;
     }
     case Observer::SegmentReceived://dwnl is still bussy BUT finished and waits for reset
@@ -55,6 +56,44 @@ void DownloadManager::addToFinished (Segment *seg)
   }
 
   return;
+}
+
+void DownloadManager::specialNACKreceived ()
+{
+  //delete all requests of further layers
+  enquedSegments.clear ();
+
+  //find the downloader who triggered the special NACK
+
+  IDownloader* nackDwn = NULL;
+
+  std::vector<IDownloader*> dwn = getAllBussyDownloaders ();
+  for(int i = 0; i < dwn.size (); i++)
+  {
+    if(!dwn.at(i)->downloadFinished() && dwn.at(i)->wasSuccessfull() == false)
+    {
+      nackDwn = dwn.at(i);
+      break;
+    }
+  }
+
+  if(nackDwn == NULL)
+  {
+    fprintf(stderr, "ERROR COULD NOT FIND NACK DOWNLOADER\n");
+    return;
+  }
+
+  int level = nackDwn->getSegment ()->getLevel ();
+
+  //stop all downloaders that download quality > level
+  for(int i = 0; i < dwn.size (); i++)
+  {
+    if(!dwn.at(i)->downloadFinished() && dwn.at(i)->getSegment ()->getLevel () >= level)
+    {
+      dwn.at(i)->abortDownload();
+      dwn.at(i)->reset();
+    }
+  }
 }
 
 void DownloadManager::segmentReceived ()

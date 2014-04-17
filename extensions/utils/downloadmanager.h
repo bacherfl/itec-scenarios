@@ -44,6 +44,7 @@ namespace ns3
 
 
       void segmentReceived();
+      void specialNACKreceived();
 
       std::vector<IDownloader*> downloaders;
 

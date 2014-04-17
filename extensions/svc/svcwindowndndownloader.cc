@@ -12,9 +12,9 @@ SVCWindowNDNDownloader::SVCWindowNDNDownloader() : WindowNDNDownloader()
 
 void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 {
-  /*if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
+  if(!isPartOfCurrentSegment(interest->GetName ().toUri()))
   {
-    fprintf(stderr, "SVCWindow: Dropping NACK from previous Request - URI: %s\n", interest->GetName ().toUri().c_str());
+    //fprintf(stderr, "SVCWindow: Dropping NACK from previous Request - URI: %s\n", interest->GetName ().toUri().c_str());
     return;
   }
 
@@ -28,30 +28,17 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
     bool tagExists = packet->PeekPacketTag(levelTag);
     if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
     {
-      NS_LOG_FUNCTION("Packet %s was dropped on purpose\n" << interest->GetName());
+      NS_LOG_UNCOND("Packet %s was dropped on purpose\n" << interest->GetName());
 
-      CancelAllTimeoutEvents();
+      abortDownload();
       lastDownloadSuccessful = false;
-      notifyAll (Observer::No_Message);
+      notifyAll (Observer::NackReceived);
       return; // stop downloading, do not fire OnNack of super class, we are done here!
     }
   }
 
   // continue with super::OnNack*/
   WindowNDNDownloader::OnNack(interest);
-}
-
-
-void SVCWindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
-{
-  NS_LOG_FUNCTION(this);
-
-  // check if the received URI is what we expected
-  if(!isPartOfCurrentSegment(contentObject->GetName().toUri()))
-    return;
-
-  // continue with super::OnData
-  WindowNDNDownloader::OnData(contentObject);
 }
 
 
@@ -67,13 +54,6 @@ void SVCWindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   notifyAll (Observer::No_Message);
 
 }*/
-
-void SVCWindowNDNDownloader::notifyAll(Observer::ObserverMessage msg)
-{
-  // cancel the download expired event -j ust in case
-  //this->needDownloadBeforeEvent.Cancel();
-  WindowNDNDownloader::notifyAll(msg);
-}
 
 
 bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
@@ -143,27 +123,6 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
 
     packets_sent_this_second++;
   }
-}
-
-
-bool SVCWindowNDNDownloader::isPartOfCurrentSegment(std::string packetUri)
-{
-  if (!lastDownloadSuccessful)
-  {
-    return false;
-  }
-
-  /*
-  fprintf(stderr, "%s \n",curSegmentStatus.base_uri.c_str ());
-  fprintf(stderr, "%s \n",packetUri.substr (0,curSegmentStatus.base_uri.size ()).c_str ());
-  */
-
-  if (curSegmentStatus.base_uri.compare (packetUri.substr (0,curSegmentStatus.base_uri.size ())) == 0)
-  {
-    return true;
-  }
-
-  return false;
 }
 
 DownloaderType SVCWindowNDNDownloader::getDownloaderType ()

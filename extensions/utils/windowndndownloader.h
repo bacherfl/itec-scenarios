@@ -88,6 +88,8 @@ namespace ns3
 
       virtual void CancelAllTimeoutEvents();
 
+      bool isPartOfCurrentSegment(std::string packet_name);
+
       Ptr<ndn::RttEstimator> m_rtt;
 
       CongestionWindow cwnd;

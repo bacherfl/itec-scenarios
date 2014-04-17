@@ -27,7 +27,7 @@ bool IDownloader::downloadFinished ()
 
 void IDownloader::reset ()
 {
-  lastDownloadSuccessful = false;
+  lastDownloadSuccessful = true;
   bussy = false;
   finished = false;
 }

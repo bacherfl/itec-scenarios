@@ -371,7 +371,6 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
       cwnd.SetThreshold(this->packets_inflight);
     }
 
-
     //fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
 
     NS_LOG_FUNCTION("NACK: chunk=" << c_chunk_number << "; " << this);
@@ -396,19 +395,22 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   }
 }
 
+bool WindowNDNDownloader::isPartOfCurrentSegment(std::string packet_name)
+{
+  if(packet_name.find(curSegmentStatus.base_uri) == std::string::npos)
+    return false;
+  else
+    return true;
+}
+
 void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 {
 
   //check of chunk corresponds to current segment.
-   if(contentObject->GetName ().toUri().find(curSegmentStatus.base_uri) == std::string::npos)
+  if(!isPartOfCurrentSegment(contentObject->GetName ().toUri ()))
    {
-     //fprintf(stderr, "The received packet is not relevant for this downloader\n");
      return;
    }
-
-  //fprintf(stderr, "contentObject->GetName () = %s\n", contentObject->GetName ().toUri ().c_str ());
-  //fprintf(stderr, "curSegmentStatus.base_uri = %s\n", curSegmentStatus.base_uri.c_str ());
-
 
   //fprintf(stderr, "ONDATA %s \n", contentObject->GetName ().toUri ().c_str ());
   NS_LOG_FUNCTION(this);

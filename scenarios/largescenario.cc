@@ -130,16 +130,17 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.InstallAll ();
 
    //consumer
-  /*ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+/*  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer dashContainer = dashRequesterHelper.Install(bbbStreamers);
-  */
+*/
 
   ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
-  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
+  //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
+  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
   ApplicationContainer svcContainer = svcRequesterHelper.Install(bbbStreamers);
 
@@ -155,6 +156,7 @@ int main(int argc, char* argv[])
 
   srand (time(NULL));
   for (ApplicationContainer::Iterator i = svcContainer.Begin (); i != svcContainer.End (); ++i)
+  //for (ApplicationContainer::Iterator i = dashContainer.Begin (); i != dashContainer.End (); ++i)
   {
     int startTime = rand() % 30 + 1; //1-30
 

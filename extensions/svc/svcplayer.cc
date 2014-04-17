@@ -139,7 +139,10 @@ void SvcPlayer::consume ()
     addToBuffer(dwnManager->retriveUnfinishedSegments ());
 
     if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
-      NS_LOG_ERROR("SVCPlayer(" << m_nodeName << "): CONSUME FAILED"); //ok we stall
+    {
+       NS_LOG_UNCOND("SVCPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+       logUnsmoothSecond (current_segments.at (0)->getSegmentNumber(), CONSUME_INTERVALL);
+    }
     else
     {
     //ommit old requests

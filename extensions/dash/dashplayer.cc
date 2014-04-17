@@ -108,6 +108,7 @@ void DashPlayer::consume ()
 
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
   {
+    logUnsmoothSecond (current_segments.at (0)->getSegmentNumber(),CONSUME_INTERVALL);
     NS_LOG_UNCOND("DashPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
     //fprintf(stderr, "CONSUMED FAILED\n");
   }
