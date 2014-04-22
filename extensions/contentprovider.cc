@@ -93,7 +93,7 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
   {
     // return an actual data packet
 
-    size -= MAX_PACKET_PAYLOAD * result;
+    size -= MAX_PACKET_PAYLOAD * (result-1);
 
     if(size > MAX_PACKET_PAYLOAD)
       size = MAX_PACKET_PAYLOAD;
