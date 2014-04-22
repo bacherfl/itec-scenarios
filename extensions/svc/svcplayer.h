@@ -49,6 +49,8 @@ namespace ns3
         */
       std::string m_nodeName;
 
+      Time dlStartTime;
+
       virtual void update(ObserverMessage msg);
 
       void streaming();

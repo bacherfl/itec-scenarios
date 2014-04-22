@@ -75,11 +75,12 @@ void DashPlayer::update (ObserverMessage msg)
   std::vector<Segment*> received_segs = dwnManager->retriveFinishedSegments ();
 
   unsigned int total_size = 0;
-
+  Segment* s;
   for(int i = 0; i < received_segs.size (); i++)
   {
-    total_size += received_segs.at (i)->getSize();
-    SetPlayerLevel(received_segs.at(i)->getSegmentNumber(), received_segs.at(i)->getLevel(), buf->bufferedSeconds());
+    s = received_segs.at (i);
+    total_size += s->getSize();
+    SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds(), s->getSize (), (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
   }
 
   fprintf(stderr, "DASH-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);

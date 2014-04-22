@@ -69,6 +69,7 @@ void SvcPlayer::streaming ()
       fprintf(stderr, "SVCPlayer::requesting Segment: %s\n", current_segments.at(i)->getUri ().c_str ());
     }
 
+    dlStartTime = Simulator::Now ();
     dwnManager->enque(current_segments);
   }
 }
@@ -98,14 +99,19 @@ void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
   }
 
   unsigned int total_size = 0;
+  utils::Segment* s;
+
   for(int i = 0; i < received_segs.size (); i++)
   {
+
+    s = received_segs.at(i);
+
     fprintf(stderr, "SVC-Player received for segNumber %u in level %u with size of %u\n",
-            received_segs.at(i)->getSegmentNumber(), received_segs.at(i)->getLevel(), received_segs.at(i)->getSize());
+            s->getSegmentNumber(), s->getLevel(), s->getSize());
 
 
-    total_size += received_segs.at(i)->getSize();
-    SetPlayerLevel(received_segs.at(i)->getSegmentNumber(), received_segs.at(i)->getLevel(), buf->bufferedSeconds());
+    total_size += s->getSize();
+    SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds(), s->getSize (), (Simulator::Now ().GetMilliSeconds () - dlStartTime.GetMilliSeconds ()));
   }
 
   fprintf(stderr, "SVC-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
