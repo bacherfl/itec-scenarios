@@ -33,9 +33,6 @@ double DroppingPolicy::GetDroppingProbability(unsigned int layer)
     return this->dropProbs[layer];
 }
 
-
-
-
 void DroppingPolicy::Print(ostream& os)
 {
     os << "DropProb: ";

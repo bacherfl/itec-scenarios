@@ -7,9 +7,11 @@
 
 #include "../extensions/svc/svcadaptivestrategy.h"
 
+#include <string>
+
 using namespace ns3;
 
-void parseParameters(int argc, char* argv[], bool &background_traffic)
+void parseParameters(int argc, char* argv[], bool &background_traffic, std::string& mode)
 {
   bool v0 = false, v1 = false, v2 = false;
   bool vN = false;
@@ -23,10 +25,9 @@ void parseParameters(int argc, char* argv[], bool &background_traffic)
   cmd.AddValue ("vN", "Disable all internal logging parameters, use NS_LOG instead", vN);
   cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
   cmd.AddValue ("bg", "Enable background traffic. (OPTIONAL", background_traffic);
-
+  cmd.AddValue ("mode", "Sets the simulation mode. Either \"mode=dash\" or \"mode=svc\". (OPTIONAL) Default: mode=dash", mode);
 
   cmd.Parse (argc, argv);
-
 
   if (vN == false)
   {
@@ -45,9 +46,12 @@ void parseParameters(int argc, char* argv[], bool &background_traffic)
     {
       LogComponentDisableAll (LOG_DEBUG);
     }
-  } else {
+  }
+  else
+  {
     NS_LOG_UNCOND("Disabled internal logging parameters, using NS_LOG as parameter.");
   }
+
   AnnotatedTopologyReader topologyReader ("", 20);
   topologyReader.SetFileName (top_path);
   topologyReader.Read();
@@ -58,8 +62,9 @@ int main(int argc, char* argv[])
   NS_LOG_COMPONENT_DEFINE ("SimpleINA");
 
   bool  background_traffic = false;
+  std::string mode("dash");
 
-  parseParameters(argc, argv, background_traffic);
+  parseParameters(argc, argv, background_traffic, mode);
 
   NodeContainer adaptiveNodes;
   NodeContainer normalNodes;
@@ -71,10 +76,10 @@ int main(int argc, char* argv[])
   normalNodes.Add (dummyDst);
   Ptr<Node> adaptiveNode = Names::Find<Node>("AdaptiveNode");
 
-
-  //adaptiveNodes.Add (adaptiveNode);
-  normalNodes.Add (adaptiveNode); // just for svc-dash simmulation
-
+  if(mode.compare ("svc") == 0)
+    adaptiveNodes.Add (adaptiveNode);
+  else
+    normalNodes.Add (adaptiveNode);
 
   Ptr<Node> simpleNode = Names::Find<Node>("SimpleNode");
   normalNodes.Add (simpleNode);
@@ -89,7 +94,7 @@ int main(int argc, char* argv[])
   ndnHelper.EnableLimits (true, Seconds(0.1), 100, 4200);
   ndnHelper.Install(normalNodes);
 
-  //change strategy for adaptive NODE
+  //change strategy for adaptive Node(s)
   ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy",
                                   "EnableNACKs", "true", "LevelCount", "3");
   ndnHelper.EnableLimits (false);
@@ -115,20 +120,24 @@ int main(int argc, char* argv[])
   }
 
   //multimedia traffic
-ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
   dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer dashContainer = dashRequesterHelper.Install(contentDst);
 
-
-  /*  ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
+  ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer svcContainer = svcRequesterHelper.Install(contentDst);
-*/
+
+  ApplicationContainer dashContainer;
+  ApplicationContainer svcContainer;
+
+  if(mode.compare ("svc") == 0)
+    svcContainer = svcRequesterHelper.Install(contentDst);
+  else
+    dashContainer = dashRequesterHelper.Install(contentDst);
 
   ndn::AppHelper cProviderHelper ("ContentProvider");
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
@@ -139,11 +148,12 @@ ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   ndnGlobalRoutingHelper.AddOrigins("/itec/sintel", contentSrc);
 
   contentProvider.Start (Seconds(0.0));
-  //svcContainer.Start (Seconds(1.0));
-  dashContainer.Start (Seconds(1.0));
-  //dummyProducer.Start (Seconds(0.0));
-  //dummyConsumer.Start (Seconds(5.0));
-  //dummyConsumer.Stop (Seconds(10.0));
+
+
+  if(mode.compare ("svc") == 0)
+    svcContainer.Start (Seconds(1.0));
+  else
+    dashContainer.Start (Seconds(1.0));
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
