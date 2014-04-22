@@ -54,7 +54,7 @@ void ContentProvider::StopApplication ()
 
 void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
 {
-  NS_LOG_FUNCTION(interest->GetName() << this);
+  NS_LOG_FUNCTION("Contentprovider::OnInterest" << interest->GetName() << ", " << this);
 
   ndn::App::OnInterest (interest);
 
@@ -70,7 +70,7 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
   struct stat fstats;
   if(!(stat (fname.c_str(), &fstats) == 0))
   {
-    NS_LOG_WARN("ContentProvider::OnInterest: File does NOT exist: " << fname);
+    NS_LOG_FUNCTION("ContentProvider::OnInterest: File does NOT exist: " << fname);
     return;
   }
 
@@ -88,13 +88,21 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
     data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
 
     NS_LOG_FUNCTION("Sending first data packet" << data->GetName() << "with content " << size << this);
-  } else {
+  }
+  else
+  {
     // return an actual data packet
 
     size -= MAX_PACKET_PAYLOAD * result;
 
     if(size > MAX_PACKET_PAYLOAD)
       size = MAX_PACKET_PAYLOAD;
+
+    if(size < 0)
+    {
+      NS_LOG_UNCOND("INVALID FILE REQUEST. FILE IS SMALLER THAN REQEUSTED\n");
+      return;
+    }
 
     data = Create<ndn::Data> (Create<Packet> (size));
     data->SetName (Create<ndn::Name> (interest->GetName ())); // data will have the same name as Interests
@@ -107,7 +115,6 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
     {
       data->GetPayload()->AddPacketTag(tag);
     }
-
 
     NS_LOG_FUNCTION("Sending data packet" << data->GetName() << "size" << size << this);
   }

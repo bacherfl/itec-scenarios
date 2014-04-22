@@ -60,6 +60,9 @@ namespace ns3
 
       virtual DownloaderType getDownloaderType ();
 
+      virtual const CongestionWindow getCongWindow() {return CongestionWindow();}
+      virtual void setCongWindow (const CongestionWindow ){return;}
+
       // gets the physical available bitrate
       uint64_t getPhysicalBitrate();
 

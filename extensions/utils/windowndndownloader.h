@@ -79,6 +79,11 @@ namespace ns3
 
       virtual DownloaderType getDownloaderType ();
 
+      virtual const CongestionWindow getCongWindow();
+      virtual void setCongWindow (const CongestionWindow window);
+
+      virtual void reset ();
+
 
     protected:
       virtual void downloadChunk(int chunk_number);
@@ -124,6 +129,8 @@ namespace ns3
 
       int GetNextNeededChunkNumber();
       int GetNextNeededChunkNumber(int start_chunk_number);
+
+      bool soonFinishedAlreadyFired;
     };
   }
 }

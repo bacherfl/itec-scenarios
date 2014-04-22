@@ -5,7 +5,6 @@ using namespace ns3::utils;
 DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
 {
   //make downloaders ready
-
   this->node = node;
 
   IDownloader* d = NULL;
@@ -16,6 +15,8 @@ DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
     d->addObserver (this);
     this->downloaders.push_back (d);
   }
+
+  lastDownloader = downloaders.front ();
 }
 
 void DownloadManager::update(ObserverMessage msg)
@@ -49,9 +50,16 @@ void DownloadManager::addToFinished (Segment *seg)
 {
   finishedSegments.push_back (seg);
 
+  /*fprintf(stderr, "DownloadManager::addToFinished %s\n", seg->getUri ().c_str ());
+  fprintf(stderr, "enquedSegments.size () = %d\n", enquedSegments.size ());
+  fprintf(stderr, "downloaders.size () = %d\n", downloaders.size ());
+  fprintf(stderr, "getAllNonBussyDownloaders.size () = %d\n", getAllNonBussyDownloaders().size ());
+*/
+
   if(enquedSegments.size () == 0 && downloaders.size () == getAllNonBussyDownloaders ().size ())
   {
     //bunch of segments finsihed notify observers
+    fprintf(stderr, "DownloadManager::Observer::SegmentReceived %s\n", seg->getUri ().c_str ());
     notifyAll (Observer::SegmentReceived);
   }
 
@@ -120,6 +128,9 @@ void DownloadManager::segmentReceived ()
 
    addToFinished(s);
 
+   //if no downloaders a running...
+   if(getAllBussyDownloaders ().size () == 0 && enquedSegments.size () > 0)
+      downloadSegments ();
 }
 
 void DownloadManager::enque (std::vector<Segment *> segments)
@@ -144,6 +155,9 @@ void DownloadManager::downloadSegments()
 
   if (dl == NULL)
     return;
+
+  dl->setCongWindow(lastDownloader->getCongWindow ());
+  lastDownloader = dl;
 
   Segment* seg_to_dl = *(enquedSegments.begin ());
   enquedSegments.erase (enquedSegments.begin ());

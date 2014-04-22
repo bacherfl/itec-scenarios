@@ -47,6 +47,7 @@ namespace ns3
       void specialNACKreceived();
 
       std::vector<IDownloader*> downloaders;
+      IDownloader* lastDownloader;
 
       std::vector<Segment*> enquedSegments;
       std::vector<Segment*> finishedSegments;

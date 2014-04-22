@@ -16,6 +16,8 @@ namespace ns3
     CongestionWindow();
     CongestionWindow(int window_size, int window_threshold);
 
+    CongestionWindow& operator=(CongestionWindow const& other);
+
     void Reset();
 
     void SetWindowSize(int window_size);

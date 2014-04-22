@@ -9,6 +9,7 @@ WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
 {
 
   //init status
+
   reset();
 
   // init statistics
@@ -59,12 +60,9 @@ bool WindowNDNDownloader::download (Segment *s)
 /* download file from URI */
 bool WindowNDNDownloader::download (std::string URI)
 {
-
+  NS_LOG_FUNCTION(this);
   // this downloader is now bussy
   bussy = true;
-
-  NS_LOG_FUNCTION(this);
-  StartApplication ();
 
   // init some stats
   this->had_ack = false;
@@ -88,8 +86,7 @@ bool WindowNDNDownloader::download (std::string URI)
                                                &WindowNDNDownloader::resetStatistics, this);
   }
 
-
-  // parse the URI
+  // parse the URI (replace http:// if needed..)
   this->curSegmentStatus.base_uri = URI;
   if(this->curSegmentStatus.base_uri.size () > 7 &&
      this->curSegmentStatus.base_uri.substr (0,7).compare ("http://") == 0)
@@ -107,14 +104,7 @@ bool WindowNDNDownloader::download (std::string URI)
   /****
   * STEP 1 - ESTIMATE RECEIVER WINDOW TO LIMIT THE CONGESTION WINDOW
   */
-  uint64_t bitrate = this->getPhysicalBitrate();
-
-  int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
-
-  // set threshold to max_packets / 2
-  cwnd.SetReceiverWindowSize(max_packets);
-  cwnd.SetThreshold(max_packets/2);
-
+    //Daniel: moved to setNodeForNDN()
   /*
   * STEP 1 - DONE
   */
@@ -162,9 +152,9 @@ bool WindowNDNDownloader::download (std::string URI)
 void WindowNDNDownloader::downloadChunk (int chunk_number)
 {
   NS_LOG_FUNCTION(this << chunk_number);
+
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
-   // fprintf(stderr, "t=%f\n", t);
     Ptr<ndn::Interest> interest = prepareInterestForDownload(chunk_number);
 
     // Call trace (for logging purposes)
@@ -175,9 +165,12 @@ void WindowNDNDownloader::downloadChunk (int chunk_number)
   }
   else
   {
-    notifyAll(Observer::SoonFinished);
+    if(!soonFinishedAlreadyFired)
+    {
+      soonFinishedAlreadyFired = false;
+      notifyAll(Observer::SoonFinished);
+    }
   }
-
 }
 
 void WindowNDNDownloader::resetStatistics()
@@ -235,7 +228,11 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
   if (chunk_number == -1)
   {
     // NO chunks available, SAY we will be finished soon and return
-    notifyAll (Observer::SoonFinished);
+    if(!soonFinishedAlreadyFired)
+    {
+      soonFinishedAlreadyFired = true;
+      notifyAll (Observer::SoonFinished);
+    }
     return;
   }
 
@@ -518,7 +515,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     // cancel the scheduled download timer
     this->scheduleDownloadTimer.Cancel();
 
-    NS_LOG_FUNCTION(std::string("Finally received segment: ").append(curSegmentStatus.base_uri.substr (0,curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
+    NS_LOG_INFO(std::string("Finally received segment: ").append(curSegmentStatus.base_uri.substr (0,curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
 
     //this download is now finished and was succesfull
     finished = true;
@@ -582,6 +579,17 @@ void WindowNDNDownloader::setNodeForNDN (Ptr<Node> node)
 {
   NS_LOG_FUNCTION(this);
   SetNode(node);
+
+  StartApplication ();
+
+  uint64_t bitrate = this->getPhysicalBitrate();
+
+  int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
+
+  // set threshold to max_packets / 2
+  cwnd.SetReceiverWindowSize(max_packets);
+  cwnd.SetThreshold(max_packets/2);
+
 }
 
 DownloaderType WindowNDNDownloader::getDownloaderType ()
@@ -598,4 +606,20 @@ uint64_t WindowNDNDownloader::getPhysicalBitrate()
   nd1->GetAttribute("DataRate", dv);
   DataRate d = dv.Get();
   return d.GetBitRate();
+}
+
+const CongestionWindow WindowNDNDownloader::getCongWindow()
+{
+ return this->cwnd;
+}
+
+void WindowNDNDownloader::setCongWindow (const CongestionWindow window)
+{
+this->cwnd = window;
+}
+
+void WindowNDNDownloader::reset ()
+{
+  IDownloader::reset ();
+  soonFinishedAlreadyFired = false;
 }
