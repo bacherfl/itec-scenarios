@@ -16,7 +16,8 @@ void PlayerLevelHistory::SetPlayerLevel(unsigned int segmentNumber,
   if (levelHistory.find (segmentNumber) != levelHistory.end () || levelHistory[segmentNumber] < level) //write biggest level
     this->levelHistory[segmentNumber] = level;
 
-  if (bufferHistory.find (segmentNumber) != bufferHistory.end () || bufferHistory[segmentNumber] > buffer) //write smaller buffer
+  if (bufferHistory.find (segmentNumber) == bufferHistory.end () ||
+      (bufferHistory.find (segmentNumber) != bufferHistory.end () && bufferHistory[segmentNumber] > buffer) ) //write smaller buffer
     this->bufferHistory[segmentNumber] = buffer;
 
   if(segSizeHistory.find (segmentNumber) != segSizeHistory.end ())
