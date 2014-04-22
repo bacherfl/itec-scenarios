@@ -12,7 +12,7 @@
 
 using namespace ns3;
 
-void parseParameters(int argc, char* argv[], bool &background_traffic)
+void parseParameters(int argc, char* argv[], bool &background_traffic, std::string& mode)
 {
   bool v0 = false, v1 = false, v2 = false;
   bool vN = false;
@@ -26,6 +26,7 @@ void parseParameters(int argc, char* argv[], bool &background_traffic)
   cmd.AddValue ("vN", "Disable all internal logging parameters, use NS_LOG instead", vN);
   cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
   cmd.AddValue ("bg", "Enable background traffic. (OPTIONAL", background_traffic);
+  cmd.AddValue ("mode", "Sets the simulation mode. Either \"mode=dash\" or \"mode=svc\". (OPTIONAL) Default: mode=dash", mode);
 
 
   cmd.Parse (argc, argv);
@@ -60,8 +61,9 @@ int main(int argc, char* argv[])
   NS_LOG_COMPONENT_DEFINE ("LargeScenario");
 
   bool  background_traffic = false;
+  std::string mode("dash");
 
-  parseParameters(argc, argv, background_traffic);
+  parseParameters(argc, argv, background_traffic, mode);
 
   NodeContainer bbbStreamers;
   int nodeIndex = 0;
@@ -93,15 +95,16 @@ int main(int argc, char* argv[])
     router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   }
 
-
-
   NodeContainer adaptiveNodes;
   nodeIndex = 0;
   nodeNamePrefix = std::string("AdaptiveNode");
   Ptr<Node> adaptiveNode = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
-  while(router != NULL)
+  while(adaptiveNode != NULL)
   {
-    adaptiveNodes.Add (adaptiveNode);
+    if(mode.compare ("svc") == 0)
+      adaptiveNodes.Add (adaptiveNode);
+    else
+      routers.Add (adaptiveNode); // we dont need adaptive nodes in dash scenario..
     adaptiveNode = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   }
 
@@ -121,20 +124,18 @@ int main(int argc, char* argv[])
   ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy",
                                   "EnableNACKs", "true", "LevelCount", "3");
   ndnHelper.EnableLimits (false);
-  ndnHelper.Install (adaptiveNode);
-
-
+  ndnHelper.Install (adaptiveNodes);
 
   // Installing global routing interface on all nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.InstallAll ();
 
    //consumer
-/*  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
-  dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
+  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
+  dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer dashContainer = dashRequesterHelper.Install(bbbStreamers);
-*/
+
 
   ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
@@ -142,7 +143,13 @@ int main(int argc, char* argv[])
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-  ApplicationContainer svcContainer = svcRequesterHelper.Install(bbbStreamers);
+
+  ApplicationContainer apps;
+
+  if(mode.compare ("svc") == 0)
+    apps = svcRequesterHelper.Install(bbbStreamers);
+  else
+    apps = dashRequesterHelper.Install(bbbStreamers);
 
 
   //provider
@@ -155,10 +162,11 @@ int main(int argc, char* argv[])
   contentProvider.Start (Seconds(0.0));
 
   srand (time(NULL));
-  for (ApplicationContainer::Iterator i = svcContainer.Begin (); i != svcContainer.End (); ++i)
-  //for (ApplicationContainer::Iterator i = dashContainer.Begin (); i != dashContainer.End (); ++i)
+
+
+  for (ApplicationContainer::Iterator i = apps.Begin (); i != apps.End (); ++i)
   {
-    int startTime = rand() % 30 + 1; //1-30
+    int startTime = rand() % 20 + 1; //1-20
 
     fprintf(stderr,"starttime = %d\n", startTime);
     ( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
