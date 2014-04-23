@@ -133,6 +133,8 @@ bool WindowNDNDownloader::download (std::string URI)
   packets_inflight = 0;
   packets_nack = 0;
   lastDownloadSuccessful = true;
+  soonFinishedAlreadyFired = false;
+
 
 
   // clear the last rtt information
@@ -225,12 +227,13 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
   NS_LOG_FUNCTION(this);
   int chunk_number = GetNextNeededChunkNumber();
 
-  if (chunk_number == -1)
+  if (chunk_number == -1 && this->curSegmentStatus.bytesToDownload >= 0)
   {
     // NO chunks available, SAY we will be finished soon and return
     if(!soonFinishedAlreadyFired)
     {
       soonFinishedAlreadyFired = true;
+      //fprintf(stderr, "Downloader=%s, notifying that we are soon finished (inflight=%d)...\n", this->curSegmentStatus.base_uri.c_str(), this->packets_inflight);
       notifyAll (Observer::SoonFinished);
     }
     return;
@@ -506,7 +509,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   //this can occur if the first chunk is delayed. its often not a problem but may indicate one.
   if (this->curSegmentStatus.bytesToDownload < 0)
   {
-    fprintf(stderr, "WARNING: bytesToDownload=%d < 0...\n", this->curSegmentStatus.bytesToDownload);
+    fprintf(stderr, "WARNING: %s bytesToDownload=%d < 0...\n",  contentObject->GetName().toUri().c_str(), this->curSegmentStatus.bytesToDownload);
   }
 
   if(this->curSegmentStatus.bytesToDownload == 0)
@@ -516,7 +519,6 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     this->scheduleDownloadTimer.Cancel();
 
     NS_LOG_INFO(std::string("Finally received segment: ").append(curSegmentStatus.base_uri.substr (0,curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
-
     //this download is now finished and was succesfull
     finished = true;
     lastDownloadSuccessful = true;
@@ -621,5 +623,4 @@ this->cwnd = window;
 void WindowNDNDownloader::reset ()
 {
   IDownloader::reset ();
-  soonFinishedAlreadyFired = false;
 }
