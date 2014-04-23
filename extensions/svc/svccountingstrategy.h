@@ -75,8 +75,10 @@ public:
 
   static std::string GetLogName ();
 
-  SVCCountingStrategy () : super() {
-    fprintf(stderr, "In constructor...\n");
+  SVCCountingStrategy () : super()
+  {
+    fprintf(stderr, "SVCCountingStrategy activated...\n");
+
     // init the uniform random variable
     randomNumber = UniformVariable(0,1);
 
@@ -94,7 +96,6 @@ public:
                                    Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
   virtual void DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest,
                                             Ptr<pit::Entry> pitEntry);
-
 
   static uint64_t getPhysicalBitrate(Ptr<Face> face);
 
@@ -117,7 +118,6 @@ protected:
   FacePacketStatisticMap map;
 
   int m_levelCount;
-
 
   static LogComponent g_log;
 
@@ -192,7 +192,6 @@ void SVCCountingStrategy<Parent>::resetLevelCount() {
     this->map[face->GetId ()]->SetPacketsPerTime (0);
   }
 
-
   // schedule next reset event
   ResetStatisticsTimer = Simulator::Schedule(Seconds(RESET_STATISTICS_TIMER), &SVCCountingStrategy::resetLevelCount, this);
 }
@@ -255,6 +254,8 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
   bool svcLevelTagExists = packet->PeekPacketTag (levelTag);
 
   int level = DEFAULT_CONTENT_LEVEL;
+
+  //TODO fix levels
   if (svcLevelTagExists)
   {
     level = levelTag.Get ();
@@ -265,25 +266,6 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
     level = 2;
   else
     level = 0;
-
-
-
-  /* DeadlineTag deadlineTag;
-
-  uint64_t deadline = 0;
-
-  bool deadlineTagExists = packet->PeekPacketTag (deadlineTag);
-  if (deadlineTagExists)
-  {
-    //fprintf(stderr, "deadline tag found!\n");
-    deadline = deadlineTag.Get ();
-  }
-
-  if (deadline == 0)
-  {
-    deadline = 1000;
-  } */
-
 
   // increase level counter for that face
   this->map[face->GetId ()]->IncreasePackets (level);
@@ -331,14 +313,12 @@ void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest 
     if (! HasEnoughResourcesToSend (inface, interest) )
     {
       // DROP
-      // NS_LOG_UNCOND("Strategy: Dropping Interest " << interest->GetName ().toUri());
-
+      NS_LOG_UNCOND("Strategy: Dropping Interest " << interest->GetName ().toUri());
       Ptr<Interest> nack = Create<Interest> (*interest);
       nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
 
       levelTag.Set (-1); // means packet dropped on purpose
       nack->GetPayload ()->AddPacketTag (levelTag);
-
 
       inface->SendInterest (nack);
       SVCCountingStrategy<Parent>::m_outNacks (nack, inface);

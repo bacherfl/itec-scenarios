@@ -10,15 +10,13 @@ SvcPlayer::SvcPlayer(dash::mpd::IMPD *mpd, std::string dataset_path, utils::Down
 {
   this->mpd = mpd;
   this->buf = buf;
+  this->m_nodeName = nodeName;
+  this->isPlaying = false;
 
   this->dwnManager = dwnManager;
   this->dwnManager->addObserver (this);
 
-  this->extractor = new SVCSegmentExtractor(mpd, dataset_path, maxWidth, maxHeight);
-
-  this->isPlaying = false;
-
-  this->m_nodeName = nodeName;
+  this->extractor = new SVCSegmentExtractor(mpd, dataset_path, this->buf, maxWidth, maxHeight, dwnManager->getPhysicalBitrate ());
 }
 
 void SvcPlayer::play()
@@ -54,15 +52,6 @@ void SvcPlayer::streaming ()
       return;
     }
 
-      // check which segments are feasible to be download and remove the rest
-    for(std::vector<utils::Segment*>::iterator it = current_segments.begin (); it != current_segments.end ();)
-    {
-      if((*it)->getLevel() != 0 && (*it)->getAvgLvlBitrate() > dwnManager->getPhysicalBitrate() * REDUCED_BANDWITH)
-        current_segments.erase (it);
-      else
-        ++it;
-    }
-
     fprintf(stderr, "Requesting SegmentBunch:\n");
     for(int i = 0; i < current_segments.size (); i++)
     {
@@ -79,7 +68,7 @@ void SvcPlayer::update (ObserverMessage msg)
 
   if(msg == Observer::SegmentReceived)
   {
-    fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
+    //fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
 
     addToBuffer(dwnManager->retriveFinishedSegments ());
     current_segments.clear ();
@@ -99,20 +88,23 @@ void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
   }
 
   unsigned int total_size = 0;
-  utils::Segment* s;
-
+  utils::Segment* s = NULL;
+  utils::Segment* s_highest = received_segs.front ();
   for(int i = 0; i < received_segs.size (); i++)
   {
-
     s = received_segs.at(i);
 
     fprintf(stderr, "SVC-Player received for segNumber %u in level %u with size of %u\n",
             s->getSegmentNumber(), s->getLevel(), s->getSize());
 
-
     total_size += s->getSize();
     SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds(), s->getSize (), (Simulator::Now ().GetMilliSeconds () - dlStartTime.GetMilliSeconds ()));
+
+    if(s->getLevel () > s_highest->getLevel ())
+      s_highest = s;
   }
+
+  this->extractor->update(s_highest);
 
   fprintf(stderr, "SVC-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
 

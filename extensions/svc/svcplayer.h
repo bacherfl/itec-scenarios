@@ -12,7 +12,6 @@
 
 
 #define CONSUME_INTERVALL 1.0
-#define REDUCED_BANDWITH 0.8 // estimating we always can achieve 80% goodput
 
 namespace ns3
 {

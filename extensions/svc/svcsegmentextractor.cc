@@ -3,12 +3,15 @@
 using namespace ns3::svc;
 using namespace ns3::utils;
 
-SVCSegmentExtractor::SVCSegmentExtractor(dash::mpd::IMPD* mpd, std::string dataset_path, unsigned int maxWidth, unsigned int maxHeight)
+SVCSegmentExtractor::SVCSegmentExtractor(dash::mpd::IMPD* mpd, std::string dataset_path, Buffer *buf,
+                                         unsigned int maxWidth, unsigned int maxHeight, uint64_t max_physical_speed)
 {
   this->mpd = mpd;
   this->maxWidth = maxWidth;
   this->maxHeight = maxHeight;
   this->dataset_path = dataset_path;
+  this->max_physical_speed = max_physical_speed;
+  this->buf = buf;
 
   this->currentPeriod = getFirstPeriod();
 
@@ -42,7 +45,8 @@ std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
     std::string uri("");
     std::string seg_name("");
 
-    if(width <= maxWidth && height <= maxHeight)
+    if(width <= maxWidth && height <= maxHeight /*resolution check*/
+       && rep->GetBandwidth () <= max_physical_speed /*physical_bandwidth_check*/)
     {
       if(rep->GetSegmentList ()->GetSegmentURLs().size() > currentSegmentNr)
         {
@@ -57,10 +61,61 @@ std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
         }
     }
   }
+
+  segments = considerHistory (segments);
+
+  highestRequestedHistory.push_back (segments.back ());
   currentSegmentNr++;
 
   return segments;
 }
+
+std::vector<Segment*> SVCSegmentExtractor::considerHistory(std::vector<Segment*> segments)
+{
+  int history_size = highestReceivedHistory.size ();
+
+  if(history_size == 0)
+  {
+    //fprintf(stderr, "History to small for consideration\n");
+    return segments;
+  }
+
+  if(history_size > CONSIDERD_HISTORY_SIZE )
+    history_size = CONSIDERD_HISTORY_SIZE;
+
+  //Do something usefull here
+  double avg_requested_level = 0.0;
+  double avg_received_level = 0.0;
+
+  for(int i = highestReceivedHistory.size () - 1; i > highestReceivedHistory.size () - history_size - 1; i--)
+  {
+    avg_requested_level += highestRequestedHistory.at (i)->getLevel();
+    avg_received_level += highestReceivedHistory.at (i)->getLevel();
+  }
+
+  avg_received_level /= history_size ;
+  avg_requested_level /= history_size ;
+
+  //fprintf(stderr, "history_size = %d\n", history_size);
+  //fprintf(stderr, "avg_requested_level = %f\n", avg_requested_level);
+  //fprintf(stderr, "avg_received_level = %f\n", avg_received_level);
+
+  return segments;
+}
+
+void SVCSegmentExtractor::update(utils::Segment *highest_segment)
+{
+  if(highestRequestedHistory.back ()->getSegmentNumber () != highest_segment->getSegmentNumber ())
+  {
+    NS_LOG_UNCOND("SVCSegmentExtractor::update INVALID update for " << highestRequestedHistory.back ()->getSegmentNumber () <<
+                  " requested, but Segment " << highest_segment->getSegmentNumber () << " received");
+    return;
+  }
+
+  highestReceivedHistory.push_back (highest_segment);
+}
+
+// check which segments are feasible to be download and remove the rest
 
 dash::mpd::IPeriod* SVCSegmentExtractor::getFirstPeriod()
 {

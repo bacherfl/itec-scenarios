@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
 
   //change strategy for adaptive Node(s)
   ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy",
-                                  "EnableNACKs", "true", "LevelCount", "3");
+                                  "EnableNACKs", "true", "LevelCount", "6");
   ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNodes);
 
@@ -123,24 +123,24 @@ int main(int argc, char* argv[])
   ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_2s_480p_only/bunny_Desktop.mpd"));
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_spatial_2s/bbb-svc.264.mpd"));
-  //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
+  dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_96gop/bbb-svc.264.mpd"));
-  dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_5l_96gop/bbb-svc.264.mpd"));
+  //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_5l_96gop/bbb-svc.264.mpd"));
   dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
 
   ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_spatial_2s/sintel-trailer-svc.264.mpd"));
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/sintel_svc_snr_2s/sintel-trailer-svc.264.mpd"));
-  //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
+  svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
+  //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_5l_96gop/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
 
-  ApplicationContainer dashContainer;
-  ApplicationContainer svcContainer;
+  ApplicationContainer appContainer;
 
   if(mode.compare ("svc") == 0)
-    svcContainer = svcRequesterHelper.Install(contentDst);
+    appContainer = svcRequesterHelper.Install(contentDst);
   else
-    dashContainer = dashRequesterHelper.Install(contentDst);
+    appContainer = dashRequesterHelper.Install(contentDst);
 
   ndn::AppHelper cProviderHelper ("ContentProvider");
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
@@ -151,12 +151,7 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.AddOrigins("/itec/sintel", contentSrc);
 
   contentProvider.Start (Seconds(0.0));
-
-
-  if(mode.compare ("svc") == 0)
-    svcContainer.Start (Seconds(1.0));
-  else
-    dashContainer.Start (Seconds(1.0));
+  appContainer.Start (Seconds(1.0));
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
