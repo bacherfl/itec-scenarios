@@ -70,11 +70,11 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
   struct stat fstats;
   if(!(stat (fname.c_str(), &fstats) == 0))
   {
-    NS_LOG_FUNCTION("ContentProvider::OnInterest: File does NOT exist: " << fname);
+    NS_LOG_UNCOND("ContentProvider::OnInterest: File does NOT exist: " << fname);
     return;
   }
 
-  unsigned int size = fstats.st_size;
+  int size = fstats.st_size;
 
   Ptr<ndn::Data> data;
 
@@ -100,7 +100,8 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
 
     if(size < 0)
     {
-      NS_LOG_UNCOND("INVALID FILE REQUEST. FILE IS SMALLER THAN REQEUSTED\n");
+      // this isn't bad, it means that the client requested more files than we had.
+      NS_LOG_INFO("INVALID FILE REQUEST. FILE IS SMALLER THAN REQUESTED\n");
       return;
     }
 
