@@ -14,6 +14,8 @@
 
 #define CONSIDERD_HISTORY_SIZE 10
 
+#define THREASHOLD 0.2
+
 namespace ns3
 {
   namespace svc
@@ -44,6 +46,7 @@ namespace ns3
       std::vector<utils::Segment*> highestReceivedHistory;
 
       std::vector<utils::Segment*> considerHistory(std::vector<utils::Segment*> segments);
+      std::vector<utils::Segment*> dropSegments(std::vector<utils::Segment *> segments, int max_level);
 
       dash::mpd::IPeriod* getFirstPeriod();
       unsigned int getFileSize (std::string filename);
