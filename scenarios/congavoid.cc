@@ -17,7 +17,7 @@ void parseParameters(int argc, char* argv[], std::string& mode)
   bool v0 = false, v1 = false, v2 = false;
   bool vN = false;
 
-  std::string top_path = "topologies/congavoid_6clients.top";
+  std::string top_path = "topologies/congavoid_100clients.top";
 
   CommandLine cmd;
   cmd.AddValue ("v0", "Prints all log messages >= LOG_DEBUG. (OPTIONAL)", v0);
@@ -139,20 +139,67 @@ int main(int argc, char* argv[])
   for(int i=0; i < streamers.size (); i++)
   {
 
-    if(i % 3 == 0)
+    switch(i % 10)
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
-      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
+      case 1:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
+        break;
+      }
+      case 2:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
+        break;
+      }
+      case 3:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
+        break;
+      }
+      case 4:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-svc/artifical4-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-svc/artifical4-svc.mpd"));
+        break;
+      }
+      case 5:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-svc/artifical5-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-svc/artifical5-svc.mpd"));
+        break;
+      }
+      case 6:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-svc/artifical6-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-svc/artifical6-svc.mpd"));
+        break;
+      }
+      case 7:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-svc/artifical7-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-svc/artifical7-svc.mpd"));
+        break;
+      }
+      case 8:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-svc/artifical8-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-svc/artifical8-svc.mpd"));
+        break;
+      }
+      case 9:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
+        break;
+      }
+    default:
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
     }
-    else if(i % 3 == 1)
-    {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
-      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
-    }
-    else
-    {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
-      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
     }
 
     if(mode.compare ("adaptation") == 0)
@@ -170,11 +217,11 @@ int main(int argc, char* argv[])
 
   contentProvider.Start (Seconds(0.0));
 
-  srand (0);
+  srand (1);
 
   for (ApplicationContainer::Iterator i = apps.Begin (); i != apps.End (); ++i)
   {
-    int startTime = rand() % 20 + 1; //1-20
+    int startTime = rand() % 30 + 1; //1-30
 
     fprintf(stderr,"starttime = %d\n", startTime);
     ( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));

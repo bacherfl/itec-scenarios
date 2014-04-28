@@ -103,3 +103,4 @@ extensions/utils/downloadmanager.cc
 scenarios/congavoid.cc
 topologies/congavoid_3clients.top
 topologies/congavoid_6clients.top
+topologies/congavoid_100clients.top
