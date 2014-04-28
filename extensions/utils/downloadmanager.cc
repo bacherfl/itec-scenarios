@@ -102,6 +102,9 @@ void DownloadManager::specialNACKreceived ()
       dwn.at(i)->reset();
     }
   }
+
+  //report that event to observers
+  notifyAll (Observer::NackReceived);
 }
 
 void DownloadManager::segmentReceived ()

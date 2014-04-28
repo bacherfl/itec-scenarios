@@ -227,7 +227,8 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
   NS_LOG_FUNCTION(this);
   int chunk_number = GetNextNeededChunkNumber();
 
-  if (chunk_number == -1 && this->curSegmentStatus.bytesToDownload >= 0)
+  //if (chunk_number == -1 && this->curSegmentStatus.bytesToDownload >= 0)
+  if (chunk_number == -1)
   {
     // NO chunks available, SAY we will be finished soon and return
     if(!soonFinishedAlreadyFired)

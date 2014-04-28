@@ -72,28 +72,43 @@ void DashPlayer::update (ObserverMessage msg)
 {
   //fprintf(stderr, "NOTIFYED\n");
 
-  std::vector<Segment*> received_segs = dwnManager->retriveFinishedSegments ();
-
-  unsigned int total_size = 0;
-  Segment* s;
-  for(int i = 0; i < received_segs.size (); i++)
+  switch(msg)
   {
-    s = received_segs.at (i);
-    total_size += s->getSize();
-    SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds(), s->getSize (), (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
+    case Observer::SegmentReceived:
+    {
+      std::vector<Segment*> received_segs = dwnManager->retriveFinishedSegments ();
+
+      unsigned int total_size = 0;
+      Segment* s;
+      for(int i = 0; i < received_segs.size (); i++)
+      {
+        s = received_segs.at (i);
+        total_size += s->getSize();
+        SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds(), s->getSize (), (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
+      }
+
+      fprintf(stderr, "DASH-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
+
+      alogic->updateStatistic (dlStartTime, Simulator::Now (), total_size);
+
+      if(!buf->addData (current_segments.front()->getDuration ()))
+      {
+        NS_LOG_INFO("DashPlayer(" << m_nodeName << "): BUFFER FULL");
+      }
+
+      current_segments.clear ();
+      streaming ();
+      break;
+    }
+    default:
+    {
+      //we are not interested in other events.
+      break;
+    }
+
   }
 
-  fprintf(stderr, "DASH-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
 
-  alogic->updateStatistic (dlStartTime, Simulator::Now (), total_size);
-
-  if(!buf->addData (current_segments.front()->getDuration ()))
-  {
-    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): BUFFER FULL");
-  }
-
-  current_segments.clear ();
-  streaming ();
 }
 
 void DashPlayer::consume ()
