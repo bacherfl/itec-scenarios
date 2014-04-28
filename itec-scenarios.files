@@ -100,3 +100,6 @@ extensions/utils/playerlevelhistory.h
 extensions/utils/playerlevelhistory.cc
 extensions/utils/downloadmanager.h
 extensions/utils/downloadmanager.cc
+scenarios/congavoid.cc
+topologies/congavoid_3clients.top
+topologies/congavoid_6clients.top
