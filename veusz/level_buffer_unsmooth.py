@@ -9,7 +9,7 @@ import glob
 curdir = os.getcwd();
 
 #DEFINE TEMPLATE TASK HERE!
-task = "template-task"
+task = "level_buffer_unsmooth"
 
 print "Curring working dir = " + curdir
 
