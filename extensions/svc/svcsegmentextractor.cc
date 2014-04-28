@@ -62,6 +62,9 @@ std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
     }
   }
 
+  if(segments.size () == 0) //means we are finished no more segments to fetch.
+    return segments;
+
   segments = considerHistory (segments);
 
   highestRequestedHistory.push_back (segments.back ());
@@ -74,10 +77,11 @@ std::vector<Segment*> SVCSegmentExtractor::considerHistory(std::vector<Segment*>
 {
   int history_size = highestReceivedHistory.size ();
 
+  //if history is small request just the lowest level
   if(history_size == 0)
   {
     //fprintf(stderr, "History to small for consideration\n");
-    return segments;
+    return dropSegments(segments, 0);
   }
 
   if(history_size > CONSIDERD_HISTORY_SIZE )
@@ -96,10 +100,36 @@ std::vector<Segment*> SVCSegmentExtractor::considerHistory(std::vector<Segment*>
   avg_received_level /= history_size ;
   avg_requested_level /= history_size ;
 
-  //fprintf(stderr, "history_size = %d\n", history_size);
-  //fprintf(stderr, "avg_requested_level = %f\n", avg_requested_level);
-  //fprintf(stderr, "avg_received_level = %f\n", avg_received_level);
+   double max_level = (avg_requested_level - (avg_requested_level - avg_received_level));
 
+   fprintf(stderr, "avg_requested_level = %f\n", avg_requested_level);
+   fprintf(stderr, "avg_received_level = %f\n", avg_received_level);
+   fprintf(stderr, "buf->fillPercentage () = %f\n", buf->fillPercentage ());
+   fprintf(stderr, "max_level = %f\n", max_level);
+
+  if(max_level + THREASHOLD >= avg_requested_level && buf->fillPercentage () > 0.5)
+    max_level++;
+  else if(max_level > 0 && buf->fillPercentage () < 0.25)
+    max_level--;
+
+  fprintf(stderr, "Dropping segments with level > %d\n", (int) max_level);
+
+  segments = dropSegments (segments, max_level);
+
+
+
+  return segments;
+}
+
+std::vector<Segment*> SVCSegmentExtractor::dropSegments(std::vector<Segment*> segments, int max_level)
+{
+  for(std::vector<Segment*>::iterator it = segments.begin (); it != segments.end (); )
+  {
+    if((*it)->getLevel() > max_level)
+      segments.erase (it);
+    else
+      it++;
+  }
   return segments;
 }
 

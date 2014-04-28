@@ -66,16 +66,27 @@ void SvcPlayer::streaming ()
 void SvcPlayer::update (ObserverMessage msg)
 {
 
-  if(msg == Observer::SegmentReceived)
+  switch(msg)
   {
-    //fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
+    case Observer::SegmentReceived:
+    {
+      //fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
 
-    addToBuffer(dwnManager->retriveFinishedSegments ());
-    current_segments.clear ();
-    streaming ();
+      addToBuffer(dwnManager->retriveFinishedSegments ());
+      current_segments.clear ();
+      streaming ();
+      break;
+    }
+    case Observer::NackReceived:
+    {
+      //todo
+      break;
+    }
+    default:
+    {
+      //we are not interested in other messages.
+    }
   }
-  else
-    fprintf(stderr, "SvcPlayer::update UNHANDELD MESSAGE");
 }
 
 void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
