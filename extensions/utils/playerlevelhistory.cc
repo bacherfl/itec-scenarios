@@ -85,7 +85,7 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
   file << "AVG Level = " << (avg_level/levelHistory.size ()) << endl;
   file << "AVG Buffer size (seconds) = " << (buf_fill/bufferHistory.size ()) << endl;
   file << "Unsmooth Seconds = " << unsmooth << endl;
-  file << "AVG Goodput (kbit/s)" << avg_bandwith / dlDurationHistory.size () << endl; //bits/s / 1000 = kbits / s.
+  file << "AVG Goodput (kbit/s) = " << avg_bandwith / dlDurationHistory.size () << endl; //bits/s / 1000 = kbits / s.
 
   file.close();
 
