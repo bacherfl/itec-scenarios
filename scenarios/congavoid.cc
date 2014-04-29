@@ -99,7 +99,10 @@ int main(int argc, char* argv[])
   while(adaptiveNode != NULL)
   {
     if(mode.compare ("adaptation") == 0)
+    {
       adaptiveNodes.Add (adaptiveNode);
+      fprintf(stderr, "adding node to adaptiveNode\n");
+    }
     else
       routers.Add (adaptiveNode); // we dont use adaptive nodes in normal scenario
     adaptiveNode = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
@@ -118,6 +121,8 @@ int main(int argc, char* argv[])
   //change strategy for adaptive NODE
   ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy",
                                   "EnableNACKs", "true", "LevelCount", "6");
+  /*ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCStaticStrategy",
+                                  "EnableNACKs", "true", "MaxLevelAllowed", "1"); */
   ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNodes);
 
