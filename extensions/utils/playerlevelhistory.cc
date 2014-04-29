@@ -103,7 +103,9 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
   file << "# StartTime = " << this->startTime << endl;
   file << "# EndTime = " << this->endTime << endl;
 
-  file.close();
+  file.flush ();
+
+  file.close ();
 
   return true;
 }
