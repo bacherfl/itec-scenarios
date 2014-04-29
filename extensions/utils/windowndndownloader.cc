@@ -510,7 +510,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   //this can occur if the first chunk is delayed. its often not a problem but may indicate one.
   if (this->curSegmentStatus.bytesToDownload < 0)
   {
-    fprintf(stderr, "WARNING: %s bytesToDownload=%d < 0...\n",  contentObject->GetName().toUri().c_str(), this->curSegmentStatus.bytesToDownload);
+    //fprintf(stderr, "WARNING: %s bytesToDownload=%d < 0...\n",  contentObject->GetName().toUri().c_str(), this->curSegmentStatus.bytesToDownload);
   }
 
   if(this->curSegmentStatus.bytesToDownload == 0)
