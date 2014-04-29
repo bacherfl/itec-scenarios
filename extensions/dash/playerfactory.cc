@@ -18,7 +18,7 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
   if(mpd == NULL)
   {
-    fprintf(stderr, "ERROR: PlayerFactory::createPlayer::mpd is NULL\n");
+    fprintf(stderr, "ERROR: PlayerFactory::createPlayer::mpd %s is NULL\n", mpd_path.c_str ());
     return NULL;
   }
   // the dataset_path is needed for simulation purposes only!
