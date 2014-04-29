@@ -5,6 +5,7 @@
 
 #include "simplendndownloader.h"
 #include "windowndndownloader.h"
+#include "../svc/svcwindowndndownloader.h"
 
 #include "observable.h"
 #include "observer.h"

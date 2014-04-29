@@ -271,6 +271,12 @@ IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, Ptr<N
       d = new WindowNDNDownloader();
       break;
     }
+    case SVCWindowNDN:
+  {
+    d = new SVCWindowNDNDownloader();
+    break;
+  }
+      break;
     default:
       d = new WindowNDNDownloader();
   }
