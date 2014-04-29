@@ -14,6 +14,8 @@ class PlayerLevelHistory
 public:
   PlayerLevelHistory();
 
+  void NotifyStart(double startTime);
+  void NotifyEnd(double endTime);
   void SetPlayerLevel(unsigned int segmentNumber, unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration);
   void logUnsmoothSecond(unsigned int segmentNumber, unsigned int duration);
   void logDownloadedVideo(std::string mpd_video_name);
@@ -26,6 +28,8 @@ protected:
   std::map<int, int64_t> dlDurationHistory;
   std::map<unsigned int, unsigned int> unsmooth_seconds;
   std::string mpd_video_name;
+  double startTime;
+  double endTime;
 };
 
 #endif // PLAYERLEVELHISTORY_H

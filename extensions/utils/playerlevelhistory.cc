@@ -8,6 +8,17 @@ PlayerLevelHistory::PlayerLevelHistory()
 }
 
 
+void PlayerLevelHistory::NotifyStart(double startTime)
+{
+  this->startTime = startTime;
+}
+
+
+void PlayerLevelHistory::NotifyEnd(double endTime)
+{
+  this->endTime = endTime;
+}
+
 void PlayerLevelHistory::SetPlayerLevel(unsigned int segmentNumber,
                                         unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration)
 {
@@ -44,6 +55,8 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
   ofstream file;
   FileName = "output/" + FileName;
   file.open(FileName.c_str());
+
+
 
   file << "SegmentNr, Level, Buffer, Unsmooth Second(s), Segment(s) Size (bytes), Download Time (ms), Goodput (kbit/s)" << endl;
 
@@ -87,6 +100,8 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
   file << "Unsmooth Seconds = " << unsmooth << endl;
   file << "AVG Goodput (kbit/s) = " << avg_bandwith / dlDurationHistory.size () << endl; //bits/s / 1000 = kbits / s.
   file << "Video Downloaded = " << mpd_video_name << endl;
+  file << "# StartTime = " << this->startTime << endl;
+  file << "# EndTime = " << this->endTime << endl;
 
   file.close();
 

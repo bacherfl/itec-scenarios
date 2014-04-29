@@ -295,10 +295,13 @@ int main(int argc, char* argv[])
   for (ApplicationContainer::Iterator i = apps.Begin (); i != apps.End (); ++i)
   {
     //int startTime = rand() % 30 + 1; //1-30
-    int startTime = exp.GetInteger () + 1;
+    //int startTime = exp.GetInteger () + 1;
+    double startTime = exp.GetValue() + 1;
 
-    fprintf(stderr,"starttime = %d\n", startTime);
-    ( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
+    //fprintf(stderr,"starttime = %d\n", startTime);
+    fprintf(stderr,"starttime = %2.0f\n", startTime);
+    //( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
+    ( *i)->SetStartTime(Time::FromDouble(startTime, Time::S));
   }
 
   // Calculate and install FIBs
