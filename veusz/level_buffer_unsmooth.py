@@ -22,7 +22,7 @@ for f in  files:
 	g.EnableToolbar()
 
 	g.AddImportPath(curdir)
-	g.ImportFileCSV('../output/ContentDst.txt', linked=True, headermode='1st')
+	g.ImportFileCSV(f, linked=True, headermode='1st')
 
 	#copy veuzs commnads here...
 	g.Add('page', name='page1', autoadd=False)
@@ -94,9 +94,8 @@ for f in  files:
 	#print pdf file 
 	g.Export(f[:-4] + "-" +  task + ".pdf")
 
-	# let the user see the final result
-	#print "Waiting for 3 seconds"
-	#time.sleep(3)	
+	#Waiting
+	time.sleep(0.5)	
 
 	g.Close();
 
