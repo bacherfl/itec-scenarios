@@ -28,7 +28,7 @@ void DownloadManager::update(ObserverMessage msg)
       specialNACKreceived();
       break;
     }
-    case Observer::SegmentReceived://dwnl is still bussy BUT finished and waits for reset
+    case Observer::SegmentReceived: // dwnl is still bussy BUT finished and waits for reset
     {
       segmentReceived();
       break;
@@ -60,7 +60,13 @@ void DownloadManager::addToFinished (Segment *seg)
   {
     //bunch of segments finsihed notify observers
     fprintf(stderr, "DownloadManager::Observer::SegmentReceived %s\n", seg->getUri ().c_str ());
-    notifyAll (Observer::SegmentReceived);
+
+    if (hadSpecialNACK)
+    {
+      notifyAll (Observer::NackReceived);
+    } else {
+      notifyAll (Observer::SegmentReceived);
+    }
   }
 
   return;
@@ -70,6 +76,8 @@ void DownloadManager::specialNACKreceived ()
 {
   //delete all requests of further layers
   enquedSegments.clear ();
+
+  hadSpecialNACK = true;
 
   //find the downloader who triggered the special NACK
 
@@ -93,18 +101,29 @@ void DownloadManager::specialNACKreceived ()
 
   int level = nackDwn->getSegment ()->getLevel ();
 
+  bool stillDownloading = false;
+
   //stop all downloaders that download quality > level
-  for(int i = 0; i < dwn.size (); i++)
+  for (int i = 0; i < dwn.size (); i++)
   {
-    if(!dwn.at(i)->downloadFinished() && dwn.at(i)->getSegment ()->getLevel () >= level)
+    // abort if downloader->getLevel() >= level
+    if (!dwn.at(i)->downloadFinished() && dwn.at(i)->getSegment ()->getLevel () >= level)
     {
       dwn.at(i)->abortDownload();
       dwn.at(i)->reset();
+    } else if (dwn.at(i)->isBussy() && dwn.at(i)->getSegment ()->getLevel () < level)
+    {
+      // still downloading smaller levels, let them finish
+      stillDownloading = true;
     }
   }
 
-  //report that event to observers
-  notifyAll (Observer::NackReceived);
+  if (stillDownloading == false)
+  {
+    // we are done, nothing is downloading and we had a nack
+    // report that event to observers
+    notifyAll (Observer::NackReceived);
+  }
 }
 
 void DownloadManager::segmentReceived ()
@@ -141,6 +160,9 @@ void DownloadManager::enque (std::vector<Segment *> segments)
   // ok enque them
   if(segments.size () < 1)
     return;
+
+  // reset hadSpecialNACK
+  hadSpecialNACK = false;
 
   this->enquedSegments = segments;
   this->finishedSegments.clear ();

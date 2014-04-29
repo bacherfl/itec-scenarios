@@ -42,7 +42,7 @@ namespace ns3
       std::vector<Segment*> retriveUnfinishedSegments();
 
   private:
-
+      bool hadSpecialNACK;
 
       void segmentReceived();
       void specialNACKreceived();

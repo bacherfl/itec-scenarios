@@ -550,6 +550,10 @@ void WindowNDNDownloader::abortDownload ()
       this->curSegmentStatus.chunk_status[i] = Aborted;
     }
   }
+
+  // make sure to set finished to false
+  this->finished = false;
+
   //StopApplication ();
 }
 

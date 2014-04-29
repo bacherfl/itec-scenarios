@@ -72,8 +72,7 @@ void SvcPlayer::update (ObserverMessage msg)
   {
     case Observer::SegmentReceived:
     {
-      //fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
-
+      fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
       addToBuffer(dwnManager->retriveFinishedSegments ());
       current_segments.clear ();
       streaming ();
@@ -82,7 +81,7 @@ void SvcPlayer::update (ObserverMessage msg)
     case Observer::NackReceived:
     {
       //todo
-      fprintf(stderr, "!!!! NACK RECEIVED !!!\n");
+      fprintf(stderr, "SvcPlayer::!!!! NACK RECEIVED !!!\n");
       addToBuffer(dwnManager->retriveFinishedSegments ());
       current_segments.clear ();
       streaming ();
