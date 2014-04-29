@@ -98,10 +98,10 @@ for key in groupedVideos:
 		avg_buffer += getAVGBuffer(f)
 		avg_goodput += getAVGGoodput(f)
 
-	avg_level /= len(files)
-	avg_unsmooth_seconds /= len(files) 
-	avg_buffer /= len(files)
-	avg_goodput /= len(files)
+	avg_level /= len(groupedVideos[key])
+	avg_unsmooth_seconds /= len(groupedVideos[key]) 
+	avg_buffer /= len(groupedVideos[key])
+	avg_goodput /= len(groupedVideos[key])
 
 	print "AVG Level: " + str(avg_level)
 	print "AVG Unsmooth: " + str(avg_unsmooth_seconds) + "s"
