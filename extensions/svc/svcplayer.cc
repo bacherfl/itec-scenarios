@@ -24,6 +24,7 @@ void SvcPlayer::play()
   NS_LOG_FUNCTION(m_nodeName << this);
   isPlaying = true;
   allSegmentsDownloaded = false;
+  this->logDownloadedVideo (mpd->GetBaseUrls ().at (0)->GetUrl());
   streaming ();
   Simulator::Schedule(Seconds(2.0), &SvcPlayer::consume, this);
 }

@@ -16,6 +16,7 @@ public:
 
   void SetPlayerLevel(unsigned int segmentNumber, unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration);
   void logUnsmoothSecond(unsigned int segmentNumber, unsigned int duration);
+  void logDownloadedVideo(std::string mpd_video_name);
   bool WriteToFile(std::string FileName);
 
 protected:
@@ -24,6 +25,7 @@ protected:
   std::map<int, unsigned int> segSizeHistory;
   std::map<int, int64_t> dlDurationHistory;
   std::map<unsigned int, unsigned int> unsmooth_seconds;
+  std::string mpd_video_name;
 };
 
 #endif // PLAYERLEVELHISTORY_H

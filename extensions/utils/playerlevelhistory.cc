@@ -86,8 +86,14 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
   file << "AVG Buffer size (seconds) = " << (buf_fill/bufferHistory.size ()) << endl;
   file << "Unsmooth Seconds = " << unsmooth << endl;
   file << "AVG Goodput (kbit/s) = " << avg_bandwith / dlDurationHistory.size () << endl; //bits/s / 1000 = kbits / s.
+  file << "Video Downloaded = " << mpd_video_name << endl;
 
   file.close();
 
   return true;
+}
+
+void PlayerLevelHistory::logDownloadedVideo (string mpd_video_name)
+{
+   this->mpd_video_name = mpd_video_name;
 }
