@@ -22,6 +22,8 @@ DashPlayer::DashPlayer(dash::mpd::IMPD* mpd, IAdaptationLogic *alogic, ns3::util
 void DashPlayer::play ()
 {
   NS_LOG_FUNCTION(m_nodeName << this);
+
+  NotifyStart(Simulator::Now().GetSeconds());
   isPlaying = true;
   allSegmentsDownloaded = false;
   this->logDownloadedVideo (mpd->GetBaseUrls ().at (0)->GetUrl());
@@ -65,7 +67,10 @@ void DashPlayer::streaming ()
 void DashPlayer::stop ()
 {
   NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stop");
+
+  NotifyEnd(Simulator::Now().GetSeconds());
   this->WriteToFile(m_nodeName + ".txt");
+
   isPlaying = false;
 }
 

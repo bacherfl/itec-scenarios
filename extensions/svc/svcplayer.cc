@@ -24,6 +24,7 @@ void SvcPlayer::play()
   NS_LOG_FUNCTION(m_nodeName << this);
   isPlaying = true;
   allSegmentsDownloaded = false;
+  NotifyStart(Simulator::Now().GetSeconds());
   this->logDownloadedVideo (mpd->GetBaseUrls ().at (0)->GetUrl());
   streaming ();
   Simulator::Schedule(Seconds(2.0), &SvcPlayer::consume, this);
@@ -129,7 +130,9 @@ void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
 void SvcPlayer::stop ()
 {
   NS_LOG_FUNCTION(this << m_nodeName);
+  NotifyEnd(Simulator::Now().GetSeconds());
   this->WriteToFile(m_nodeName + ".txt");
+
   isPlaying = false;
 }
 
