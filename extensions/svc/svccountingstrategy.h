@@ -260,13 +260,14 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
   {
     level = levelTag.Get ();
   }
+  /*
   if (level == 16)
     level = 1;
   else if (level == 32)
     level = 2;
   else
     level = 0;
-
+    */
   // increase level counter for that face
   this->map[face->GetId ()]->IncreasePackets (level);
 
