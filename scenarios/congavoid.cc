@@ -1,10 +1,11 @@
-#include "ns3-dev/ns3/core-module.h"
-#include "ns3-dev/ns3/network-module.h"
-#include "ns3-dev/ns3/ndnSIM-module.h"
-#include "ns3-dev/ns3/point-to-point-module.h"
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/ndnSIM-module.h"
+#include "ns3/point-to-point-module.h"
 
-#include "ns3-dev/ns3/ndn-app.h"
+#include "ns3/ndn-app.h"
 #include "ns3/nstime.h"
+#include "ns3/random-variable.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -136,7 +137,77 @@ int main(int argc, char* argv[])
 
   ApplicationContainer apps;
 
+  //
+  //V1: 1 client
+  //V2: 1 client
+  //V6: 1 client
+  //V7: 15 clients
+  //V8: 25 clients
+  //V9: 27 clients
+  //V10: 27 clients
+
+  int distribution[] = {1,2,3,4,5,6,21,46,73,100};
+
   for(int i=0; i < streamers.size (); i++)
+  {
+    if(i < distribution[0])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
+    }
+    else if(i < distribution[1])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
+    }
+    else if(i < distribution[2])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
+    }
+    else if(i < distribution[3])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
+    }
+    else if(i < distribution[4])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-svc/artifical4-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-svc/artifical4-svc.mpd"));
+    }
+    else if(i < distribution[5])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-svc/artifical5-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-svc/artifical5-svc.mpd"));
+    }
+    else if(i < distribution[6])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-svc/artifical6-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-svc/artifical6-svc.mpd"));
+    }
+    else if(i < distribution[7])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-svc/artifical7-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-svc/artifical7-svc.mpd"));
+    }
+    else if(i < distribution[8])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-svc/artifical8-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-svc/artifical8-svc.mpd"));
+    }
+    else if(i < distribution[9])
+    {
+      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
+      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
+    }
+
+    if(mode.compare ("adaptation") == 0)
+      apps.Add (svcRequesterHelper.Install(streamers.Get (i)));
+    else
+      apps.Add (dashRequesterHelper.Install(streamers.Get (i)));
+  }
+
+  /*for(int i=0; i < streamers.size (); i++)
   {
 
     switch(i % 10)
@@ -195,18 +266,18 @@ int main(int argc, char* argv[])
         svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
         break;
       }
-    default:
-    {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
-      svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
-    }
+      default:
+      {
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
+        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
+      }
     }
 
     if(mode.compare ("adaptation") == 0)
       apps.Add (svcRequesterHelper.Install(streamers.Get (i)));
     else
       apps.Add (dashRequesterHelper.Install(streamers.Get (i)));
-  }
+  }*/
 
   //provider
   ndn::AppHelper cProviderHelper ("ContentProvider");
@@ -217,11 +288,14 @@ int main(int argc, char* argv[])
 
   contentProvider.Start (Seconds(0.0));
 
-  srand (1);
+  //srand (1);
+  //mean, upper-limit
+  ns3::ExponentialVariable exp(12,30);
 
   for (ApplicationContainer::Iterator i = apps.Begin (); i != apps.End (); ++i)
   {
-    int startTime = rand() % 30 + 1; //1-30
+    //int startTime = rand() % 30 + 1; //1-30
+    int startTime = exp.GetInteger () + 1;
 
     fprintf(stderr,"starttime = %d\n", startTime);
     ( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
@@ -232,7 +306,7 @@ int main(int argc, char* argv[])
 
   NS_LOG_UNCOND("Simulation will be started!");
 
-  Simulator::Stop (Seconds (1200.0)); //runs for 20 min.
+  Simulator::Stop (Seconds (1800.0)); //runs for 30 min.
   Simulator::Run ();
   Simulator::Destroy ();
 
