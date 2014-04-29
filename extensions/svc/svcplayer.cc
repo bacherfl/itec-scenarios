@@ -67,7 +67,7 @@ void SvcPlayer::streaming ()
 
 void SvcPlayer::update (ObserverMessage msg)
 {
-
+  // process Messages from Download Manager
   switch(msg)
   {
     case Observer::SegmentReceived:
@@ -82,6 +82,10 @@ void SvcPlayer::update (ObserverMessage msg)
     case Observer::NackReceived:
     {
       //todo
+      fprintf(stderr, "!!!! NACK RECEIVED !!!\n");
+      addToBuffer(dwnManager->retriveFinishedSegments ());
+      current_segments.clear ();
+      streaming ();
       break;
     }
     default:
