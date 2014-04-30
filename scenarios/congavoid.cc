@@ -57,6 +57,9 @@ void parseParameters(int argc, char* argv[], std::string& mode)
 
 int main(int argc, char* argv[])
 {
+  int client_map[100] = { 66,97,7,96,52,74,28,11,91,27,60,19,84,15,23,82,72,56,57,70,33,87,25,76,2,50,90,64,65,71,49,59,85,37,58,0,42,17,1,51,94,63,69,3,61,16,75,79,68,98,67,12,38,41,10,93,95,55,45,73,35,20,32,30,29,86,89,34,77,8,43,26,78,46,81,5,48,13,92,44,9,24,36,21,80,39,14,47,54,40,99,62,88,53,22,31,6,83,4,18 };
+
+
   NS_LOG_COMPONENT_DEFINE ("LargeScenario");
 
   std::string mode("normal");
@@ -122,7 +125,7 @@ int main(int argc, char* argv[])
   ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCCountingStrategy",
                                   "EnableNACKs", "true", "LevelCount", "6");
   /*ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCStaticStrategy",
-                                  "EnableNACKs", "true", "MaxLevelAllowed", "1"); */
+                                  "EnableNACKs", "true", "MaxLevelAllowed", "6"); */
   ndnHelper.EnableLimits (false);
   ndnHelper.Install (adaptiveNodes);
 
@@ -142,16 +145,17 @@ int main(int argc, char* argv[])
 
   ApplicationContainer apps;
 
-  //
-  //V1: 1 client
-  //V2: 1 client
-  //V6: 1 client
-  //V7: 15 clients
-  //V8: 25 clients
-  //V9: 27 clients
-  //V10: 27 clients
+  // Spreading 10 Videos to 100 clients:
+  // V1: 1 client ( 1 )
+  // V2: 1 client ( 2 )
+  // ...
+  // V6: 1 client ( 6 )
+  // V7: 15 clients ( 21 )
+  // V8: 25 clients ( 46 )
+  // V9: 27 clients ( 73 )
+  // V10: 27 clients ( 100 )
 
-  int distribution[] = {1,2,3,4,5,6,21,46,73,100};
+  int distribution[] = {1,2,3,5,7,11,19,35,67,100};
 
   for(int i=0; i < streamers.size (); i++)
   {
@@ -207,9 +211,9 @@ int main(int argc, char* argv[])
     }
 
     if(mode.compare ("adaptation") == 0)
-      apps.Add (svcRequesterHelper.Install(streamers.Get (i)));
+      apps.Add (svcRequesterHelper.Install(streamers.Get (client_map[i])));
     else
-      apps.Add (dashRequesterHelper.Install(streamers.Get (i)));
+      apps.Add (dashRequesterHelper.Install(streamers.Get (client_map[i])));
   }
 
   /*for(int i=0; i < streamers.size (); i++)
@@ -304,7 +308,7 @@ int main(int argc, char* argv[])
     double startTime = exp.GetValue() + 1;
 
     //fprintf(stderr,"starttime = %d\n", startTime);
-    fprintf(stderr,"starttime = %2.0f\n", startTime);
+    //fprintf(stderr,"starttime = %f\n", startTime);
     //( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
     ( *i)->SetStartTime(Time::FromDouble(startTime, Time::S));
   }
