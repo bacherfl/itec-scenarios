@@ -19,6 +19,13 @@ void PlayerLevelHistory::NotifyEnd(double endTime)
   this->endTime = endTime;
 }
 
+
+void PlayerLevelHistory::SetRequestedPlayerLevel(unsigned int segmentNumber, unsigned int requestedLevel)
+{
+  if (requestedLevelHistory.find (segmentNumber) == requestedLevelHistory.end ()) // store requested level
+    this->requestedLevelHistory[segmentNumber] = requestedLevel;
+}
+
 void PlayerLevelHistory::SetPlayerLevel(unsigned int segmentNumber,
                                         unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration)
 {
@@ -58,7 +65,7 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
 
 
 
-  file << "SegmentNr, Level, Buffer, Unsmooth Second(s), Segment(s) Size (bytes), Download Time (ms), Goodput (kbit/s)" << endl;
+  file << "SegmentNr, Level, Buffer, Unsmooth Second(s), Requested Level, Segment(s) Size (bytes), Download Time (ms), Goodput (kbit/s)" << endl;
 
   double avg_level = 0.0;
   double buf_fill = 0.0;
@@ -83,6 +90,8 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
     }
     else
       file << (unsigned int) 0 << ", ";
+
+    file << requestedLevelHistory.at(i) << ", ";
 
     file << segSizeHistory.at (i) << ", ";
     file << dlDurationHistory.at (i) << ", ";

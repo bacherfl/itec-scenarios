@@ -16,6 +16,7 @@ public:
 
   void NotifyStart(double startTime);
   void NotifyEnd(double endTime);
+  void SetRequestedPlayerLevel(unsigned int segmentNumber, unsigned int requestedLevel);
   void SetPlayerLevel(unsigned int segmentNumber, unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration);
   void logUnsmoothSecond(unsigned int segmentNumber, unsigned int duration);
   void logDownloadedVideo(std::string mpd_video_name);
@@ -23,6 +24,7 @@ public:
 
 protected:
   std::map<int, unsigned int> levelHistory;
+  std::map<int, unsigned int> requestedLevelHistory;
   std::map<int, unsigned int> bufferHistory;
   std::map<int, unsigned int> segSizeHistory;
   std::map<int, int64_t> dlDurationHistory;

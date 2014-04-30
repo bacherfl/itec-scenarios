@@ -54,11 +54,19 @@ void SvcPlayer::streaming ()
       return;
     }
 
+    int requestedLevel = 0;
     fprintf(stderr, "Requesting SegmentBunch:\n");
     for(int i = 0; i < current_segments.size (); i++)
     {
       fprintf(stderr, "SVCPlayer::requesting Segment: %s\n", current_segments.at(i)->getUri ().c_str ());
+
+      if (current_segments.at(i)->getLevel() > requestedLevel)
+      {
+        requestedLevel = current_segments.at(i)->getLevel();
+      }
     }
+
+    SetRequestedPlayerLevel(current_segments.at(0)->getSegmentNumber(), requestedLevel);
 
     dlStartTime = Simulator::Now ();
     dwnManager->enque(current_segments);
