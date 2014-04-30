@@ -2,6 +2,9 @@
 
 using namespace ns3::utils;
 
+NS_LOG_COMPONENT_DEFINE ("DownloadManager");
+
+
 DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
 {
   //make downloaders ready
@@ -41,7 +44,7 @@ void DownloadManager::update(ObserverMessage msg)
     }
     default:
     {
-      fprintf(stderr, "Received a invalid msg\n");
+      NS_LOG_ERROR("DownloadManager::Update() Received invalid message: " << msg);
     }
   }
 }
@@ -93,9 +96,11 @@ void DownloadManager::specialNACKreceived ()
     }
   }
 
-  if(nackDwn == NULL)
+
+
+  if (nackDwn == NULL)
   {
-    fprintf(stderr, "ERROR COULD NOT FIND NACK DOWNLOADER\n");
+    NS_LOG_ERROR("DownloadManager::specialNACKreceived(): ERROR: Could not find NACK Downloader!");
     return;
   }
 
@@ -281,7 +286,7 @@ IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, Ptr<N
 {
   IDownloader* d = NULL;
 
-  switch(downloader)
+  switch (downloader)
   {
     case SimpleNDN:
     {
@@ -294,12 +299,12 @@ IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, Ptr<N
       break;
     }
     case SVCWindowNDN:
-  {
-    d = new SVCWindowNDNDownloader();
-    break;
-  }
+    {
+      d = new SVCWindowNDNDownloader();
       break;
+    }
     default:
+      NS_LOG_WARN("DownloadManager::resolveDownloader() Could not resolve Downloader, using default Downloader!");
       d = new WindowNDNDownloader();
   }
 
