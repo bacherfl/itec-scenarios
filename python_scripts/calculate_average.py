@@ -64,6 +64,7 @@ avg_buffer_per_client = 0.0
 avg_goodput_per_client = 0.0
 
 for f in  files:
+	print f
 	avg_level_per_client += getAVGLevel(f)
 	avg_unsmooth_seconds_per_client += getAVGUnsmoothSeconds(f)
 	avg_buffer_per_client += getAVGBuffer(f)
