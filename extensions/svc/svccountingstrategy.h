@@ -246,6 +246,18 @@ template<class Parent>
 bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
     ( Ptr< Face > face, Ptr< const Interest > interest )
 {
+  // check chunk number
+  std::string fname = interest->GetName().toUri();  // get the uri from interest
+  std::string chunk_nr = fname.substr(fname.find_last_of ("/chunk_")+1); // extract the chunk number remove .../chunk_X
+  fname = fname.substr (0, fname.find_last_of ("/"));
+
+
+  int chunk_number;
+  std::stringstream(chunk_nr) >> chunk_number;
+
+
+
+
   // get the actual packet so we can access tags
   Ptr<Packet> packet = Wire::FromInterest (interest);
 
@@ -270,6 +282,10 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
     */
   // increase level counter for that face
   this->map[face->GetId ()]->IncreasePackets (level);
+
+
+  if (chunk_number > 10)
+    return true; // always allow chunks above 10
 
   // check if RandomNumber(0,1) < DropProbability
   // if yes --> drop (=  NOT CanSendOutInterest)
