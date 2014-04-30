@@ -15,14 +15,16 @@ print "Curring working dir = " + curdir
 
 files = glob.glob(curdir + "/../output/*.txt" );
 
+g = veusz.Embedded("Plotting")
+#g.EnableToolbar()
+
+g.AddImportPath(curdir)
+
 for f in  files:
 	print "Processing File: " + f
 
-	g = veusz.Embedded(f)
-	g.EnableToolbar()
-
-	g.AddImportPath(curdir)
 	g.ImportFileCSV(f, linked=True, headermode='1st')
+	
 
 	#copy veuzs commnads here...
 	g.Add('page', name='page1', autoadd=False)
@@ -81,6 +83,15 @@ for f in  files:
 	g.Set('MarkerLine/color', u'green')
 	g.Set('MarkerLine/width', u'1pt')
 	g.To('..')
+	g.Add('xy', name='xy4', autoadd=False)
+	g.To('xy4')
+	g.Set('xData', u'SegmentNr')
+	g.Set('yData', u'Requested Level')
+	g.Set('markerSize', u'2pt')
+	g.Set('hide', False)
+	g.Set('key', u'Requested Level')
+	g.Set('PlotLine/color', u'blue')
+	g.To('..')
 	g.Add('key', name='key1', autoadd=False)
 	g.To('key1')
 	g.Set('horzPosn', 'manual')
@@ -93,10 +104,14 @@ for f in  files:
 
 	#print pdf file 
 	g.Export(f[:-4] + "-" +  task + ".pdf")
+	
+	g.Remove('page1')
 
 	#Waiting
-	time.sleep(0.5)	
+	#time.sleep(0.5)	
 
-	g.Close();
+	#.Close();
 
 print "Done!"
+
+g.Close()
