@@ -60,13 +60,17 @@ print "Statistic over all Clients:"
 
 avg_level_per_client = 0.0
 avg_unsmooth_seconds_per_client = 0.0
+max_unsmooth_seconds = 0.0
 avg_buffer_per_client = 0.0
 avg_goodput_per_client = 0.0
 
 for f in  files:
 	print f
 	avg_level_per_client += getAVGLevel(f)
-	avg_unsmooth_seconds_per_client += getAVGUnsmoothSeconds(f)
+	unsmooth_sec = getAVGUnsmoothSeconds(f)
+	avg_unsmooth_seconds_per_client += unsmooth_sec
+	if unsmooth_sec > max_unsmooth_seconds:
+		max_unsmooth_seconds = unsmooth_sec
 	avg_buffer_per_client += getAVGBuffer(f)
 	avg_goodput_per_client += getAVGGoodput(f)
 
@@ -77,6 +81,7 @@ avg_goodput_per_client /= len(files)
 
 print "AVG Level per Client: " + str(avg_level_per_client)
 print "AVG Unsmooth per Client: " + str(avg_unsmooth_seconds_per_client) + "s"
+print "MAX Unsmooth over all: " + str(max_unsmooth_seconds) + "s"
 print "AVG Buffer per Client: " + str(avg_buffer_per_client) + "s"
 print "AVG Goodput per Client: " + str(avg_goodput_per_client) + "kbit/s"
 print
@@ -92,10 +97,14 @@ for key in groupedVideos:
 	avg_unsmooth_seconds= 0.0
 	avg_buffer = 0.0
 	avg_goodput = 0.0
+	max_unsmooth_seconds = 0.0
 
 	for f in groupedVideos[key]:
 		avg_level += getAVGLevel(f)
-		avg_unsmooth_seconds += getAVGUnsmoothSeconds(f)
+		unsmooth_sec = getAVGUnsmoothSeconds(f)
+		avg_unsmooth_seconds += unsmooth_sec
+		if unsmooth_sec > max_unsmooth_seconds:
+			max_unsmooth_seconds = unsmooth_sec
 		avg_buffer += getAVGBuffer(f)
 		avg_goodput += getAVGGoodput(f)
 
@@ -106,6 +115,7 @@ for key in groupedVideos:
 
 	print "AVG Level: " + str(avg_level)
 	print "AVG Unsmooth: " + str(avg_unsmooth_seconds) + "s"
+	print "MAX Unsmooth: " + str(max_unsmooth_seconds) + "s"
 	print "AVG Buffer: " + str(avg_buffer) + "s"
 	print "AVG Goodput: " + str(avg_goodput) + "kbit/s"
 	print
