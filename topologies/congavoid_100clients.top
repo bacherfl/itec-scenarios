@@ -226,8 +226,8 @@ ContentDst99	Router2	5Mbps	1	5ms	50
 
 AdaptiveNode0 Router3            10Mbps       1        5ms    50
 
-Router3 ContentSrc0              6Mbps       1        5ms    50
+Router3 ContentSrc0              20Mbps       1        5ms    50
 
-Router0 AdaptiveNode0            10Mbps       1        5ms    50
-Router1 AdaptiveNode0            10Mbps       1        5ms    50
-Router2 AdaptiveNode0            10Mbps       1        5ms    50
+Router0 AdaptiveNode0            20Mbps       1        5ms    50
+Router1 AdaptiveNode0            20Mbps       1        5ms    50
+Router2 AdaptiveNode0            20Mbps       1        5ms    50
