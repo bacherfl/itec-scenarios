@@ -26,7 +26,7 @@ void parseParameters(int argc, char* argv[], std::string& mode)
   cmd.AddValue ("v2", "Prints all log messages. (OPTIONAL)", v2);
   cmd.AddValue ("vN", "Disable all internal logging parameters, use NS_LOG instead", vN);
   cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
-  cmd.AddValue ("mode", "Sets the simulation mode. Either \"mode=normal\" or \"mode=adaptation\". (OPTIONAL) Default: mode=normal", mode);
+  cmd.AddValue ("mode", "Sets the simulation mode. Either \"mode=dash-svc\" or \"mode=dash-avc\ or \"mode=adaptation\". (OPTIONAL) Default: mode=dash-svc", mode);
 
   cmd.Parse (argc, argv);
 
@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 
   NS_LOG_COMPONENT_DEFINE ("LargeScenario");
 
-  std::string mode("normal");
+  std::string mode("dash-svc");
   parseParameters(argc, argv, mode);
 
   NodeContainer streamers;
@@ -161,52 +161,82 @@ int main(int argc, char* argv[])
   {
     if(i < distribution[0])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-avc/artifical0-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical0-svc/artifical0-svc.mpd"));
     }
     else if(i < distribution[1])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-avc/artifical1-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1-svc/artifical1-svc.mpd"));
     }
     else if(i < distribution[2])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-avc/artifical2-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical2-svc/artifical2-svc.mpd"));
     }
     else if(i < distribution[3])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-avc/artifical3-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical3-svc/artifical3-svc.mpd"));
     }
     else if(i < distribution[4])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-svc/artifical4-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-avc/artifical4-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-svc/artifical4-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical4-svc/artifical4-svc.mpd"));
     }
     else if(i < distribution[5])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-svc/artifical5-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-avc/artifical5-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-svc/artifical5-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical5-svc/artifical5-svc.mpd"));
     }
     else if(i < distribution[6])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-svc/artifical6-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-avc/artifical6-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-svc/artifical6-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical6-svc/artifical6-svc.mpd"));
     }
     else if(i < distribution[7])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-svc/artifical7-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-avc/artifical7-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-svc/artifical7-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical7-svc/artifical7-svc.mpd"));
     }
     else if(i < distribution[8])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-svc/artifical8-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-avc/artifical8-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-svc/artifical8-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical8-svc/artifical8-svc.mpd"));
     }
     else if(i < distribution[9])
     {
-      dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
+      if(mode.compare ("dash-avc") == 0)
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-avc/artifical9-avc.mpd"));
+      else
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
       svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical9-svc/artifical9-svc.mpd"));
     }
 
