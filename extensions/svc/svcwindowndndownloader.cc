@@ -129,3 +129,4 @@ DownloaderType SVCWindowNDNDownloader::getDownloaderType ()
 {
   return SVCWindowNDN;
 }
+
