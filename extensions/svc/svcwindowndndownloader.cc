@@ -30,15 +30,22 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
     {
       NS_LOG_UNCOND("Packet %s was dropped on purpose\n" << interest->GetName());
 
+      if (this->curSegmentStatus.bytesToDownload > 0)
+      {
+          fprintf(stderr, "Dropping segment with level %d, chunks=%d, bytesToDownload=%d\n", this->curSegment->getLevel(), this->curSegmentStatus.num_chunks, this->curSegmentStatus.bytesToDownload);
+      }
+
       abortDownload();
       lastDownloadSuccessful = false;
       notifyAll (Observer::NackReceived);
       return; // stop downloading, do not fire OnNack of super class, we are done here!
     }
   }
+  // instead, we are forwarding that nack to the super class
+  // the super class will then most likely reduce the congestion window to avoid more congestion
 
   // continue with super::OnNack*/
-  WindowNDNDownloader::OnNack(interest);
+  // WindowNDNDownloader::OnNack(interest);
 }
 
 
