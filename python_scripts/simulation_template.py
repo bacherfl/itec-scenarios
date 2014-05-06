@@ -7,14 +7,18 @@ import glob
 import collections
 import shutil
 import re
+import calculate_average as calculate_average
 from subprocess import call
 
 ###NOTE Start this script FROM itec-scenarios MAIN-FOLDER!!!
 
 SIMULATION_DIR=os.getcwd()
 
-SIMULATION_RUNS=1
-SIMULATION_OUTPUT=SIMULATION_DIR + "/output/"
+SIMULATION_RUNS = 1
+SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
+SCENARIO = "congavoid"
+MODE = "dash-svc"
+TOPOLOGY="congavoid_100clients.top"
 
 def copyResults(src,dst):
 	files = glob.glob(src + "/*.txt" );
@@ -38,12 +42,19 @@ print "\nCurring working dir = " + SIMULATION_DIR + "\n"
 call([SIMULATION_DIR + "/waf"])
 
 for i in range(0, SIMULATION_RUNS):
-	call([SIMULATION_DIR+"/build/congavoid", 
-				"--top="+SIMULATION_DIR+"/topologies/congavoid_100clients.top",
-				"--mode=dash-avc",
-				"--RngRun=" + str(i)])
+	print "Simulation run " + str(i) + " in progress.. lauchning scenario: " + SCENARIO
+	#call([SIMULATION_DIR+"/build/" + SCENARIO, 
+	#			"--top=" + SIMULATION_DIR+"/topologies/" + TOPOLOGY,
+	#			"--mode=" + MODE,
+	#			"--RngRun=" + str(i)])
 
 	# move results
-	copyResults(SIMULATION_OUTPUT, SIMULATION_OUTPUT+"output_run"+str(i))
+	
+	dst = SIMULATION_OUTPUT+"output_run"+str(i)
+	#copyResults(SIMULATION_OUTPUT, dst)
+	#print "Results copied"
+
+	#compute statistics
+	calculate_average.computeStats(dst)
 
 print "Finished."
