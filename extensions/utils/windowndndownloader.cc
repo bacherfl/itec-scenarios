@@ -9,7 +9,6 @@ WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
 {
 
   //init status
-
   reset();
 
   // init statistics
@@ -134,8 +133,6 @@ bool WindowNDNDownloader::download (std::string URI)
   packets_nack = 0;
   lastDownloadSuccessful = true;
   soonFinishedAlreadyFired = false;
-
-
 
   // clear the last rtt information
   m_rtt->Reset();

@@ -28,7 +28,7 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
     bool tagExists = packet->PeekPacketTag(levelTag);
     if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
     {
-      NS_LOG_UNCOND("Packet %s was dropped on purpose\n" << interest->GetName());
+      NS_LOG_INFO("Packet was dropped on purpose:" << interest->GetName());
 
       abortDownload();
       lastDownloadSuccessful = false;

@@ -65,6 +65,8 @@ int main(int argc, char* argv[])
   std::string mode("dash-svc");
   parseParameters(argc, argv, mode);
 
+  fprintf(stderr, "Selected Mode = %s\n", mode.c_str ());
+
   NodeContainer streamers;
   int nodeIndex = 0;
   std::string nodeNamePrefix("ContentDst");

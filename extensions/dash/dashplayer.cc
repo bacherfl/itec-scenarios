@@ -54,10 +54,10 @@ void DashPlayer::streaming ()
     }
 
     int requestedLevel = 0;
-    fprintf(stderr, "Requesting SegmentBunch:\n");
+    //fprintf(stderr, "Requesting SegmentBunch:\n");
     for(int i = 0; i < current_segments.size (); i++)
     {
-      fprintf(stderr, "DashPlayer::requesting Segment: %s\n", current_segments.at(i)->getUri ().c_str ());
+      //fprintf(stderr, "DashPlayer::requesting Segment: %s\n", current_segments.at(i)->getUri ().c_str ());
 
       if (current_segments.at(i)->getLevel() > requestedLevel)
       {
@@ -101,7 +101,7 @@ void DashPlayer::update (ObserverMessage msg)
         SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds(), s->getSize (), (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
       }
 
-      fprintf(stderr, "DASH-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
+      //fprintf(stderr, "DASH-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
 
       alogic->updateStatistic (dlStartTime, Simulator::Now (), total_size);
 
@@ -139,7 +139,7 @@ void DashPlayer::consume ()
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
   {
     logUnsmoothSecond(current_segments.at (0)->getSegmentNumber(),CONSUME_INTERVALL);
-    NS_LOG_UNCOND("DashPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   }
 
   Simulator::Schedule(Seconds (CONSUME_INTERVALL), &DashPlayer::consume, this);
