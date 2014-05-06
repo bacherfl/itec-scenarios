@@ -14,7 +14,7 @@ from subprocess import call
 
 SIMULATION_DIR=os.getcwd()
 
-SIMULATION_RUNS = 1
+SIMULATION_RUNS = 10
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 SCENARIO = "congavoid"
 MODE = "dash-svc"
@@ -43,16 +43,16 @@ call([SIMULATION_DIR + "/waf"])
 
 for i in range(0, SIMULATION_RUNS):
 	print "Simulation run " + str(i) + " in progress.. lauchning scenario: " + SCENARIO
-	#call([SIMULATION_DIR+"/build/" + SCENARIO, 
-	#			"--top=" + SIMULATION_DIR+"/topologies/" + TOPOLOGY,
-	#			"--mode=" + MODE,
-	#			"--RngRun=" + str(i)])
+	call([SIMULATION_DIR+"/build/" + SCENARIO, 
+				"--top=" + SIMULATION_DIR+"/topologies/" + TOPOLOGY,
+				"--mode=" + MODE,
+				"--RngRun=" + str(i)])
 
 	# move results
 	
 	dst = SIMULATION_OUTPUT+"output_run"+str(i)
-	#copyResults(SIMULATION_OUTPUT, dst)
-	#print "Results copied"
+	copyResults(SIMULATION_OUTPUT, dst)
+	print "Results copied"
 
 	#compute statistics
 	calculate_average.computeStats(dst)
