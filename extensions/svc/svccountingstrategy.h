@@ -173,9 +173,6 @@ void SVCCountingStrategy<Parent>::resetLevelCount() {
     uint64_t bitrate = getPhysicalBitrate(face);
     int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
 
-    // just in case...
-    max_packets = max_packets * 0.85;
-
     double metric = 0.0;
 
     // get last packets

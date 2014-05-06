@@ -55,10 +55,10 @@ void SvcPlayer::streaming ()
     }
 
     int requestedLevel = 0;
-    fprintf(stderr, "Requesting SegmentBunch:\n");
+    //fprintf(stderr, "Requesting SegmentBunch:\n");
     for(int i = 0; i < current_segments.size (); i++)
     {
-      fprintf(stderr, "SVCPlayer::requesting Segment: %s\n", current_segments.at(i)->getUri ().c_str ());
+      //fprintf(stderr, "SVCPlayer::requesting Segment: %s\n", current_segments.at(i)->getUri ().c_str ());
 
       if (current_segments.at(i)->getLevel() > requestedLevel)
       {
@@ -80,7 +80,7 @@ void SvcPlayer::update (ObserverMessage msg)
   {
     case Observer::SegmentReceived:
     {
-      fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
+      //fprintf(stderr, "SvcPlayer::update SegmentReceived\n");
       addToBuffer(dwnManager->retriveFinishedSegments ());
       current_segments.clear ();
       streaming ();
@@ -88,8 +88,7 @@ void SvcPlayer::update (ObserverMessage msg)
     }
     case Observer::NackReceived:
     {
-      //todo
-      fprintf(stderr, "SvcPlayer::!!!! NACK RECEIVED !!!\n");
+      //fprintf(stderr, "SvcPlayer::!!!! NACK RECEIVED !!!\n");
       addToBuffer(dwnManager->retriveFinishedSegments ());
       current_segments.clear ();
       streaming ();
@@ -104,10 +103,10 @@ void SvcPlayer::update (ObserverMessage msg)
 
 void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
 {
-  fprintf(stderr, "received_segs.size () = %d\n",(int) received_segs.size ());
+  //fprintf(stderr, "received_segs.size () = %d\n",(int) received_segs.size ());
   if(received_segs.size () == 0)
   {
-    fprintf(stderr, "Cant fetch unfinished data, since even the segment with level 0 is not finished yet..\n");
+    //fprintf(stderr, "Cant fetch unfinished data, since even the segment with level 0 is not finished yet..\n");
     return;
   }
 
@@ -118,8 +117,7 @@ void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
   {
     s = received_segs.at(i);
 
-    fprintf(stderr, "SVC-Player received for segNumber %u in level %u with size of %u\n",
-            s->getSegmentNumber(), s->getLevel(), s->getSize());
+    //fprintf(stderr, "SVC-Player received for segNumber %u in level %u with size of %u\n",s->getSegmentNumber(), s->getLevel(), s->getSize());
 
     total_size += s->getSize();
     SetPlayerLevel(s->getSegmentNumber(), s->getLevel(), buf->bufferedSeconds(), s->getSize (), (Simulator::Now ().GetMilliSeconds () - dlStartTime.GetMilliSeconds ()));
@@ -130,7 +128,7 @@ void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
 
   this->extractor->update(s_highest);
 
-  fprintf(stderr, "SVC-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
+  //fprintf(stderr, "SVC-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
 
   if(!buf->addData (current_segments.front()->getDuration ()))
   {
@@ -159,12 +157,12 @@ void SvcPlayer::consume ()
   if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
   {
     //ok lets try fetching data from downloadManager
-    fprintf(stderr, "Trying to Consume an unfinished BUNCH\n");
+    //fprintf(stderr, "Trying to Consume an unfinished BUNCH\n");
     addToBuffer(dwnManager->retriveUnfinishedSegments ());
 
     if(!buf->consumeData (CONSUME_INTERVALL) && isPlaying)
     {
-       NS_LOG_UNCOND("SVCPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+       NS_LOG_INFO("SVCPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
        logUnsmoothSecond (current_segments.at (0)->getSegmentNumber(), CONSUME_INTERVALL);
     }
     else

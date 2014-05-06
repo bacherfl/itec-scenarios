@@ -100,23 +100,21 @@ std::vector<Segment*> SVCSegmentExtractor::considerHistory(std::vector<Segment*>
   avg_received_level /= history_size ;
   avg_requested_level /= history_size ;
 
-   double max_level = (avg_requested_level - (avg_requested_level - avg_received_level));
+   double max_level = (avg_received_level);
 
-   fprintf(stderr, "avg_requested_level = %f\n", avg_requested_level);
-   fprintf(stderr, "avg_received_level = %f\n", avg_received_level);
-   fprintf(stderr, "buf->fillPercentage () = %f\n", buf->fillPercentage ());
-   fprintf(stderr, "max_level = %f\n", max_level);
+   //fprintf(stderr, "avg_requested_level = %f\n", avg_requested_level);
+   //fprintf(stderr, "avg_received_level = %f\n", avg_received_level);
+   //fprintf(stderr, "buf->fillPercentage () = %f\n", buf->fillPercentage ());
+   //fprintf(stderr, "max_level = %f\n", max_level);
 
   if(max_level + THREASHOLD >= avg_requested_level && buf->fillPercentage () > 0.5)
     max_level++;
-  else if(max_level > 0 && buf->fillPercentage () < 0.25)
+  else if(max_level >= 1 && buf->fillPercentage () < 0.25)
     max_level--;
 
-  fprintf(stderr, "Dropping segments with level > %d\n", (int) max_level);
+  //fprintf(stderr, "Dropping segments with level > %d\n", (int) max_level);
 
   segments = dropSegments (segments, max_level);
-
-
 
   return segments;
 }

@@ -53,23 +53,15 @@ void DownloadManager::addToFinished (Segment *seg)
 {
   finishedSegments.push_back (seg);
 
-  /*fprintf(stderr, "DownloadManager::addToFinished %s\n", seg->getUri ().c_str ());
-  fprintf(stderr, "enquedSegments.size () = %d\n", enquedSegments.size ());
-  fprintf(stderr, "downloaders.size () = %d\n", downloaders.size ());
-  fprintf(stderr, "getAllNonBussyDownloaders.size () = %d\n", getAllNonBussyDownloaders().size ());
-*/
-
   if(enquedSegments.size () == 0 && downloaders.size () == getAllNonBussyDownloaders ().size ())
   {
     //bunch of segments finsihed notify observers
-    fprintf(stderr, "DownloadManager::Observer::SegmentReceived %s\n", seg->getUri ().c_str ());
+    //fprintf(stderr, "DownloadManager::Observer::SegmentReceived %s\n", seg->getUri ().c_str ());
 
     if (hadSpecialNACK)
-    {
       notifyAll (Observer::NackReceived);
-    } else {
+    else
       notifyAll (Observer::SegmentReceived);
-    }
   }
 
   return;
@@ -83,7 +75,6 @@ void DownloadManager::specialNACKreceived ()
   hadSpecialNACK = true;
 
   //find the downloader who triggered the special NACK
-
   IDownloader* nackDwn = NULL;
 
   std::vector<IDownloader*> dwn = getAllBussyDownloaders ();
@@ -95,12 +86,10 @@ void DownloadManager::specialNACKreceived ()
       break;
     }
   }
-
-
-
   if (nackDwn == NULL)
   {
-    NS_LOG_ERROR("DownloadManager::specialNACKreceived(): ERROR: Could not find NACK Downloader!");
+    //this is not an error just means the downloader has received nacks for more than one chunk!
+    //NS_LOG_ERROR("DownloadManager::specialNACKreceived(): ERROR: Could not find NACK Downloader!");
     return;
   }
 
@@ -133,7 +122,7 @@ void DownloadManager::specialNACKreceived ()
 
 void DownloadManager::segmentReceived ()
 {
-  //search for the finished downloader wich where succesfull
+  //search for the finished downloader which was succesfull
    IDownloader *d = NULL;
    for(int i = 0; i < downloaders.size (); i++)
    {
@@ -143,10 +132,15 @@ void DownloadManager::segmentReceived ()
      {
        break;
      }
+     else
+       d = NULL;
    }
 
    if(d == NULL)
+   {
+     NS_LOG_UNCOND("Could not find Downloader that finished Segment.");
      return;
+   }
 
    Segment* s = d->getSegment ();
 
@@ -155,7 +149,7 @@ void DownloadManager::segmentReceived ()
 
    addToFinished(s);
 
-   //if no downloaders a running...
+   //if no downloaders are running trigger next download
    if(getAllBussyDownloaders ().size () == 0 && enquedSegments.size () > 0)
       downloadSegments ();
 }
@@ -174,7 +168,6 @@ void DownloadManager::enque (std::vector<Segment *> segments)
 
   //if all are non bussy, well trigger the download
   std::vector<IDownloader*> dls = getAllNonBussyDownloaders();
-
   if(dls.size () == downloaders.size ())
     downloadSegments();
 }
@@ -184,7 +177,9 @@ void DownloadManager::downloadSegments()
   IDownloader* dl = getFreeDownloader ();
 
   if (dl == NULL)
-    return;
+  {
+     return;
+  }
 
   dl->setCongWindow(lastDownloader->getCongWindow ());
   lastDownloader = dl;
