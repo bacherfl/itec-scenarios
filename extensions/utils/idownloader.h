@@ -8,7 +8,7 @@
 #include "congestionwindow.h"
 
 #define MAX_PACKET_PAYLOAD 4096
-#define PACKET_OVERHEAD    230
+#define PACKET_OVERHEAD    204
 
 #include "ns3-dev/ns3/node.h"
 #include "ns3-dev/ns3/ptr.h"
