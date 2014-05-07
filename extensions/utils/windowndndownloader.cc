@@ -141,9 +141,16 @@ bool WindowNDNDownloader::download (std::string URI)
   * STEP 2 - DONE
   */
 
-
   /*** STEP 3 - DOWNLOAD chunk_0 WHICH CONTAINS META DATA */
   downloadChunk(0);
+
+  // also make sure that the download timer is running again (if it stopped, which is most likely)
+  if (this->scheduleDownloadTimer.IsExpired())
+  {
+    this->scheduleDownloadTimer =
+      Simulator::Schedule(MilliSeconds(1),
+                          &WindowNDNDownloader::ScheduleNextChunkDownload, this);
+  }
 
   return true;
 }
@@ -177,17 +184,12 @@ void WindowNDNDownloader::resetStatistics()
   packets_received_this_second = 0;
   packets_sent_this_second = 0;
 
-  if (resetStatisticsTimer.IsExpired())
+  // only do that again if still busy
+  if (this->isBussy () && resetStatisticsTimer.IsExpired())
   {
     resetStatisticsTimer = Simulator::Schedule(Seconds(1.0),  &WindowNDNDownloader::resetStatistics, this);
   }
-  // also make sure that the download timer is running again (if it stopped, which is most likely)
-  if (this->scheduleDownloadTimer.IsExpired())
-  {
-    this->scheduleDownloadTimer =
-      Simulator::Schedule(MilliSeconds(1),
-                          &WindowNDNDownloader::ScheduleNextChunkDownload, this);
-  }
+
 }
 
 int WindowNDNDownloader::GetNextNeededChunkNumber()
@@ -222,6 +224,7 @@ int WindowNDNDownloader::GetNextNeededChunkNumber(int start_chunk_number)
 void WindowNDNDownloader::ScheduleNextChunkDownload()
 {
   NS_LOG_FUNCTION(this);
+
   int chunk_number = GetNextNeededChunkNumber();
 
   //if (chunk_number == -1 && this->curSegmentStatus.bytesToDownload >= 0)
@@ -410,6 +413,8 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
      return;
    }
 
+
+
   //fprintf(stderr, "ONDATA %s \n", contentObject->GetName ().toUri ().c_str ());
   NS_LOG_FUNCTION(this);
   bool duplicate = false;
@@ -425,7 +430,6 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
   segment_uri = s.substr(0, pos1-6);
   s = s.substr(pos1+1);
   int c_chunk_number = atoi(s.c_str());
-
 
   // check if that chunk was already received (--> duplicate ack)
   if (this->curSegmentStatus.chunk_status[c_chunk_number] == Received)
@@ -624,5 +628,6 @@ this->cwnd = window;
 
 void WindowNDNDownloader::reset ()
 {
+  this->scheduleDownloadTimer.Cancel ();
   IDownloader::reset ();
 }

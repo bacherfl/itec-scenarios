@@ -32,7 +32,7 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
       if (this->curSegmentStatus.bytesToDownload > 0)
       {
-          fprintf(stderr, "Dropping segment with level %d, chunks=%d, bytesToDownload=%d\n", this->curSegment->getLevel(), this->curSegmentStatus.num_chunks, this->curSegmentStatus.bytesToDownload);
+          //fprintf(stderr, "Dropping segment with level %d, chunks=%d, bytesToDownload=%d\n", this->curSegment->getLevel(), this->curSegmentStatus.num_chunks, this->curSegmentStatus.bytesToDownload);
       }
 
       abortDownload();
@@ -94,6 +94,8 @@ bool SVCWindowNDNDownloader::download(Segment *s)
   // set avgBitrate
   curSegmentStatus.avgBitrate = s->getAvgLvlBitrate ();
 
+
+
   return WindowNDNDownloader::download(s);
 }
 
@@ -101,6 +103,7 @@ bool SVCWindowNDNDownloader::download(Segment *s)
 void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
 {
   NS_LOG_FUNCTION(this << chunk_number);
+
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
     Ptr<ndn::Interest> interest = prepareInterestForDownload (chunk_number);
