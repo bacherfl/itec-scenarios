@@ -26,7 +26,7 @@ void parseParameters(int argc, char* argv[], std::string& mode)
   cmd.AddValue ("v2", "Prints all log messages. (OPTIONAL)", v2);
   cmd.AddValue ("vN", "Disable all internal logging parameters, use NS_LOG instead", vN);
   cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
-  cmd.AddValue ("mode", "Sets the simulation mode. Either \"mode=dash-svc\" or \"mode=dash-avc\ or \"mode=adaptation\". (OPTIONAL) Default: mode=dash-svc", mode);
+  cmd.AddValue ("mode", "Sets the simulation mode. Either \"mode=dash-svc\" or \"mode=dash-avc or \"mode=adaptation\". (OPTIONAL) Default: mode=dash-svc", mode);
 
   cmd.Parse (argc, argv);
 
@@ -57,8 +57,6 @@ void parseParameters(int argc, char* argv[], std::string& mode)
 
 int main(int argc, char* argv[])
 {
-  int client_map[100] = { 66,97,7,96,52,74,28,11,91,27,60,19,84,15,23,82,72,56,57,70,33,87,25,76,2,50,90,64,65,71,49,59,85,37,58,0,42,17,1,51,94,63,69,3,61,16,75,79,68,98,67,12,38,41,10,93,95,55,45,73,35,20,32,30,29,86,89,34,77,8,43,26,78,46,81,5,48,13,92,44,9,24,36,21,80,39,14,47,54,40,99,62,88,53,22,31,6,83,4,18 };
-
 
   NS_LOG_COMPONENT_DEFINE ("LargeScenario");
 
@@ -75,6 +73,21 @@ int main(int argc, char* argv[])
   {
     streamers.Add (contentDst);
     contentDst =  Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
+  }
+
+  int *client_map = (int*) calloc(streamers.size (), sizeof(int));
+  for(int i = 0; i < streamers.size (); i++)
+    client_map[i] = i;
+
+  //random permutation
+  srand(ns3::SeedManager::GetRun ());
+  int swap, r;
+  for(int i = 0; i < streamers.size (); i++)
+  {
+    r = rand()%streamers.size ();
+    swap = client_map[i];
+    client_map[i] = client_map[r];
+    client_map[r] = swap;
   }
 
   NodeContainer providers;
@@ -332,6 +345,7 @@ int main(int argc, char* argv[])
   //srand (1);
   //mean, upper-limit
   ns3::ExponentialVariable exp(12,30);
+  Time stopTime = Seconds (1800.0);
 
   for (ApplicationContainer::Iterator i = apps.Begin (); i != apps.End (); ++i)
   {
@@ -343,6 +357,7 @@ int main(int argc, char* argv[])
     //fprintf(stderr,"starttime = %f\n", startTime);
     //( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
     ( *i)->SetStartTime(Time::FromDouble(startTime, Time::S));
+    ( *i)->SetStopTime(stopTime);
   }
 
   // Calculate and install FIBs
@@ -350,7 +365,7 @@ int main(int argc, char* argv[])
 
   NS_LOG_UNCOND("Simulation will be started!");
 
-  Simulator::Stop (Seconds (1800.0)); //runs for 30 min.
+  Simulator::Stop (Seconds(stopTime.GetSeconds ()+1)); //runs for 30 min.
   Simulator::Run ();
   Simulator::Destroy ();
 

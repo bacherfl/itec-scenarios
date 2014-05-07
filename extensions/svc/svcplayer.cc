@@ -40,7 +40,6 @@ void SvcPlayer::streaming ()
     //check if last segment
     if(current_segments.size () == 0)
     {
-      isPlaying = false;
       allSegmentsDownloaded = true;
       return;
     }
@@ -138,11 +137,13 @@ void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
 
 void SvcPlayer::stop ()
 {
-  NS_LOG_FUNCTION(this << m_nodeName);
-  NotifyEnd(Simulator::Now().GetSeconds());
-  this->WriteToFile(m_nodeName + ".txt");
-
-  isPlaying = false;
+  if(isPlaying)
+  {
+    NS_LOG_FUNCTION(this << m_nodeName);
+    isPlaying = false;
+    NotifyEnd(Simulator::Now().GetSeconds());
+    this->WriteToFile(m_nodeName + ".txt");
+  }
 }
 
 void SvcPlayer::consume ()
