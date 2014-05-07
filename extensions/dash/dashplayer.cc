@@ -74,12 +74,13 @@ void DashPlayer::streaming ()
 
 void DashPlayer::stop ()
 {
-  NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stop");
-
-  NotifyEnd(Simulator::Now().GetSeconds());
-  this->WriteToFile(m_nodeName + ".txt");
-
-  isPlaying = false;
+  if(isPlaying)
+  {
+    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stop");
+    isPlaying = false;
+    NotifyEnd(Simulator::Now().GetSeconds());
+    this->WriteToFile(m_nodeName + ".txt");
+  }
 }
 
 void DashPlayer::update (ObserverMessage msg)

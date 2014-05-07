@@ -47,11 +47,14 @@ void DashRequester::StartApplication ()
 // Processing when application is stopped
 void DashRequester::StopApplication ()
 {
+  if (player)
+  {
+    player->stop ();
+    delete player;
+  }
+
   // cleanup ndn::App
   ndn::App::StopApplication ();
-
-  if (player)
-    delete player;
 }
 
 // Callback that will be called when Interest arrives

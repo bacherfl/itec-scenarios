@@ -39,11 +39,13 @@ void SvcRequester::StartApplication ()
 // Processing when application is stopped
 void SvcRequester::StopApplication ()
 {
+  if (player)
+  {
+    player->stop ();
+    delete player;
+  }
   // cleanup ndn::App
   ndn::App::StopApplication ();
-
-  if (player)
-    delete player;
 }
 
 // Callback that will be called when Interest arrives
