@@ -25,7 +25,7 @@ void SvcPlayer::play()
   isPlaying = true;
   allSegmentsDownloaded = false;
   NotifyStart(Simulator::Now().GetSeconds());
-  this->logDownloadedVideo (mpd->GetBaseUrls ().at (0)->GetUrl());
+  this->logDownloadedVideo (mpd->GetMPDPathBaseUrl ()->GetUrl ());
   streaming ();
   Simulator::Schedule(Seconds(2.0), &SvcPlayer::consume, this);
 }

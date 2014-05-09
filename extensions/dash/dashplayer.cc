@@ -26,7 +26,7 @@ void DashPlayer::play ()
   NotifyStart(Simulator::Now().GetSeconds());
   isPlaying = true;
   allSegmentsDownloaded = false;
-  this->logDownloadedVideo (mpd->GetBaseUrls ().at (0)->GetUrl());
+  this->logDownloadedVideo (mpd->GetMPDPathBaseUrl ()->GetUrl ());
   streaming ();
   Simulator::Schedule(Seconds(2.0), &DashPlayer::consume, this);
 }
