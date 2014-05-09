@@ -141,10 +141,13 @@ dash::mpd::IPeriod* IAdaptationLogic::getFirstPeriod()
 
 unsigned int IAdaptationLogic::getFileSize (std::string filename)
 {
+  //remove virtual dataset identifier if exist...
+  //filename = filename.substr (0, filename.rfind("-set"));
+
   struct stat fstats;
   if(!(stat (filename.c_str(), &fstats) == 0))
   {
-    fprintf(stderr, "ContentProvider::OnInterest: File does NOT exist: %s", filename.c_str ());
+    fprintf(stderr, "IAdaptationLogic::getFileSize: File does NOT exist: %s\n", filename.c_str ());
     return -1;
   }
 
