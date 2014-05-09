@@ -61,16 +61,19 @@ void ContentProvider::OnInterest (Ptr<const ndn::Interest> interest)
   std::string fname = interest->GetName().toUri();  // get the uri from interest
   fname = fname.substr(ndn_prefix.length(), fname.length()); // remove the prefix
   fname = std::string(content_path).append(fname); // prepend the data path
-  std::string chunk_nr = fname.substr(fname.find_last_of ("/chunk_")+1); // extract the chunk number remove .../chunk_X
-  fname = fname.substr (0, fname.find_last_of ("/"));
+  std::string chunk_nr = fname.substr(fname.rfind ("/chunk_")+1).substr (6); // extract the chunk number remove .../chunk_X
+  fname = fname.substr (0, fname.find_last_of ("/"));//remove "/chunk*"
 
   //fprintf(stderr, "FNAME = %s\n",fname.c_str ());
-  //fprintf(stderr, "chunk_nr = %s\n", chunk_nr.c_str ());
+  //fprintf(stderr, "chunk_nr =%s\n", chunk_nr.c_str ());
+
+  //remove virtual dataset identifier if exist...
+  //fname = fname.substr (0, fname.rfind ("-set"));
 
   struct stat fstats;
   if(!(stat (fname.c_str(), &fstats) == 0))
   {
-    NS_LOG_UNCOND("ContentProvider::OnInterest: File does NOT exist: " << fname);
+    //fprintf(stderr, "ContentProvider::OnInterest: File does NOT exist: %s\n", fname.c_str ());
     return;
   }
 
