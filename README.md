@@ -6,6 +6,8 @@ Install Guide (testet on Ubuntu 12.04 64bit)
     * NS3
     * ndnSim
     * Boost C++
+		* libcurl
+		* cmake
 
 # Building:
 
