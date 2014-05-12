@@ -121,10 +121,10 @@ bool WindowNDNDownloader::download (std::string URI)
   // init the internal status vectors
 
   this->curSegmentStatus.chunk_status.clear();
-  this->curSegmentStatus.chunk_timeout_events.clear();
+  //this->curSegmentStatus.chunk_timeout_events.clear();
 
   this->curSegmentStatus.chunk_status.resize(this->curSegmentStatus.num_chunks, NotInitiated);
-  this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
+  //this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
 
 
   // init stats
@@ -505,7 +505,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
       // reserving memory for num_chunks
       this->curSegmentStatus.chunk_status.resize(this->curSegmentStatus.num_chunks, NotInitiated);
-      this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
+      //this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
 
     } else
     {

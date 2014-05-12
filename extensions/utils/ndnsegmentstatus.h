@@ -53,7 +53,9 @@ namespace ns3
     int bytesToDownload;
 
     /** an Array with timeout events, so we can cancel them if needed */
-    std::vector<EventId> chunk_timeout_events;
+    //std::vector<EventId> chunk_timeout_events;
+
+    EventId chunk_timeout_events[4096];
     //EventId* chunk_timeout_events;
 
     /** the average bitrate of the current representation/quality-level */
