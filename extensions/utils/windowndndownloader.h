@@ -86,6 +86,8 @@ namespace ns3
 
 
     protected:
+      Ptr<ndn::Interest> interest;
+
       virtual void downloadChunk(int chunk_number);
       virtual Ptr<ndn::Interest> prepareInterestForDownload(int chunk_number);
 

@@ -8,6 +8,7 @@ NS_LOG_COMPONENT_DEFINE ("WindowNDNDownloader");
 WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
 {
 
+    interest  = NULL;
   //init status
   reset();
 
@@ -161,13 +162,15 @@ void WindowNDNDownloader::downloadChunk (int chunk_number)
 
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
-    Ptr<ndn::Interest> interest = prepareInterestForDownload(chunk_number);
+     prepareInterestForDownload(chunk_number);
 
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);
     m_face->ReceiveInterest (interest);
 
     packets_sent_this_second++;
+
+    //interest->Unref ();
   }
   else
   {
@@ -271,7 +274,7 @@ Ptr<ndn::Interest> WindowNDNDownloader::prepareInterestForDownload (int chunk_nu
   Ptr<ndn::Name> prefix = Create<ndn::Name> (ss.str ().c_str());
 
   // Create and configure ndn::Interest
-  Ptr<ndn::Interest> interest = Create<ndn::Interest> ();
+  this->interest = Create<ndn::Interest> ();
   UniformVariable rand (0,std::numeric_limits<uint32_t>::max ());
   interest->SetNonce (rand.GetValue ());
   interest->SetName (prefix);
@@ -295,6 +298,9 @@ Ptr<ndn::Interest> WindowNDNDownloader::prepareInterestForDownload (int chunk_nu
   {
     ScheduleNextChunkDownload();
   }
+
+  //interest->Ref ();
+
   return interest;
 }
 
