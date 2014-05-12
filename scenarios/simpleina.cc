@@ -158,7 +158,7 @@ int main(int argc, char* argv[])
 
   NS_LOG_UNCOND("Simulation will be started!");
 
-  Simulator::Stop (Seconds (1800.0)); //runs for 30 min.
+  Simulator::Stop (Seconds (3600.0)); //runs for 60 min.
   Simulator::Run ();
   Simulator::Destroy ();
 
