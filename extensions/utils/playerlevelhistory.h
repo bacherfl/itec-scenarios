@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <stdint.h>
+#include "ns3-dev/ns3/log.h"
 
 using namespace std;
 

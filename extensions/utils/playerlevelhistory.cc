@@ -1,5 +1,7 @@
 #include "playerlevelhistory.h"
 
+NS_LOG_COMPONENT_DEFINE ("PlayerLevelHistory");
+
 #include <iostream>
 using namespace std;
 
@@ -31,7 +33,8 @@ void PlayerLevelHistory::SetPlayerLevel(unsigned int segmentNumber,
 {
  // cout << "SEgmentNumber: " << segmentNumber << ", level=" << level << ", size=" << levelHistory.size() << endl;
 
-  if (levelHistory.find (segmentNumber) != levelHistory.end () || levelHistory[segmentNumber] < level) //write biggest level
+  if (levelHistory.find (segmentNumber) == levelHistory.end () ||
+     (levelHistory.find (segmentNumber) != levelHistory.end () || levelHistory[segmentNumber] < level) ) //write biggest level
     this->levelHistory[segmentNumber] = level;
 
   if (bufferHistory.find (segmentNumber) == bufferHistory.end () ||
@@ -43,7 +46,8 @@ void PlayerLevelHistory::SetPlayerLevel(unsigned int segmentNumber,
   else
     segSizeHistory[segmentNumber] = segSize;
 
-  if(dlDurationHistory.find (segmentNumber) != dlDurationHistory.end () && dlDurationHistory[segmentNumber] < dlDuration)
+  if(dlDurationHistory.find (segmentNumber) == dlDurationHistory.end() ||
+     dlDurationHistory.find (segmentNumber) != dlDurationHistory.end() && dlDurationHistory[segmentNumber] < dlDuration)
     dlDurationHistory[segmentNumber] += dlDuration;
   else
     dlDurationHistory[segmentNumber] = dlDuration;
@@ -59,11 +63,11 @@ void PlayerLevelHistory::logUnsmoothSecond (unsigned int segmentNumber, unsigned
 
 bool PlayerLevelHistory::WriteToFile(std::string FileName)
 {
+  NS_LOG_FUNCTION(this);
+
   ofstream file;
   FileName = "output/" + FileName;
   file.open(FileName.c_str());
-
-
 
   file << "SegmentNr, Level, Buffer, Unsmooth Second(s), Requested Level, Segment(s) Size (bytes), Download Time (ms), Goodput (kbit/s)" << endl;
 

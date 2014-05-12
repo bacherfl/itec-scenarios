@@ -79,8 +79,6 @@ extensions/svc/facepitstatistic.cc
 scenarios/congestiontest.cc
 extensions/simplefilerequester.h
 extensions/simplefilerequester.cc
-extensions/svc/limitguidedstrategy.h
-extensions/svc/limitguidedstrategy.cc
 topologies/simple_congestion_test.top
 extensions/svc/svccountingstrategy.h
 extensions/svc/svccountingstrategy.cc
