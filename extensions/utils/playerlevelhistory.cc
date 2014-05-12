@@ -1,5 +1,7 @@
 #include "playerlevelhistory.h"
 
+NS_LOG_COMPONENT_DEFINE ("PlayerLevelHistory");
+
 #include <iostream>
 using namespace std;
 
@@ -59,11 +61,11 @@ void PlayerLevelHistory::logUnsmoothSecond (unsigned int segmentNumber, unsigned
 
 bool PlayerLevelHistory::WriteToFile(std::string FileName)
 {
+  NS_LOG_FUNCTION(this);
+
   ofstream file;
   FileName = "output/" + FileName;
   file.open(FileName.c_str());
-
-
 
   file << "SegmentNr, Level, Buffer, Unsmooth Second(s), Requested Level, Segment(s) Size (bytes), Download Time (ms), Goodput (kbit/s)" << endl;
 
