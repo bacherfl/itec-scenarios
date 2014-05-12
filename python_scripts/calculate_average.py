@@ -100,6 +100,7 @@ def computeStats(curdir):
 		avg_buffer = 0.0
 		avg_goodput = 0.0
 		max_unsmooth_seconds = 0.0
+		min_level = 99999
 
 		for f in groupedVideos[key]:
 			avg_level += getAVGLevel(f)
@@ -107,6 +108,8 @@ def computeStats(curdir):
 			avg_unsmooth_seconds += unsmooth_sec
 			if unsmooth_sec > max_unsmooth_seconds:
 				max_unsmooth_seconds = unsmooth_sec
+			if avg_level < min_level:
+				min_level = avg_level
 			avg_buffer += getAVGBuffer(f)
 			avg_goodput += getAVGGoodput(f)
 
@@ -116,6 +119,7 @@ def computeStats(curdir):
 		avg_goodput /= len(groupedVideos[key])
 
 		output_file.write( "AVG Level: " + str(avg_level) + "\n")
+		output_file.write( "MIN AVG Level: " + str(min_level) + "\n")
 		output_file.write( "AVG Unsmooth: " + str(avg_unsmooth_seconds) + "s\n")
 		output_file.write( "MAX Unsmooth: " + str(max_unsmooth_seconds) + "s\n")
 		output_file.write( "AVG Buffer: " + str(avg_buffer) + "s\n")
