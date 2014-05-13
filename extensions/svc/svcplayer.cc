@@ -141,6 +141,7 @@ void SvcPlayer::stop ()
   {
     NS_LOG_FUNCTION(this << m_nodeName);
     isPlaying = false;
+    dwnManager->stop ();
     NotifyEnd(Simulator::Now().GetSeconds());
     this->WriteToFile(m_nodeName + ".txt");
   }

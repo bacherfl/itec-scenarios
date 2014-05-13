@@ -318,3 +318,12 @@ uint64_t DownloadManager::getPhysicalBitrate()
   return d.GetBitRate();
 }
 
+void DownloadManager::stop()
+{
+  for(int i = 0; i < downloaders.size (); i++)
+    downloaders.at (i)->abortDownload();
+
+  enquedSegments.clear ();
+  finishedSegments.clear ();
+}
+
