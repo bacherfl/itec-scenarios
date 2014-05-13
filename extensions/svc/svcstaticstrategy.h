@@ -118,7 +118,7 @@ void SVCStaticStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > 
   {
       fprintf(stderr, "Dropping packet with level %d\n", level);
     // DROP
-    NS_LOG_UNCOND("Strategy: Dropping Interest " << interest->GetName ().toUri());
+    NS_LOG_INFO("Strategy: Dropping Interest " << interest->GetName ().toUri());
     Ptr<Interest> nack = Create<Interest> (*interest);
     nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
 

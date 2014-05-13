@@ -146,7 +146,7 @@ void DownloadManager::segmentReceived ()
 
    if(d == NULL)
    {
-     NS_LOG_UNCOND("Could not find Downloader that finished Segment.");
+     NS_LOG_INFO("Could not find Downloader that finished Segment.");
      return;
    }
 
