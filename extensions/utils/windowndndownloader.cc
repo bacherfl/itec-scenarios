@@ -61,7 +61,7 @@ bool WindowNDNDownloader::download (Segment *s)
 /* download file from URI */
 bool WindowNDNDownloader::download (std::string URI)
 {
-  NS_LOG_FUNCTION(this);
+  NS_LOG_FUNCTION(this << "uri:" << URI << "node: " << Names::FindName (this->GetNode ()));
   // this downloader is now bussy
   bussy = true;
 
@@ -165,24 +165,41 @@ void WindowNDNDownloader::downloadChunk (int chunk_number)
 
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
-     prepareInterestForDownload(chunk_number);
-
-    // Call trace (for logging purposes)
-    m_transmittedInterests (interest, this, m_face);
-    m_face->ReceiveInterest (interest);
-
-    packets_sent_this_second++;
-
-    //interest->Unref ();
-  }
-  else
-  {
-    if(!soonFinishedAlreadyFired)
+    // check that we actually need this chunk, it might have been received by now
+    while (this->curSegmentStatus.chunk_status[chunk_number] == Received)
     {
-      soonFinishedAlreadyFired = false;
-      notifyAll(Observer::SoonFinished);
+      chunk_number = this->GetNextNeededChunkNumber ();
+      if (chunk_number == -1)
+      {
+        // we seem to be done for now
+        break;
+      }
+    }
+
+    // make sure we have a valid chunk_number to request
+    if (chunk_number != -1)
+    {
+      prepareInterestForDownload(chunk_number);
+
+      // Call trace (for logging purposes)
+      m_transmittedInterests (interest, this, m_face);
+      m_face->ReceiveInterest (interest);
+
+      packets_sent_this_second++;
+
+      return; // RETURN HERE SO notifyall is not called
     }
   }
+
+  // else: either bytesToDownload = 0 or chunk_number was -1, in both cases:
+  chunk_number = this->GetNextNeededChunkNumber ();
+
+  if(chunk_number == -1 && !soonFinishedAlreadyFired)
+  {
+    soonFinishedAlreadyFired = false;
+    notifyAll(Observer::SoonFinished);
+  }
+
 }
 
 void WindowNDNDownloader::resetStatistics()
@@ -514,8 +531,10 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
     } else
     {
-      NS_LOG_FUNCTION(this << std::string("received payload with size") << contentObject->GetPayload()->GetSize ());
       this->curSegmentStatus.bytesToDownload -= contentObject->GetPayload()->GetSize ();
+      NS_LOG_FUNCTION(this << "received chunk " << c_chunk_number << "with size" << contentObject->GetPayload()->GetSize () <<
+                      "bytesToDownload=" << this->curSegmentStatus.bytesToDownload);
+
     }
   }
 
@@ -531,7 +550,8 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
     // cancel the scheduled download timer
     this->scheduleDownloadTimer.Cancel();
 
-    NS_LOG_INFO(std::string("Finally received segment: ").append(curSegmentStatus.base_uri.substr (0,curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
+    NS_LOG_FUNCTION(this << "Finally received last segment for uri:" << curSegmentStatus.base_uri << "node: " << Names::FindName (this->GetNode ()));
+    //NS_LOG_INFO(std::string("Finally received segment: ").append(curSegmentStatus.base_uri.substr (0,curSegmentStatus.base_uri.find_last_of ("/chunk_"))) << this);
     //this download is now finished and was succesfull
     finished = true;
     lastDownloadSuccessful = true;
