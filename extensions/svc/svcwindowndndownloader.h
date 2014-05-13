@@ -19,9 +19,9 @@ namespace ns3
       // (overriden from WindowNDNDownloader) Call that will be called when a NACK arrives
       virtual void OnNack (Ptr<const ndn::Interest> interest);
 
-      virtual bool download(Segment *s);
+      virtual bool download(Ptr<Segment> s);
 
-      virtual bool downloadBefore(Segment *s, int miliSeconds);
+      virtual bool downloadBefore(Ptr<Segment> s, int miliSeconds);
       virtual void downloadChunk(int chunk_number);
 
       virtual DownloaderType getDownloaderType ();
@@ -31,7 +31,7 @@ namespace ns3
 
      // EventId needDownloadBeforeEvent;
 
-      ns3::utils::Segment* curSegment;
+      //Ptr<ns3::utils::Segment> curSegment;
 
       //uint64_t deadline;
     };
