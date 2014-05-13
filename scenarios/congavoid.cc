@@ -57,8 +57,7 @@ void parseParameters(int argc, char* argv[], std::string& mode)
 
 int main(int argc, char* argv[])
 {
-
-  NS_LOG_COMPONENT_DEFINE ("LargeScenario");
+  NS_LOG_COMPONENT_DEFINE ("CongAvoidScenario");
 
   std::string mode("dash-svc");
   parseParameters(argc, argv, mode);
@@ -438,5 +437,3 @@ int main(int argc, char* argv[])
   NS_LOG_UNCOND("Simulation completed!");
   return 0;
 }
-
-
