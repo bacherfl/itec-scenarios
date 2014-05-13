@@ -283,7 +283,7 @@ Ptr<ndn::Interest> WindowNDNDownloader::prepareInterestForDownload (int chunk_nu
   interest->SetName (prefix);
   interest->SetInterestLifetime (Seconds (rto)); // set interest life time equal to the event we are fireing
 
-  // get the timeout event set up
+  // set up the timeout event with the calculated RTO
   this->curSegmentStatus.chunk_timeout_events[chunk_number] =
     Simulator::Schedule(Seconds(rto), &WindowNDNDownloader::CheckRetrieveTimeout, this, chunk_number);
 
