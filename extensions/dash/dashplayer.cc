@@ -68,6 +68,7 @@ void DashPlayer::streaming ()
     SetRequestedPlayerLevel(current_segments.at(0)->getSegmentNumber(), requestedLevel);
 
     dlStartTime = Simulator::Now ();
+    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Enqueing segment " << current_segments.at(0)->getSegmentNumber());
     dwnManager->enque(current_segments);
   }
 }
@@ -92,6 +93,7 @@ void DashPlayer::update (ObserverMessage msg)
   {
     case Observer::SegmentReceived:
     {
+      NS_LOG_INFO("DashPlayer(" << m_nodeName << "): received SegmentReceived");
       std::vector<Segment*> received_segs = dwnManager->retriveFinishedSegments ();
 
       unsigned int total_size = 0;
