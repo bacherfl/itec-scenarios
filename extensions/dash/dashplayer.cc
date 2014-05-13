@@ -28,7 +28,7 @@ void DashPlayer::play ()
   allSegmentsDownloaded = false;
   this->logDownloadedVideo (mpd->GetMPDPathBaseUrl ()->GetUrl ());
   streaming ();
-  Simulator::Schedule(Seconds(2.0), &DashPlayer::consume, this);
+  lastConsumeEvent = Simulator::Schedule(Seconds(2.0), &DashPlayer::consume, this);
 }
 
 void DashPlayer::streaming ()
@@ -78,6 +78,7 @@ void DashPlayer::stop ()
   {
     NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stopping..");
     isPlaying = false;
+    lastConsumeEvent.Cancel ();
     dwnManager->stop ();
     NotifyEnd(Simulator::Now().GetSeconds());
     this->WriteToFile(m_nodeName + ".txt");
@@ -144,5 +145,5 @@ void DashPlayer::consume ()
     NS_LOG_INFO("DashPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   }
 
-  Simulator::Schedule(Seconds (CONSUME_INTERVALL), &DashPlayer::consume, this);
+  lastConsumeEvent = Simulator::Schedule(Seconds (CONSUME_INTERVALL), &DashPlayer::consume, this);
 }

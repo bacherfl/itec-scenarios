@@ -117,6 +117,8 @@ namespace ns3
        */
       Time dlStartTime;
 
+      EventId lastConsumeEvent;
+
     };
   }
 }

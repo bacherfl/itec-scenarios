@@ -27,7 +27,7 @@ void SvcPlayer::play()
   NotifyStart(Simulator::Now().GetSeconds());
   this->logDownloadedVideo (mpd->GetMPDPathBaseUrl ()->GetUrl ());
   streaming ();
-  Simulator::Schedule(Seconds(2.0), &SvcPlayer::consume, this);
+  lastConsumeEvent = Simulator::Schedule(Seconds(2.0), &SvcPlayer::consume, this);
 }
 
 void SvcPlayer::streaming ()
@@ -141,6 +141,7 @@ void SvcPlayer::stop ()
   {
     NS_LOG_FUNCTION(this << m_nodeName);
     isPlaying = false;
+    lastConsumeEvent.Cancel ();
     dwnManager->stop ();
     NotifyEnd(Simulator::Now().GetSeconds());
     this->WriteToFile(m_nodeName + ".txt");
@@ -176,6 +177,6 @@ void SvcPlayer::consume ()
     }
   }
 
-  Simulator::Schedule(Seconds (CONSUME_INTERVALL), &SvcPlayer::consume, this);
+  lastConsumeEvent = Simulator::Schedule(Seconds (CONSUME_INTERVALL), &SvcPlayer::consume, this);
 }
 

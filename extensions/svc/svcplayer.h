@@ -50,6 +50,8 @@ namespace ns3
 
       Time dlStartTime;
 
+      EventId lastConsumeEvent;
+
       virtual void update(ObserverMessage msg);
 
       void streaming();
