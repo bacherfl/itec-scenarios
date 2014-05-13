@@ -22,6 +22,14 @@ DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
   lastDownloader = downloaders.front ();
 }
 
+DownloadManager::~DownloadManager ()
+{
+  for(int i = 0; i < downloaders.size (); i++)
+    if(downloaders.at (i) != NULL)
+      delete downloaders.at (i);
+  downloaders.clear ();
+}
+
 void DownloadManager::update(ObserverMessage msg)
 {
   switch(msg)
@@ -49,7 +57,7 @@ void DownloadManager::update(ObserverMessage msg)
   }
 }
 
-void DownloadManager::addToFinished (Segment *seg)
+void DownloadManager::addToFinished (Ptr<Segment> seg)
 {
   finishedSegments.push_back (seg);
 
@@ -142,7 +150,7 @@ void DownloadManager::segmentReceived ()
      return;
    }
 
-   Segment* s = d->getSegment ();
+   Ptr<Segment> s = d->getSegment ();
 
    // reset the downloader state (but not its cwnd)
    d->reset ();
@@ -154,7 +162,7 @@ void DownloadManager::segmentReceived ()
       downloadSegments ();
 }
 
-void DownloadManager::enque (std::vector<Segment *> segments)
+void DownloadManager::enque (std::vector<Ptr<Segment > > segments)
 {
   // ok enque them
   if(segments.size () < 1)
@@ -184,7 +192,7 @@ void DownloadManager::downloadSegments()
   dl->setCongWindow(lastDownloader->getCongWindow ());
   lastDownloader = dl;
 
-  Segment* seg_to_dl = *(enquedSegments.begin ());
+  Ptr<Segment> seg_to_dl = *(enquedSegments.begin ());
   enquedSegments.erase (enquedSegments.begin ());
 
   dl->download (seg_to_dl);
@@ -222,19 +230,19 @@ IDownloader* DownloadManager::getFreeDownloader ()
     return NULL;
 }
 
-std::vector<Segment*> DownloadManager::retriveFinishedSegments()
+std::vector<ns3::Ptr<Segment> > DownloadManager::retriveFinishedSegments()
 {
   return finishedSegments;
 }
 
-std::vector<Segment *> DownloadManager::retriveUnfinishedSegments()
+std::vector<ns3::Ptr<Segment> > DownloadManager::retriveUnfinishedSegments()
 {
    //we cant return anything just continue download player will stall
   if(finishedSegments.size () < 1)
-    return std::vector<Segment*> ();
+    return std::vector<Ptr<Segment> > ();
 
   //check if base layer is here and order segments
-  std::vector<utils::Segment *> checked_segs;
+  std::vector<Ptr<utils::Segment > > checked_segs;
   //check if segment levels are continous.
   bool foundLayer = false;
   for(int i = 0; i < finishedSegments.size (); i++)
@@ -256,7 +264,7 @@ std::vector<Segment *> DownloadManager::retriveUnfinishedSegments()
   if(checked_segs.size () == 0)
   {
     //fprintf(stderr, "Base layer is missing.\n");
-    return std::vector<Segment*> ();
+    return std::vector<Ptr<Segment> > ();
   }
 
   // turn off all downloaders segments are too late now
@@ -270,7 +278,7 @@ std::vector<Segment *> DownloadManager::retriveUnfinishedSegments()
     }
   }
 
-  std::vector<Segment*> return_segs = checked_segs;
+  std::vector<Ptr<Segment> >return_segs = checked_segs;
   enquedSegments.clear ();
   finishedSegments.clear ();
 

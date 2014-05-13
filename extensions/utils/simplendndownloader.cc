@@ -10,7 +10,7 @@ SimpleNDNDownloader::SimpleNDNDownloader() : IDownloader()
   chunk_number = 0;
 }
 
-bool SimpleNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
+bool SimpleNDNDownloader::downloadBefore (Ptr<Segment> s, int miliSeconds)
 {
   return download(s);
 }
@@ -27,7 +27,7 @@ uint64_t SimpleNDNDownloader::getPhysicalBitrate()
 }
 
 
-bool SimpleNDNDownloader::download (Segment *s)
+bool SimpleNDNDownloader::download (Ptr<Segment> s)
 {
   NS_LOG_FUNCTION(this);
   StartApplication ();

@@ -32,9 +32,9 @@ namespace ns3
       ns3::utils::Buffer* buf;
       SVCSegmentExtractor* extractor;
 
-      std::vector<utils::Segment*> current_segments;
+      std::vector<Ptr<utils::Segment > > current_segments;
 
-      void addToBuffer(std::vector<utils::Segment*> received_segs);
+      void addToBuffer(std::vector<Ptr<utils::Segment > > received_segs);
 
       bool isPlaying;
 
@@ -49,6 +49,8 @@ namespace ns3
       std::string m_nodeName;
 
       Time dlStartTime;
+
+      EventId lastConsumeEvent;
 
       virtual void update(ObserverMessage msg);
 

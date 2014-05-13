@@ -6,6 +6,7 @@
 #include "libdash/libdash.h"
 
 #include "ns3-dev/ns3/timer.h"
+#include "ns3/pointer.h"
 
 #include "../utils/buffer.h"
 #include "../utils/segment.h"
@@ -61,7 +62,7 @@ namespace ns3
        * \brief Gets the next n Segments which should be downloaded. If we have single layer encoded data n = 1. If we have multi layer content like svc n >= 1. Leading segments have represent low quality layers.
        * \return A vector of Segments.
        */
-      virtual std::vector<utils::Segment*> getNextSegments();
+      virtual std::vector<Ptr<utils::Segment> > getNextSegments();
 
       /*!
        * \brief Updates the statistics on which adaptation desicions are made.

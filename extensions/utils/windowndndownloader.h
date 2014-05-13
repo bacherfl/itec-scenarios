@@ -50,13 +50,13 @@ namespace ns3
       WindowNDNDownloader();
 
       /* download Segment - calls download(URI) */
-      virtual bool download (Segment *s);
+      virtual bool download (Ptr<Segment> s);
 
       /* download from URI */
       virtual bool download (std::string URI);
 
       /* download segment before - not implemented here */
-      virtual bool downloadBefore(Segment *s, int miliSeconds);
+      virtual bool downloadBefore(Ptr<Segment> s, int miliSeconds);
 
       // (overridden from ndn::App) Callback that will be called when Data arrives
       virtual void OnData (Ptr<const ndn::Data> contentObject);

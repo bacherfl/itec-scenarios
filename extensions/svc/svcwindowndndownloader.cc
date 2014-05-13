@@ -19,7 +19,7 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   }
 
   // check if this is level 0 - we are not dropping level 0 = baselayer on purpose.
-  if (this->curSegment->getLevel() != 0)
+  if (this->segment->getLevel() != 0)
   {
     //check if packet was dropped on purpose.
     Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
@@ -63,7 +63,7 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 }*/
 
 
-bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
+bool SVCWindowNDNDownloader::downloadBefore(Ptr<Segment> s, int miliSeconds)
 {
   /*this->deadline = Simulator::Now().ToInteger(Time::MS) + miliSeconds;
 
@@ -82,11 +82,11 @@ bool SVCWindowNDNDownloader::downloadBefore(Segment *s, int miliSeconds)
 }
 
 
-bool SVCWindowNDNDownloader::download(Segment *s)
+bool SVCWindowNDNDownloader::download(Ptr<Segment> s)
 {
   NS_LOG_FUNCTION(this);
 
-  this->curSegment = s;
+  this->segment = s;
 
   // this means the last download probably was successful, cancel this event just in case
   //this->needDownloadBeforeEvent.Cancel();

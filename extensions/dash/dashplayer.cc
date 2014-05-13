@@ -28,7 +28,7 @@ void DashPlayer::play ()
   allSegmentsDownloaded = false;
   this->logDownloadedVideo (mpd->GetMPDPathBaseUrl ()->GetUrl ());
   streaming ();
-  Simulator::Schedule(Seconds(2.0), &DashPlayer::consume, this);
+  lastConsumeEvent = Simulator::Schedule(Seconds(2.0), &DashPlayer::consume, this);
 }
 
 void DashPlayer::streaming ()
@@ -46,7 +46,7 @@ void DashPlayer::streaming ()
     }
 
    //w8 if buffer is full
-    Segment* sample = current_segments.front ();
+    Ptr<Segment> sample = current_segments.front ();
     if(buf->bufferedSeconds () >= (buf->maxBufferSeconds () - sample->getDuration ()))
     {
       Simulator::Schedule(MilliSeconds (100), &DashPlayer::streaming, this);
@@ -79,6 +79,7 @@ void DashPlayer::stop ()
   {
     NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stopping..");
     isPlaying = false;
+    lastConsumeEvent.Cancel ();
     dwnManager->stop ();
     NotifyEnd(Simulator::Now().GetSeconds());
     this->WriteToFile(m_nodeName + ".txt");
@@ -94,10 +95,11 @@ void DashPlayer::update (ObserverMessage msg)
     case Observer::SegmentReceived:
     {
       NS_LOG_INFO("DashPlayer(" << m_nodeName << "): received SegmentReceived");
-      std::vector<Segment*> received_segs = dwnManager->retriveFinishedSegments ();
+      std::vector<Ptr<Segment > > received_segs = dwnManager->retriveFinishedSegments ();
+
 
       unsigned int total_size = 0;
-      Segment* s;
+      Ptr<Segment> s;
       for(int i = 0; i < received_segs.size (); i++)
       {
         s = received_segs.at (i);
@@ -146,5 +148,5 @@ void DashPlayer::consume ()
     NS_LOG_INFO("DashPlayer(" << m_nodeName << "): CONSUME FAILED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   }
 
-  Simulator::Schedule(Seconds (CONSUME_INTERVALL), &DashPlayer::consume, this);
+  lastConsumeEvent = Simulator::Schedule(Seconds (CONSUME_INTERVALL), &DashPlayer::consume, this);
 }

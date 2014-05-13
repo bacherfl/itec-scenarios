@@ -30,18 +30,18 @@ namespace ns3
 
       DownloadManager(DownloaderType dwType, Ptr<ns3::Node> node);
 
-      ~DownloadManager(){}
+      ~DownloadManager();
 
       void update(ObserverMessage msg);
 
-      void enque(std::vector<Segment*> segments);
+      void enque(std::vector<Ptr<Segment> > segments);
 
       void stop();
 
       uint64_t getPhysicalBitrate();
 
-      std::vector<Segment*> retriveFinishedSegments();
-      std::vector<Segment*> retriveUnfinishedSegments();
+      std::vector<Ptr<Segment > > retriveFinishedSegments();
+      std::vector<Ptr<Segment > >retriveUnfinishedSegments();
 
   private:
       bool hadSpecialNACK;
@@ -52,10 +52,10 @@ namespace ns3
       std::vector<IDownloader*> downloaders;
       IDownloader* lastDownloader;
 
-      std::vector<Segment*> enquedSegments;
-      std::vector<Segment*> finishedSegments;
+      std::vector<Ptr<Segment > > enquedSegments;
+      std::vector<Ptr<Segment > > finishedSegments;
 
-      void addToFinished(Segment* seg);
+      void addToFinished(Ptr<Segment> seg);
 
       Ptr<ns3::Node> node;
 
