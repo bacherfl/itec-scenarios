@@ -30,7 +30,7 @@ namespace ns3
 
       DownloadManager(DownloaderType dwType, Ptr<ns3::Node> node);
 
-      ~DownloadManager(){}
+      ~DownloadManager();
 
       void update(ObserverMessage msg);
 

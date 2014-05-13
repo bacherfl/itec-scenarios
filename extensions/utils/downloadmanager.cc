@@ -22,6 +22,14 @@ DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
   lastDownloader = downloaders.front ();
 }
 
+DownloadManager::~DownloadManager ()
+{
+  for(int i = 0; i < downloaders.size (); i++)
+    if(downloaders.at (i) != NULL)
+      delete downloaders.at (i);
+  downloaders.clear ();
+}
+
 void DownloadManager::update(ObserverMessage msg)
 {
   switch(msg)
