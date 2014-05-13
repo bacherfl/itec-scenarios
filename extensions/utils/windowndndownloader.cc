@@ -41,6 +41,7 @@ void WindowNDNDownloader::collectStats()
   */
   this->statsOutputTimer = Simulator::Schedule(MilliSeconds(STATS_OUTPUT_TIMER_MS),
                                                &WindowNDNDownloader::collectStats, this);
+
 }
 
 
@@ -121,7 +122,9 @@ bool WindowNDNDownloader::download (std::string URI)
   // init the internal status vectors
 
   this->curSegmentStatus.chunk_status.clear();
-  //this->curSegmentStatus.chunk_timeout_events.clear();
+
+  // clear chunk timeout events in case something is still in there
+  this->curSegmentStatus.chunk_timeout_events.clear ();
 
   this->curSegmentStatus.chunk_status.resize(this->curSegmentStatus.num_chunks, NotInitiated);
   //this->curSegmentStatus.chunk_timeout_events.resize(this->curSegmentStatus.num_chunks);
@@ -384,6 +387,7 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
     // make sure to cancel the OnTimeout event for this chunk
     this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
+    this->curSegmentStatus.chunk_timeout_events.erase(c_chunk_number);
 
     // adjust stats
     this->packets_inflight--;
@@ -480,6 +484,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 
   // make sure to cancel the OnTimeout event for this chunk
   this->curSegmentStatus.chunk_timeout_events[c_chunk_number].Cancel();
+  this->curSegmentStatus.chunk_timeout_events.erase (c_chunk_number);
 
   if (!duplicate)
   {
@@ -566,13 +571,23 @@ void WindowNDNDownloader::abortDownload ()
 
 void WindowNDNDownloader::CancelAllTimeoutEvents()
 {
+    for (std::map<int, EventId>::iterator it = this->curSegmentStatus.chunk_timeout_events.begin();
+         it != this->curSegmentStatus.chunk_timeout_events.end(); ++it)
+    {
+        it->second.Cancel();
+    }
+
+    this->curSegmentStatus.chunk_timeout_events.clear ();
+
+    /*
+
   for (int i = 0; i < this->curSegmentStatus.num_chunks; i++)
   {
     if (this->curSegmentStatus.chunk_status[i] == Requested)
     {
       this->curSegmentStatus.chunk_timeout_events[i].Cancel();
     }
-  }
+  } */
 }
 
 // Processing upon start of the application
