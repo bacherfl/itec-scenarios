@@ -28,6 +28,7 @@ namespace ns3
     {
     public:
       IDownloader();
+      virtual ~IDownloader(){}
 
       virtual bool wasSuccessfull();
       virtual bool downloadFinished();
