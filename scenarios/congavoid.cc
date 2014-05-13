@@ -89,6 +89,14 @@ int main(int argc, char* argv[])
     client_map[r] = swap;
   }
 
+  // print client map
+  fprintf(stderr, "client_map=");
+  for (int i = 0; i < streamers.size(); i++)
+  {
+      fprintf(stderr, "%d,", client_map[i]);
+  }
+  fprintf(stderr, "\n");
+
   NodeContainer providers;
   nodeIndex = 0;
   nodeNamePrefix = std::string("ContentSrc");
@@ -412,6 +420,9 @@ int main(int argc, char* argv[])
   ns3::ExponentialVariable exp(12,30);
   Time stopTime = Seconds (3600.0);
 
+
+  fprintf(stderr, "StartTime=");
+
   for (ApplicationContainer::Iterator i = apps.Begin (); i != apps.End (); ++i)
   {
     //int startTime = rand() % 30 + 1; //1-30
@@ -423,7 +434,10 @@ int main(int argc, char* argv[])
     //( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
     ( *i)->SetStartTime(Time::FromDouble(startTime, Time::S));
     ( *i)->SetStopTime(stopTime);
+
+    fprintf(stderr, "%f,", startTime);
   }
+  fprintf(stderr, "\n");
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
