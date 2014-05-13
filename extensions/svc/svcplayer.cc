@@ -44,7 +44,7 @@ void SvcPlayer::streaming ()
       return;
     }
 
-    utils::Segment* sample = current_segments.at(0);
+    Ptr<utils::Segment> sample = current_segments.at(0);
 
     //wait if buffer is full
     if(buf->bufferedSeconds () >= (buf->maxBufferSeconds () - sample->getDuration ()))
@@ -100,7 +100,7 @@ void SvcPlayer::update (ObserverMessage msg)
   }
 }
 
-void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
+void SvcPlayer::addToBuffer (std::vector<Ptr<utils::Segment> > received_segs)
 {
   //fprintf(stderr, "received_segs.size () = %d\n",(int) received_segs.size ());
   if(received_segs.size () == 0)
@@ -110,8 +110,8 @@ void SvcPlayer::addToBuffer (std::vector<utils::Segment *> received_segs)
   }
 
   unsigned int total_size = 0;
-  utils::Segment* s = NULL;
-  utils::Segment* s_highest = received_segs.front ();
+  Ptr<utils::Segment> s = NULL;
+  Ptr<utils::Segment> s_highest = received_segs.front ();
   for(int i = 0; i < received_segs.size (); i++)
   {
     s = received_segs.at(i);

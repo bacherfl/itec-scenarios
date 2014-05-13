@@ -8,6 +8,8 @@
 #include <sys/stat.h>
 #include <pwd.h>
 
+#include "ns3/pointer.h"
+
 #include <stdio.h>
 
 #include <vector>
@@ -26,9 +28,9 @@ namespace ns3
       SVCSegmentExtractor(dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf,
                           unsigned int maxWidth, unsigned int maxHeight, uint64_t max_physical_speed);
 
-      std::vector<utils::Segment*> getNextSegments();
+      std::vector<ns3::Ptr<utils::Segment > > getNextSegments();
 
-      void update(utils::Segment* highest_segment);
+      void update(ns3::Ptr<utils::Segment> highest_segment);
 
     private:
       dash::mpd::IMPD* mpd;
@@ -42,11 +44,11 @@ namespace ns3
       utils::Buffer* buf;
       uint64_t max_physical_speed;
 
-      std::vector<utils::Segment*> highestRequestedHistory;
-      std::vector<utils::Segment*> highestReceivedHistory;
+      std::vector<Ptr<utils::Segment > > highestRequestedHistory;
+      std::vector<Ptr<utils::Segment > > highestReceivedHistory;
 
-      std::vector<utils::Segment*> considerHistory(std::vector<utils::Segment*> segments);
-      std::vector<utils::Segment*> dropSegments(std::vector<utils::Segment *> segments, int max_level);
+      std::vector<Ptr<utils::Segment > > considerHistory(std::vector<Ptr<utils::Segment > > segments);
+      std::vector<Ptr<utils::Segment > > dropSegments(std::vector<Ptr<utils::Segment > > segments, int max_level);
 
       dash::mpd::IPeriod* getFirstPeriod();
       unsigned int getFileSize (std::string filename);

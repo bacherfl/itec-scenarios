@@ -23,7 +23,7 @@ SVCSegmentExtractor::SVCSegmentExtractor(dash::mpd::IMPD* mpd, std::string datas
     this->base_url = mpd->GetBaseUrls().at(0)->GetUrl();
 }
 
-std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
+std::vector<ns3::Ptr<Segment> > SVCSegmentExtractor::getNextSegments()
 {
   std::vector<dash::mpd::IAdaptationSet*> sets = currentPeriod->GetAdaptationSets ();
   dash::mpd::IAdaptationSet* set = sets.at (0); //Todo deal with different sets
@@ -33,7 +33,7 @@ std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
   int width, height;
   dash::mpd::IRepresentation* rep;
 
-  std::vector<Segment*> segments;
+  std::vector<Ptr<Segment > > segments;
 
   for(size_t j = 0; j < reps.size(); j++)
   {
@@ -55,7 +55,7 @@ std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
           uri.append (seg_name);
 
           segments.push_back (
-                new Segment(uri, getFileSize(dataset_path + seg_name),
+                Create<Segment>(uri, getFileSize(dataset_path + seg_name),
                             rep->GetSegmentList()->GetDuration(), rep->GetBandwidth (),
                             atoi(rep->GetId ().c_str ()), currentSegmentNr));
         }
@@ -73,7 +73,7 @@ std::vector<Segment*> SVCSegmentExtractor::getNextSegments()
   return segments;
 }
 
-std::vector<Segment*> SVCSegmentExtractor::considerHistory(std::vector<Segment*> segments)
+std::vector<ns3::Ptr<Segment> > SVCSegmentExtractor::considerHistory(std::vector<Ptr<Segment> > segments)
 {
   int history_size = highestReceivedHistory.size ();
 
@@ -119,9 +119,9 @@ std::vector<Segment*> SVCSegmentExtractor::considerHistory(std::vector<Segment*>
   return segments;
 }
 
-std::vector<Segment*> SVCSegmentExtractor::dropSegments(std::vector<Segment*> segments, int max_level)
+std::vector<ns3::Ptr<Segment> > SVCSegmentExtractor::dropSegments(std::vector<ns3::Ptr<Segment> > segments, int max_level)
 {
-  for(std::vector<Segment*>::iterator it = segments.begin (); it != segments.end (); )
+  for(std::vector<ns3::Ptr<Segment> >::iterator it = segments.begin (); it != segments.end (); )
   {
     if((*it)->getLevel() > max_level)
       segments.erase (it);
@@ -131,7 +131,7 @@ std::vector<Segment*> SVCSegmentExtractor::dropSegments(std::vector<Segment*> se
   return segments;
 }
 
-void SVCSegmentExtractor::update(utils::Segment *highest_segment)
+void SVCSegmentExtractor::update(ns3::Ptr<Segment> highest_segment)
 {
   if(highestRequestedHistory.back ()->getSegmentNumber () != highest_segment->getSegmentNumber ())
   {

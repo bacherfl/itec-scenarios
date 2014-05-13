@@ -45,12 +45,12 @@ void WindowNDNDownloader::collectStats()
 }
 
 
-bool WindowNDNDownloader::downloadBefore (Segment *s, int miliSeconds)
+bool WindowNDNDownloader::downloadBefore (Ptr<Segment> s, int miliSeconds)
 {
   return download(s);
 }
 
-bool WindowNDNDownloader::download (Segment *s)
+bool WindowNDNDownloader::download (Ptr<Segment> s)
 {
   NS_LOG_FUNCTION(this);
 

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <sstream>
+#include "ns3/simple-ref-count.h"
 
 #include "ns3-dev/ns3/log.h"
 
@@ -10,7 +11,7 @@ namespace ns3
 {
   namespace utils
   {
-    class Segment
+    class Segment : public ns3::SimpleRefCount<Segment>
     {
     public:
       Segment(std::string uri, unsigned int size,

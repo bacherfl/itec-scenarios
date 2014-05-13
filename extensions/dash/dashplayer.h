@@ -105,7 +105,7 @@ namespace ns3
       /*!
        * \brief List of segments that are currently in the download queue.
        */
-      std::vector<utils::Segment*> current_segments;
+      std::vector<Ptr<utils::Segment> > current_segments;
 
       /*!
        * \brief Flag that signals if all Segments of the downloaded queue are downloaded.

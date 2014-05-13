@@ -46,7 +46,7 @@ void DashPlayer::streaming ()
     }
 
    //w8 if buffer is full
-    Segment* sample = current_segments.front ();
+    Ptr<Segment> sample = current_segments.front ();
     if(buf->bufferedSeconds () >= (buf->maxBufferSeconds () - sample->getDuration ()))
     {
       Simulator::Schedule(MilliSeconds (100), &DashPlayer::streaming, this);
@@ -93,10 +93,10 @@ void DashPlayer::update (ObserverMessage msg)
   {
     case Observer::SegmentReceived:
     {
-      std::vector<Segment*> received_segs = dwnManager->retriveFinishedSegments ();
+      std::vector<Ptr<Segment > > received_segs = dwnManager->retriveFinishedSegments ();
 
       unsigned int total_size = 0;
-      Segment* s;
+      Ptr<Segment> s;
       for(int i = 0; i < received_segs.size (); i++)
       {
         s = received_segs.at (i);

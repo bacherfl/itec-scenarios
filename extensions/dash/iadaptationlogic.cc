@@ -43,7 +43,7 @@ dash::mpd::IRepresentation* IAdaptationLogic::getBestRepresentation(dash::mpd::I
   return best;
 }
 
-std::vector<Segment *> IAdaptationLogic::getNextSegments()
+std::vector<ns3::Ptr<Segment> > IAdaptationLogic::getNextSegments()
 {
   dash::mpd::IRepresentation* rep = getOptimalRepresentation(currentPeriod);
 
@@ -56,7 +56,7 @@ std::vector<Segment *> IAdaptationLogic::getNextSegments()
     //fprintf(stderr, "SVC-Content dedected. Stacking segments..\n");
   }
 
-  std::vector<Segment *> s;
+  std::vector<Ptr<Segment> > s;
   std::string uri("");
   std::string seg_name("");
 
@@ -80,7 +80,7 @@ std::vector<Segment *> IAdaptationLogic::getNextSegments()
         seg_name.append(reps.at(j)->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
         uri.append (seg_name);
 
-        s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name),
+        s.push_back (Create<Segment>(uri, getFileSize(dataset_path + seg_name),
                                  reps.at(j)->GetSegmentList()->GetDuration(),
                                  reps.at(j)->GetBandwidth (),
                                  atoi(reps.at(j)->GetId ().c_str ()), currentSegmentNr));/*svc level is set to rep level.*/
@@ -94,7 +94,7 @@ std::vector<Segment *> IAdaptationLogic::getNextSegments()
       seg_name.append(rep->GetSegmentList()->GetSegmentURLs().at(currentSegmentNr)->GetMediaURI());
       uri.append (seg_name);
 
-      s.push_back (new Segment(uri, getFileSize(dataset_path + seg_name),
+      s.push_back (Create<Segment>(uri, getFileSize(dataset_path + seg_name),
                                rep->GetSegmentList()->GetDuration(),
                                rep->GetBandwidth (), atoi(rep->GetId ().c_str ()), currentSegmentNr));
 

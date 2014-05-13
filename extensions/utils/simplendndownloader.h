@@ -42,8 +42,8 @@ namespace ns3
     public:
       SimpleNDNDownloader();
 
-      virtual bool download (Segment *s);
-      virtual bool downloadBefore(Segment *s, int miliSeconds);
+      virtual bool download (Ptr<Segment> s);
+      virtual bool downloadBefore(Ptr<Segment> s, int miliSeconds);
 
       // (overridden from ndn::App) Callback that will be called when Data arrives
       virtual void OnData (Ptr<const ndn::Data> contentObject);
