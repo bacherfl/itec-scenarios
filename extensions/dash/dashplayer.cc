@@ -76,8 +76,9 @@ void DashPlayer::stop ()
 {
   if(isPlaying)
   {
-    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stop");
+    NS_LOG_INFO("DashPlayer(" << m_nodeName << "): Stopping..");
     isPlaying = false;
+    dwnManager->stop ();
     NotifyEnd(Simulator::Now().GetSeconds());
     this->WriteToFile(m_nodeName + ".txt");
   }

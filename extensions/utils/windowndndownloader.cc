@@ -552,10 +552,13 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
 void WindowNDNDownloader::abortDownload ()
 {
   this->scheduleDownloadTimer.Cancel ();
+  this->resetStatisticsTimer.Cancel ();
+  this->statsOutputTimer.Cancel ();
+
   CancelAllTimeoutEvents();
 
   //abort all segments
-  for (int i = 0; i < this->curSegmentStatus.num_chunks; i++)
+  for (int i = 0; i < curSegmentStatus.chunk_status.size (); i++)
   {
     if (this->curSegmentStatus.chunk_status[i] != Received)
     {
@@ -566,7 +569,6 @@ void WindowNDNDownloader::abortDownload ()
   // make sure to set finished to false
   this->finished = false;
 
-  //StopApplication ();
 }
 
 void WindowNDNDownloader::CancelAllTimeoutEvents()

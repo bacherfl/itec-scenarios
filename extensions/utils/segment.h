@@ -17,6 +17,8 @@ namespace ns3
               unsigned int duration, unsigned int avgLevelBitrate,
               unsigned int level, unsigned int segmentNumber);
 
+      ~Segment(){}
+
       unsigned int getSize();
       std::string getUri();
       unsigned int getDuration();

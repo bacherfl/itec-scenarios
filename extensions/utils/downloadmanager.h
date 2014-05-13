@@ -36,6 +36,8 @@ namespace ns3
 
       void enque(std::vector<Segment*> segments);
 
+      void stop();
+
       uint64_t getPhysicalBitrate();
 
       std::vector<Segment*> retriveFinishedSegments();
