@@ -130,10 +130,10 @@ int main(int argc, char* argv[])
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true"); // try without limits first...
   //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate",  "EnableNACKs", "true");
   //ndnHelper.EnableLimits (true, Seconds(0.2), 100, 4200);
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 10k chunks in cache (about 4MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 1k chunks in cache (about 4MB)
   ndnHelper.Install (providers);
   ndnHelper.Install (streamers);
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "2500"); // all entities can store up to 10k chunks in cache (about 100MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 25k chunks in cache (about 100MB)
   ndnHelper.Install (routers);
 
   //change strategy for adaptive NODE
