@@ -106,7 +106,7 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
 
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
-    Ptr<ndn::Interest> interest = prepareInterestForDownload (chunk_number);
+    prepareInterestForDownload (chunk_number);
 
     // extract the string level
     std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
