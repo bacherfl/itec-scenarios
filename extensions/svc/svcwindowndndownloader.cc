@@ -106,32 +106,57 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
 
   if(this->curSegmentStatus.bytesToDownload != 0)
   {
-    prepareInterestForDownload (chunk_number);
+    // check that we actually need this chunk, it might have been received by now
+    while (this->curSegmentStatus.chunk_status[chunk_number] == Received)
+    {
+      chunk_number = GetNextNeededChunkNumber ();
+      if (chunk_number == -1)
+      {
+        // we seem to be done for now
+        break;
+      }
+    }
 
-    // extract the string level
-    std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
-    uri = uri.substr(0, uri.find_first_of("."));
+    // make sure we have a valid chunk_number to request
+    if (chunk_number != -1)
+    {
+      prepareInterestForDownload (chunk_number);
+
+      // extract the string level
+      std::string uri = this->curSegmentStatus.base_uri.substr (this->curSegmentStatus.base_uri.find_last_of ("-L")+1);
+      uri = uri.substr(0, uri.find_first_of("."));
 
 
-    int level = atoi(uri.c_str());
+      int level = atoi(uri.c_str());
 
-    ndn::SVCLevelTag levelTag;
-    levelTag.Set(level);
-    interest->GetPayload ()->AddPacketTag (levelTag);
+      ndn::SVCLevelTag levelTag;
+      levelTag.Set(level);
+      interest->GetPayload ()->AddPacketTag (levelTag);
 
-    ndn::SVCBitrateTag bitrateTag;
-    bitrateTag.Set (curSegmentStatus.avgBitrate);
-    interest->GetPayload ()->AddPacketTag (bitrateTag);
+      /*
+      ndn::SVCBitrateTag bitrateTag;
+      bitrateTag.Set (curSegmentStatus.avgBitrate);
+      interest->GetPayload ()->AddPacketTag (bitrateTag);
+        */
+      /*ndn::DeadlineTag deadlineTag;
+      deadlineTag.Set ( this->deadline - Simulator::Now().ToInteger(Time::MS) );
+      interest->GetPayload ()->AddPacketTag (deadlineTag);*/
 
-    /*ndn::DeadlineTag deadlineTag;
-    deadlineTag.Set ( this->deadline - Simulator::Now().ToInteger(Time::MS) );
-    interest->GetPayload ()->AddPacketTag (deadlineTag);*/
+      // Call trace (for logging purposes)
+      m_transmittedInterests (interest, this, m_face);
+      m_face->ReceiveInterest (interest);
 
-    // Call trace (for logging purposes)
-    m_transmittedInterests (interest, this, m_face);
-    m_face->ReceiveInterest (interest);
+      packets_sent_this_second++;
+    }
+  }
 
-    packets_sent_this_second++;
+  // else: either bytesToDownload = 0 or chunk_number was -1, in both cases:
+  chunk_number = this->GetNextNeededChunkNumber ();
+
+  if(chunk_number == -1 && !soonFinishedAlreadyFired)
+  {
+    soonFinishedAlreadyFired = false;
+    notifyAll(Observer::SoonFinished);
   }
 }
 
