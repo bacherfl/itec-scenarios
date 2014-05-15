@@ -171,12 +171,14 @@ int main(int argc, char* argv[])
   // Spreading 10 Videos to 100 clients:
   // V1: 1 client ( 1 )
   // V2: 1 client ( 2 )
-  // ...
-  // V6: 1 client ( 6 )
-  // V7: 15 clients ( 21 )
-  // V8: 25 clients ( 46 )
-  // V9: 27 clients ( 73 )
-  // V10: 27 clients ( 100 )
+  // V3. 2 clients ( 3 )
+  // V4. 2 clients ( 5 )
+  // V5: 2 clients ( 7 )
+  // V6: 4 clients ( 11 )
+  // V7: 8 clients ( 19 )
+  // V8: 16 clients ( 35 )
+  // V9: 32 clients ( 67 )
+  // V10: 33 clients ( 100 )
 
   int distribution[] = {1,2,3,5,7,11,19,35,67,100};
 
