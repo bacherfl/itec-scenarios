@@ -72,7 +72,6 @@ class SVCCountingStrategy: public Parent
 
 public:
   static TypeId GetTypeId ();
-
   static std::string GetLogName ();
 
   SVCCountingStrategy () : super()
@@ -172,6 +171,7 @@ void SVCCountingStrategy<Parent>::resetLevelCount() {
     // calculate max_packets and metric
     uint64_t bitrate = getPhysicalBitrate(face);
     int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
+    max_packets = max_packets * 0.85;
 
     double metric = 0.0;
 
@@ -244,16 +244,12 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
     ( Ptr< Face > face, Ptr< const Interest > interest )
 {
   // check chunk number
-  std::string fname = interest->GetName().toUri();  // get the uri from interest
+  /*std::string fname = interest->GetName().toUri();  // get the uri from interest
   std::string chunk_nr = fname.substr(fname.find_last_of ("/chunk_")+1); // extract the chunk number remove .../chunk_X
   fname = fname.substr (0, fname.find_last_of ("/"));
 
-
   int chunk_number;
-  std::stringstream(chunk_nr) >> chunk_number;
-
-
-
+  std::stringstream(chunk_nr) >> chunk_number;*/
 
   // get the actual packet so we can access tags
   Ptr<Packet> packet = Wire::FromInterest (interest);
@@ -269,20 +265,9 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
   {
     level = levelTag.Get ();
   }
-  /*
-  if (level == 16)
-    level = 1;
-  else if (level == 32)
-    level = 2;
-  else
-    level = 0;
-    */
+
   // increase level counter for that face
   this->map[face->GetId ()]->IncreasePackets (level);
-
-
-  if (chunk_number > 10)
-    return true; // always allow chunks above 10
 
   // check if RandomNumber(0,1) < DropProbability
   // if yes --> drop (=  NOT CanSendOutInterest)
@@ -327,7 +312,7 @@ void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest 
     if (! HasEnoughResourcesToSend (inface, interest) )
     {
       // DROP
-      NS_LOG_INFO("Strategy: Dropping Interest " << interest->GetName ().toUri());
+      NS_LOG_UNCOND("Strategy::OnInterest Dropping Interest " << interest->GetName ().toUri());
       Ptr<Interest> nack = Create<Interest> (*interest);
       nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
 
@@ -356,11 +341,12 @@ void SVCCountingStrategy<Parent>::DidExhaustForwardingOptions
   nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
 
   levelTag.Set (-1); // means packet dropped on purpose
+  //NS_LOG_UNCOND("Strategy::DidExhaustForwardingOptions Dropping Interest " << interest->GetName ().toUri());
   nack->GetPayload ()->AddPacketTag (levelTag);
 
   BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
   {
-    NS_LOG_DEBUG ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
+    NS_LOG_UNCOND ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
     incoming.m_face->SendInterest (nack);
     SVCCountingStrategy<Parent>::m_outNacks (nack, incoming.m_face);
   }
