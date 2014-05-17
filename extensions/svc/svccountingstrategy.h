@@ -171,7 +171,7 @@ void SVCCountingStrategy<Parent>::resetLevelCount() {
     // calculate max_packets and metric
     uint64_t bitrate = getPhysicalBitrate(face);
     int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
-    max_packets = max_packets * 0.85;
+    max_packets = max_packets * 0.9;
 
     double metric = 0.0;
 
@@ -312,7 +312,7 @@ void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest 
     if (! HasEnoughResourcesToSend (inface, interest) )
     {
       // DROP
-      NS_LOG_UNCOND("Strategy::OnInterest Dropping Interest " << interest->GetName ().toUri());
+      //NS_LOG_UNCOND("Strategy::OnInterest Dropping Interest " << interest->GetName ().toUri());
       Ptr<Interest> nack = Create<Interest> (*interest);
       nack->SetNack (ndn::Interest::NACK_GIVEUP_PIT); // set this since ndn changes it anyway to this.
 
@@ -346,7 +346,7 @@ void SVCCountingStrategy<Parent>::DidExhaustForwardingOptions
 
   BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
   {
-    NS_LOG_UNCOND ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
+    //NS_LOG_UNCOND ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
     incoming.m_face->SendInterest (nack);
     SVCCountingStrategy<Parent>::m_outNacks (nack, incoming.m_face);
   }
