@@ -157,10 +157,11 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.InstallAll ();
 
    //consumer
-  ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  //ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
+  ndn::AppHelper dashRequesterHelper ("ns3::ndn::PlayerRequester");
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1/artifical1.mpd"));
-  dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
+  //dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
 
   ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));

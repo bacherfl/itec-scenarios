@@ -139,7 +139,7 @@ void Player::streaming ()
     }
 
 #ifdef DEBUG
-    NS_LOG_UNCOND("Player(" << m_nodeName << ") streaming segments " << listSegments.str().c_str ());
+    NS_LOG_INFO("Player(" << m_nodeName << ") streaming segments " << listSegments.str().c_str ());
 #endif
 
     // set currentSegmentNumber to the first segment if it's not initialized yet, as we always
@@ -171,7 +171,7 @@ void Player::consuming ()
     {
       if (this->buf->ConsumeFromBuffer (this->currentSegmentNumber, 0))
       {
-        fprintf(stderr, "Consumed segment %d level 0\n", this->currentSegmentNumber);
+        //fprintf(stderr, "Consumed segment %d level 0\n", this->currentSegmentNumber);
 
         int max_level_available = 0;
         // consume all levels
@@ -179,7 +179,7 @@ void Player::consuming ()
         {
           if (this->buf->ConsumeFromBuffer (this->currentSegmentNumber, i))
           {
-            fprintf(stderr, "Consumed segment %d level %d\n", this->currentSegmentNumber, i);
+            //fprintf(stderr, "Consumed segment %d level %d\n", this->currentSegmentNumber, i);
             max_level_available = i;
           } else {
             break;
@@ -212,7 +212,7 @@ void Player::consuming ()
 
     // ELSE:
     // CONSUME FAILED
-    fprintf(stderr, "failed to consume segment nr %d\n", this->currentSegmentNumber);
+    //fprintf(stderr, "failed to consume segment nr %d\n", this->currentSegmentNumber);
     this->logUnsmoothSecond (this->currentSegmentNumber, CONSUME_DELAY);
 
     // else:
@@ -240,8 +240,8 @@ void Player::update(ObserverMessage msg)
       fprintf(stderr, "Update received: No message...\n");
       break;
     case SegmentReceived:
-      fprintf(stderr, "segment received: segmentNr=%d, level=%d\n",
-              current_segments.at (0)->getSegmentNumber (), current_segments.at (0)->getLevel());
+      //fprintf(stderr, "segment received: segmentNr=%d, level=%d\n",
+        //      current_segments.at (0)->getSegmentNumber (), current_segments.at (0)->getLevel());
       // received several segments
 
       // add it to the buffer

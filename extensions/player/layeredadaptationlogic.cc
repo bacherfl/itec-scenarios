@@ -91,7 +91,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
       // i is the next, need segment number though
       next_segment_number = getNextNeededSegmentNumber(i);
 
-      fprintf(stderr, "Steady Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
+      //fprintf(stderr, "Steady Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
       this->currentSegmentNr = next_segment_number;
       return reps.at(i);
@@ -108,7 +108,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
       // i is the next, need segment number though
       next_segment_number = getNextNeededSegmentNumber(i);
 
-      fprintf(stderr, "Growing Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
+      //fprintf(stderr, "Growing Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
       this->currentSegmentNr = next_segment_number;
       return reps.at(i);
@@ -123,12 +123,12 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
     i_curr++;
     next_segment_number = getNextNeededSegmentNumber(i);
 
-    fprintf(stderr, "Quality Increase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
+    //fprintf(stderr, "Quality Increase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
     this->currentSegmentNr = next_segment_number;
     return reps.at(i);
   } else {
-    fprintf(stderr, "Quality Increase: IDLE....\n");
+    //fprintf(stderr, "Quality Increase: IDLE....\n");
     return NULL;
   }
 
