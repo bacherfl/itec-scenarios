@@ -18,7 +18,7 @@ Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwn
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
   if(mpd == NULL)
   {
-    fprintf(stderr, "ERROR: PlayerFactory::createPlayer::mpd %s is NULL\n", mpd_path.c_str ());
+    NS_LOG_ERROR("PlayerFactory::createPlayer: resolveMPD(" << mpd_path << ") returned NULL");
     return NULL;
   }
   // the dataset_path is needed for simulation purposes only!
@@ -26,8 +26,11 @@ Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwn
   dataset_path = dataset_path.substr (0, dataset_path.find_last_of ('/')+1);
 
   DownloadManager *dwnManager = new DownloadManager(dwnType, node);
+  ns3::player::LayeredBuffer *buffer = new ns3::player::LayeredBuffer();
+  ns3::dashimpl::LayeredAdaptationLogic *alogic = new ns3::dashimpl::LayeredAdaptationLogic(mpd, dataset_path, buffer);
 
-  return Create<Player>(mpd, dwnManager, Names::FindName (node));
+
+  return Create<Player>(mpd, alogic, buffer, dwnManager, Names::FindName (node));
 }
 
 dash::mpd::IMPD* PlayerFactory::resolveMPD(std::string mpd_path)

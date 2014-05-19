@@ -112,3 +112,7 @@ extensions/player/playerfactory.h
 extensions/player/playerfactory.cc
 scenarios/playertest.cc
 
+extensions/player/layeredadaptationlogic.h
+extensions/player/layeredadaptationlogic.cc
+extensions/player/layeredbuffer.h
+extensions/player/layeredbuffer.cc

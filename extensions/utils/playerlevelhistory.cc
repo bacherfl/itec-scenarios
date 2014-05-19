@@ -22,9 +22,19 @@ void PlayerLevelHistory::NotifyEnd(double endTime)
 }
 
 
+void PlayerLevelHistory::SetConsumedPlayerLevel(unsigned int segmentNumber, unsigned int consumedLevel)
+{
+  if (levelHistory.find (segmentNumber) == levelHistory.end ()) // store consumed level
+    this->levelHistory[segmentNumber] = consumedLevel;
+  else if (this->levelHistory[segmentNumber] < consumedLevel)
+    this->levelHistory[segmentNumber] = consumedLevel;
+}
+
 void PlayerLevelHistory::SetRequestedPlayerLevel(unsigned int segmentNumber, unsigned int requestedLevel)
 {
   if (requestedLevelHistory.find (segmentNumber) == requestedLevelHistory.end ()) // store requested level
+    this->requestedLevelHistory[segmentNumber] = requestedLevel;
+  else if (this->requestedLevelHistory[segmentNumber] < requestedLevel)
     this->requestedLevelHistory[segmentNumber] = requestedLevel;
 }
 
@@ -53,7 +63,7 @@ void PlayerLevelHistory::SetPlayerLevel(unsigned int segmentNumber,
     dlDurationHistory[segmentNumber] = dlDuration;
 }
 
-void PlayerLevelHistory::logUnsmoothSecond (unsigned int segmentNumber, unsigned int duration)
+void PlayerLevelHistory::logUnsmoothSecond (unsigned int segmentNumber, double duration)
 {
   if(unsmooth_seconds.find (segmentNumber) != unsmooth_seconds.end ())
     this->unsmooth_seconds[segmentNumber] += duration;

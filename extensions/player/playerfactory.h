@@ -26,6 +26,7 @@
 #include "../utils/idownloader.h"
 //#include "../utils/buffer.h"
 #include "../utils/downloadmanager.h"
+#include "layeredbuffer.h"
 
 namespace ns3
 {

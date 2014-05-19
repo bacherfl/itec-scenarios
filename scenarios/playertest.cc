@@ -93,6 +93,20 @@ int main(int argc, char* argv[])
   ApplicationContainer appContainer;
   appContainer = dashRequesterHelper.Install(contentDst);
 
+
+  for (ApplicationContainer::Iterator i = appContainer.Begin (); i != appContainer.End (); ++i)
+  {
+    //int startTime = rand() % 30 + 1; //1-30
+    //int startTime = exp.GetInteger () + 1;
+    double startTime = 2.0;
+
+    //fprintf(stderr,"starttime = %d\n", startTime);
+    //fprintf(stderr,"starttime = %f\n", startTime);
+    //( *i)->SetStartTime(Time::FromInteger (startTime, Time::S));
+    ( *i)->SetStartTime(Time::FromDouble(startTime, Time::S));
+
+  }
+
   ndn::AppHelper cProviderHelper ("ContentProvider");
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
   cProviderHelper.SetAttribute("Prefix", StringValue("/itec/bbb"));

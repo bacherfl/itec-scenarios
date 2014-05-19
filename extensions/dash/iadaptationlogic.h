@@ -68,9 +68,20 @@ namespace ns3
        * \brief Updates the statistics on which adaptation desicions are made.
        * \param start Start time of the download of a segment.
        * \param stop End time of the download of a segment.
+       * \param segment_number the number of the segment retrieved
+       * \param segment_level the level of the segment retrieved
        * \param segment_size The size of the downloaded segment.
        */
-      virtual void updateStatistic(Time start, Time stop, unsigned int segment_size) = 0;
+      virtual void segmentRetrieved(Time start, Time stop,
+                                    unsigned int segment_number, unsigned int segment_level, unsigned int segment_size) = 0;
+
+      /*!
+        * \brief notifys the logic that we failed to receive a certain segment
+        * \param segment_number the segment number of the segment we failed to receive
+        * \param segment_level the level of the segment we failed to receive
+      */
+      virtual void segmentFailed(unsigned int segment_number, unsigned int segment_level) = 0;
+
 
     protected:
       dash::mpd::IMPD* mpd;

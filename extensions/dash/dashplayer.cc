@@ -109,7 +109,7 @@ void DashPlayer::update (ObserverMessage msg)
 
       //fprintf(stderr, "DASH-Player received %d segments for segNumber %u with total size of %u\n", (int)received_segs.size (), received_segs.at(0)->getSegmentNumber(), total_size);
 
-      alogic->updateStatistic (dlStartTime, Simulator::Now (), total_size);
+      alogic->segmentRetrieved (dlStartTime, Simulator::Now (), s->getSegmentNumber (), -1, total_size );
 
       if(!buf->addData (current_segments.front()->getDuration ()))
       {

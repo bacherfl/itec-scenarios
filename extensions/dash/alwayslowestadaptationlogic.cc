@@ -4,11 +4,19 @@ NS_LOG_COMPONENT_DEFINE ("AlwaysLowestAdaptationLogic");
 
 using namespace ns3::dashimpl;
 
-AlwaysLowestAdaptationLogic::AlwaysLowestAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, utils::Buffer *buf) : IAdaptationLogic(mpd, dataset_path, buf)
+AlwaysLowestAdaptationLogic::AlwaysLowestAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, utils::Buffer *buf)
+  : IAdaptationLogic(mpd, dataset_path, buf)
 {
 }
 
-void AlwaysLowestAdaptationLogic::updateStatistic (Time, Time, unsigned int)
+
+void AlwaysLowestAdaptationLogic::segmentRetrieved(Time start, Time stop,
+                              unsigned int segment_number, unsigned int segment_level, unsigned int segment_size)
+{
+
+}
+
+void AlwaysLowestAdaptationLogic::segmentFailed(unsigned int segment_number, unsigned int segment_level)
 {
 
 }
