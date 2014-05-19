@@ -3,7 +3,7 @@
 using namespace ns3::dashimpl;
 using namespace ns3::utils;
 
-NS_LOG_COMPONENT_DEFINE ("PlayerFactory");
+NS_LOG_COMPONENT_DEFINE ("DashPlayerFactory");
 
 PlayerFactory* PlayerFactory::instance = NULL;
 

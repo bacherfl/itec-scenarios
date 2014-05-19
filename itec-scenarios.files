@@ -104,3 +104,11 @@ topologies/congavoid_6clients.top
 topologies/congavoid_100clients.top
 extensions/svc/svcstaticstrategy.h
 extensions/svc/svcstaticstrategy.cc
+extensions/player/player.h
+extensions/player/player.cc
+extensions/playerrequester.h
+extensions/playerrequester.cc
+extensions/player/playerfactory.h
+extensions/player/playerfactory.cc
+scenarios/playertest.cc
+
