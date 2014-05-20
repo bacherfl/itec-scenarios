@@ -73,6 +73,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
 
   std::vector<dash::mpd::IRepresentation*> reps = this->getRepresentationsOrderdById();
 
+
   int i = 0;
 
   // Get i_curr
@@ -128,21 +129,24 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
     i++;
   }
 
+  //fprintf(stderr, "Growing Phase done for i_curr=%d\n", i_curr);
+
   // Quality Increase Phase
-  if (i != reps.size()-1)
+  if (i != reps.size())
   {
     i_curr++;
     next_segment_number = getNextNeededSegmentNumber(i);
 
-    //fprintf(stderr, "Quality Increase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
     if (next_segment_number < getNumberOfSegmentsOfCurrenPeriod())
     {
+      //fprintf(stderr, "Quality Increase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
+
       this->currentSegmentNr = next_segment_number;
       return reps.at(i);
     }
   }
 
-  //fprintf(stderr, "Quality Increase: IDLE....\n");
+  //fprintf(stderr, "IDLE....\n");
   return NULL;
 
 
