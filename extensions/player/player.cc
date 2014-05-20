@@ -218,6 +218,7 @@ void Player::update(ObserverMessage msg)
       fprintf(stderr, "Update received: No message...\n");
       break;
     case SegmentReceived:
+      {
       //fprintf(stderr, "segment received: segmentNr=%d, level=%d\n",
         //      current_segments.at (0)->getSegmentNumber (), current_segments.at (0)->getLevel());
       // received several segments
@@ -225,16 +226,26 @@ void Player::update(ObserverMessage msg)
       // add it to the buffer
       this->buf->AddToBuffer(current_segment->getSegmentNumber (), current_segment->getLevel() );
 
+
       // tell adaptation logic that we retrieved this segment
       this->alogic->segmentRetrieved (dlStartTime, Simulator::Now(),
                                       current_segment->getSegmentNumber (),
                                       current_segment->getLevel (),
                                       current_segment->getSize ());
+
       // tell our stats collector some things
       SetPlayerLevel(current_segment->getSegmentNumber(), current_segment->getLevel(),
                      0, current_segment->getSize (),
                      (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
 
+/*
+      int    timeDiff = (int) (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds () );
+      int    tSize = current_segment->getSize ();
+
+      double bytess = (double) tSize  / (double) timeDiff;
+
+      fprintf(stderr, "It took %d ms to download %d byte (= %f kbit/s) \n", timeDiff, tSize, (double)bytess*8.0 );
+*/
 
       // remove from current_segments
       //current_segments.clear();
@@ -243,6 +254,7 @@ void Player::update(ObserverMessage msg)
       this->scheduleNextStreaming (0.0);
 
       break;
+      }
     case NackReceived:
       fprintf(stderr, "Nack received...\n");
       break;
@@ -259,7 +271,6 @@ void Player::SetPlayerLevel(unsigned int segmentNumber,
                                         unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration)
 {
  // cout << "SEgmentNumber: " << segmentNumber << ", level=" << level << ", size=" << levelHistory.size() << endl;
-
   if (levelHistory.find (segmentNumber) == levelHistory.end () ||
      (levelHistory.find (segmentNumber) != levelHistory.end () || levelHistory[segmentNumber] < level) ) //write biggest level
     this->levelHistory[segmentNumber] = level;
@@ -272,6 +283,7 @@ void Player::SetPlayerLevel(unsigned int segmentNumber,
     segSizeHistory[segmentNumber] += segSize;
   else
     segSizeHistory[segmentNumber] = segSize;
+
 
   if(dlDurationHistory.find (segmentNumber) == dlDurationHistory.end())
     dlDurationHistory[segmentNumber] = dlDuration;

@@ -20,27 +20,6 @@ LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string
   this->buf = buf;
 
   this->last_consumed_segment_number = -1;
-
-
-  averageBandwidth.resize(MAX_LEVEL+1, 0);
-
-  // calculate avg bandwidth (independent per layer)
-  for (int i = 0; i <= MAX_LEVEL; i++)
-  {
-    int bandwidth = getAvgBandwidthForLayer(i);
-    averageBandwidth.at(i) = bandwidth;
-  }
-
-  // make it independent
-  for (int i = 1; i <= MAX_LEVEL; i++)
-  {
-    int sum = 0;
-    for (int j = i+1; j <= MAX_LEVEL; j++)
-    {
-      sum += averageBandwidth.at(j);
-    }
-    averageBandwidth.at(i) = averageBandwidth.at(i) - sum;
-  }
 }
 
 /*
@@ -115,10 +94,13 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
       // i is the next, need segment number though
       next_segment_number = getNextNeededSegmentNumber(i);
 
-      //fprintf(stderr, "Steady Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
+      if (next_segment_number < getNumberOfSegmentsOfCurrenPeriod())
+      {
+        //fprintf(stderr, "Steady Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
-      this->currentSegmentNr = next_segment_number;
-      return reps.at(i);
+        this->currentSegmentNr = next_segment_number;
+        return reps.at(i);
+      }
     }
 
     i++;
@@ -134,10 +116,13 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
       // i is the next, need segment number though
       next_segment_number = getNextNeededSegmentNumber(i);
 
-      //fprintf(stderr, "Growing Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
+      if (next_segment_number < getNumberOfSegmentsOfCurrenPeriod())
+      {
+        //fprintf(stderr, "Growing Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
-      this->currentSegmentNr = next_segment_number;
-      return reps.at(i);
+        this->currentSegmentNr = next_segment_number;
+        return reps.at(i);
+      }
     }
 
     i++;
@@ -150,15 +135,18 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
     next_segment_number = getNextNeededSegmentNumber(i);
 
     //fprintf(stderr, "Quality Increase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
-
-    this->currentSegmentNr = next_segment_number;
-    return reps.at(i);
-  } else {
-    //fprintf(stderr, "Quality Increase: IDLE....\n");
-    return NULL;
+    if (next_segment_number < getNumberOfSegmentsOfCurrenPeriod())
+    {
+      this->currentSegmentNr = next_segment_number;
+      return reps.at(i);
+    }
   }
 
-  return getLowestRepresentation(period);
+  //fprintf(stderr, "Quality Increase: IDLE....\n");
+  return NULL;
+
+
+
 }
 
 
