@@ -7,12 +7,11 @@ using namespace ns3::utils;
 #include <stdio.h>
 
 
-#define BUFFER_MIN_SIZE 5
+#define BUFFER_MIN_SIZE 3
+#define BUFFER_ALPHA 3
+
+
 #define MAX_LEVEL 5
-
-
-#define BR(i) ceil((double)averageBandwidth.at(i)/(double)averageBandwidth.at(0))
-
 
 
 LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, Ptr<player::LayeredBuffer> buf)
@@ -54,12 +53,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
 
 unsigned int LayeredAdaptationLogic::desired_buffer_size(int i, int i_curr)
 {
-  if (i <= MAX_LEVEL)
-  {
-    return BUFFER_MIN_SIZE + BR(i_curr - i);
-  } else{
-    return BUFFER_MIN_SIZE + (i - MAX_LEVEL + 2) * BR(MAX_LEVEL);
-  }
+  return BUFFER_MIN_SIZE + (i_curr - i) * BUFFER_ALPHA;
 }
 
 
@@ -90,14 +84,20 @@ unsigned int LayeredAdaptationLogic::getNextNeededSegmentNumber(int level)
 
 dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (dash::mpd::IPeriod *period)
 {
+  /*
   std::vector<dash::mpd::IAdaptationSet*> sets = period->GetAdaptationSets ();
   dash::mpd::IAdaptationSet* set = sets.at (0); //Todo deal with different sets
 
   std::vector<dash::mpd::IRepresentation*> reps = set->GetRepresentation ();
+  */
+
+
+  std::vector<dash::mpd::IRepresentation*> reps = this->getRepresentationsOrderdById();
 
   int i = 0;
+
   // Get i_curr
-  int i_curr = MAX_LEVEL;
+  int i_curr = reps.size()-1;
 
   unsigned int next_segment_number = -1;
 
@@ -124,10 +124,12 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
     i++;
   }
 
+  i = 0;
+
   // Growing Phase
   while (i <= i_curr)
   {
-    if (this->buf->BufferSize (i) < desired_buffer_size(i+2, i_curr))
+    if (this->buf->BufferSize (i) < desired_buffer_size(i, i_curr+2))
     {
       // i is the next, need segment number though
       next_segment_number = getNextNeededSegmentNumber(i);
@@ -142,7 +144,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
   }
 
   // Quality Increase Phase
-  if (i != MAX_LEVEL)
+  if (i != reps.size()-1)
   {
     i_curr++;
     next_segment_number = getNextNeededSegmentNumber(i);
