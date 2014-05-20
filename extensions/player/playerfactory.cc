@@ -26,7 +26,8 @@ Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwn
   dataset_path = dataset_path.substr (0, dataset_path.find_last_of ('/')+1);
 
   DownloadManager *dwnManager = new DownloadManager(dwnType, node);
-  ns3::player::LayeredBuffer *buffer = new ns3::player::LayeredBuffer();
+
+  Ptr<LayeredBuffer> buffer = Create<LayeredBuffer>();
   ns3::dashimpl::LayeredAdaptationLogic *alogic = new ns3::dashimpl::LayeredAdaptationLogic(mpd, dataset_path, buffer);
 
 

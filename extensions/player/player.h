@@ -26,7 +26,7 @@ namespace ns3
     {
     public:
       Player(dash::mpd::IMPD *mpd, ns3::dashimpl::LayeredAdaptationLogic *alogic,
-             ns3::player::LayeredBuffer* buf,
+             Ptr<ns3::player::LayeredBuffer> buf,
              utils::DownloadManager* dwnManager, std::string nodeName);
 
       void play();
@@ -78,7 +78,7 @@ namespace ns3
     private:
       utils::DownloadManager* dwnManager;
       dash::mpd::IMPD *mpd;
-      ns3::player::LayeredBuffer* buf;
+      Ptr<ns3::player::LayeredBuffer> buf;
       ns3::dashimpl::LayeredAdaptationLogic* alogic;
 
 

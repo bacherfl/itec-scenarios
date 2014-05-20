@@ -12,7 +12,7 @@ using namespace ns3::utils;
 
 
 
-LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, ns3::player::LayeredBuffer* buf)
+LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, Ptr<player::LayeredBuffer> buf)
  : IAdaptationLogic(mpd, dataset_path, NULL)
 {
   this->buf = buf;

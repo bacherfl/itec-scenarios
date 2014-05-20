@@ -6,8 +6,8 @@ using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("Player");
 
-Player::Player(dash::mpd::IMPD *mpd,  ns3::dashimpl::LayeredAdaptationLogic  *alogic,
-               ns3::player::LayeredBuffer* buf,
+Player::Player(dash::mpd::IMPD *mpd,  ns3::dashimpl::LayeredAdaptationLogic *alogic,
+               Ptr<LayeredBuffer> buf,
                ns3::utils::DownloadManager* dwnManager, std::string nodeName)
 {
   this->mpd = mpd;

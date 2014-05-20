@@ -4,6 +4,8 @@
 #include <map>
 #include <vector>
 
+#include "ns3/simple-ref-count.h"
+
 using namespace std;
 
 
@@ -13,7 +15,7 @@ namespace ns3
 {
   namespace player
   {
-    class LayeredBuffer
+    class LayeredBuffer : public SimpleRefCount<LayeredBuffer>
     {
     public:
       LayeredBuffer();

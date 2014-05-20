@@ -12,7 +12,7 @@ namespace ns3
     class LayeredAdaptationLogic : public IAdaptationLogic
     {
       public:
-        LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, ns3::player::LayeredBuffer* buf);
+        LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, Ptr<ns3::player::LayeredBuffer> buf);
         virtual std::vector<Ptr<utils::Segment> > getNextSegments();
 
         virtual void segmentRetrieved(Time start, Time stop,
@@ -23,7 +23,7 @@ namespace ns3
         virtual void segmentConsumed(unsigned int segment_number);
 
       protected:
-        ns3::player::LayeredBuffer* buf;
+        Ptr<ns3::player::LayeredBuffer> buf;
         virtual dash::mpd::IRepresentation* getOptimalRepresentation (dash::mpd::IPeriod *period);
 
         unsigned int desired_buffer_size(int i, int i_curr);
