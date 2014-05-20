@@ -14,7 +14,16 @@ TypeId PlayerRequester::GetTypeId ()
                     "Path to MPD file.",
                     StringValue("/path/to/mpd"),
                     MakeStringAccessor(&PlayerRequester::mpd_path),
-                    MakeStringChecker ());
+                    MakeStringChecker ())
+      .AddAttribute("EnableAdaptation",
+                    "0 or 1",
+                    IntegerValue(0),
+                    MakeIntegerAccessor(&PlayerRequester::enableAdaptation),
+                    MakeIntegerChecker<int32_t> ());
+  /* AddAttribute("LevelCount", "The amount of levels as a positive integer > 0",
+                    IntegerValue(DEFAULT_AMOUNT_LEVELS),
+                    MakeIntegerAccessor(&SVCCountingStrategy<Parent>::m_levelCount),
+                             MakeIntegerChecker<int32_t>()); */
   return tid;
 }
 
@@ -23,7 +32,12 @@ void PlayerRequester::StartApplication ()
 {
   // initialize ndn::App
   ndn::App::StartApplication ();
-  player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::WindowNDN, this->GetNode ());
+  if (enableAdaptation == 0)
+  {
+    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::WindowNDN, this->GetNode ());
+  } else {
+    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::SVCWindowNDN, this->GetNode ());
+  }
   player->play();
 }
 

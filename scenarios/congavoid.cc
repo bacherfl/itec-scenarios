@@ -11,6 +11,8 @@
 
 #include <boost/lexical_cast.hpp>
 
+#include "../extensions/utils/idownloader.h"
+
 using namespace ns3;
 
 void parseParameters(int argc, char* argv[], std::string& mode)
@@ -163,10 +165,24 @@ int main(int argc, char* argv[])
   //dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/artifical1/artifical1.mpd"));
   //dashRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
 
+
+  /* SimpleNDN,
+      WindowNDN,
+      SVCWindowNDN
+      */
+  if (mode.compare("adaptation") == 0)
+  {
+    dashRequesterHelper.SetAttribute("EnableAdaptation", StringValue("1"));
+  } else {
+    dashRequesterHelper.SetAttribute("EnableAdaptation", StringValue("0"));
+  }
+
+  /*
+
   ndn::AppHelper svcRequesterHelper ("ns3::ndn::SvcRequester");
   //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l/bbb-svc.264.mpd"));
   svcRequesterHelper.SetAttribute ("BufferSize",UintegerValue(20));
-
+  */
   ApplicationContainer apps;
 
   // Spreading 10 Videos to 100 clients:
@@ -194,57 +210,57 @@ int main(int argc, char* argv[])
       if(i < distribution[0])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set0/bbb-svc.264_set0.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set0/bbb-svc.264_set0.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set0/bbb-svc.264_set0.mpd"));
       }
       else if(i < distribution[1])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set1/bbb-svc.264_set1.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set1/bbb-svc.264_set1.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set1/bbb-svc.264_set1.mpd"));
       }
       else if(i < distribution[2])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set2/bbb-svc.264_set2.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set2/bbb-svc.264_set2.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set2/bbb-svc.264_set2.mpd"));
       }
       else if(i < distribution[3])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set3/bbb-svc.264_set3.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set3/bbb-svc.264_set3.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set3/bbb-svc.264_set3.mpd"));
       }
       else if(i < distribution[4])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set4/bbb-svc.264_set4.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set4/bbb-svc.264_set4.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set4/bbb-svc.264_set4.mpd"));
       }
       else if(i < distribution[5])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set5/bbb-svc.264_set5.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set5/bbb-svc.264_set5.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set5/bbb-svc.264_set5.mpd"));
       }
       else if(i < distribution[6])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set6/bbb-svc.264_set6.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set6/bbb-svc.264_set6.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set6/bbb-svc.264_set6.mpd"));
       }
       else if(i < distribution[7])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set7/bbb-svc.264_set7.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set7/bbb-svc.264_set7.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set7/bbb-svc.264_set7.mpd"));
       }
       else if(i < distribution[8])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set8/bbb-svc.264_set8.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set8/bbb-svc.264_set8.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set8/bbb-svc.264_set8.mpd"));
       }
       else if(i < distribution[9])
       {
         dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set9/bbb-svc.264_set9.mpd"));
-        svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set9/bbb-svc.264_set9.mpd"));
+        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set9/bbb-svc.264_set9.mpd"));
       }
 
-      if(mode.compare ("adaptation") == 0)
+      /*if(mode.compare ("adaptation") == 0)
         apps.Add (svcRequesterHelper.Install(streamers.Get (client_map[i])));
-      else
+      else*/
         apps.Add (dashRequesterHelper.Install(streamers.Get (client_map[i])));
     }
 

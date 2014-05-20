@@ -4,6 +4,7 @@
 #include "ns3-dev/ns3/ndn-app.h"
 #include "ns3-dev/ns3/simulator.h"
 #include "ns3-dev/ns3/string.h"
+#include "ns3-dev/ns3/integer.h"
 #include "ns3-dev/ns3/ptr.h"
 #include "ns3-dev/ns3/log.h"
 #include "player/player.h"
@@ -35,6 +36,9 @@ namespace ns3 {
 
   private:
     std::string mpd_path;
+
+    int enableAdaptation;
+
    Ptr<ns3::player::Player> player;
   };
 }

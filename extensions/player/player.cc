@@ -257,6 +257,9 @@ void Player::update(ObserverMessage msg)
       }
     case NackReceived:
       fprintf(stderr, "Nack received...\n");
+
+      this->alogic->segmentFailed (current_segment->getSegmentNumber (), current_segment->getLevel ());
+
       break;
     case SoonFinished:
       fprintf(stderr, "Soon finished...\n");
