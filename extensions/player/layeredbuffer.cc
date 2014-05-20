@@ -98,6 +98,10 @@ unsigned int LayeredBuffer::BufferSize(unsigned int segment_level)
   return 0;
 }
 
+unsigned int LayeredBuffer::GetLevelCount ()
+{
+  return m_buffer.size ();
+}
 
 // are they really orderd?
 unsigned int LayeredBuffer::LastSegmentNumber(unsigned int segment_level)

@@ -85,6 +85,8 @@ namespace ns3
       */
       virtual void segmentFailed(unsigned int segment_number, unsigned int segment_level) = 0;
 
+      unsigned int getNumberOfSegmentsOfCurrenPeriod();
+
      protected:
       dash::mpd::IMPD* mpd;
       std::string dataset_path;

@@ -58,7 +58,7 @@ namespace ns3
       /*!
        * \brief List of segments that are currently in the download queue.
        */
-      std::vector<Ptr<utils::Segment> > current_segments;
+      Ptr<utils::Segment> current_segment;
 
       /*!
        * \brief Indicates whether the player has started to stream.

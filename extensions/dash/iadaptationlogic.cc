@@ -190,6 +190,11 @@ std::vector<dash::mpd::IRepresentation*> IAdaptationLogic::getRepresentationsOrd
   return reps;
 }
 
+unsigned int IAdaptationLogic::getNumberOfSegmentsOfCurrenPeriod()
+{
+  return currentPeriod->GetAdaptationSets ().at(0)->GetRepresentation().at(0)->GetSegmentList ()->GetSegmentURLs().size();
+}
+
 
 
 

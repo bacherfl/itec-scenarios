@@ -100,11 +100,12 @@ void Player::streaming ()
   // check if we are still supposed to be streaming
   if (hasStarted == true && hasFinished == false)
   {
-    // retrieve current_segments (TODO)
-    this->current_segments = this->alogic->getNextSegments ();
+    // retrieve current_segments (TODO fix thix here, that only 1 segment is returned by adaptation logic)
 
+    std::vector<Ptr<Segment> > segs = alogic->getNextSegments ();
     // check size
-    if (current_segments.size() == 0)
+
+    if (segs.size() == 0)
     {
       // nothing to stream at the moment, schedule next streaming event and exit
       NS_LOG_INFO("Player(" << m_nodeName << ") has nothing so stream, waiting...");
@@ -112,7 +113,7 @@ void Player::streaming ()
       return;
     }
 
-    if (current_segments.size() > 1)
+    if (segs.size() > 1)
     {
       fprintf(stderr, "ERROR - this player does not support more than one segment at a time\n");
       NS_LOG_ERROR("ERROR - this player does not support more than one segment at a time");
@@ -120,41 +121,24 @@ void Player::streaming ()
       return;
     }
 
-
-
-#define DEBUG
-
-#ifdef DEBUG
-    // get list:
-    std::stringstream listSegments;
-#endif
-
-    for(int i = 0; i < current_segments.size (); i++)
-    {
-#ifdef DEBUG
-      listSegments << listSegments << "(S:" << current_segments.at (i)->getSegmentNumber () << ", L:" <<
-          current_segments.at (i)->getLevel () << "), ";
-#endif
-    }
-
-#ifdef DEBUG
-    NS_LOG_INFO("Player(" << m_nodeName << ") streaming segments " << listSegments.str().c_str ());
-#endif
+    current_segment = segs.at (0);
 
     // set currentSegmentNumber to the first segment if it's not initialized yet, as we always
     // start streaming with the first segment
     if (this->currentSegmentNumber == -1)
     {
-      this->currentSegmentNumber = current_segments.at (0)->getSegmentNumber ();
+      this->currentSegmentNumber = current_segment->getSegmentNumber ();
     }
 
     // set download start time
     dlStartTime = Simulator::Now ();
     // enque segments
-    dwnManager->enque(current_segments);
+    segs.clear ();
+    segs.push_back (current_segment);
+    dwnManager->enque(segs);
 
     // tell our stats collector the same
-    SetRequestedPlayerLevel(current_segments.at(0)->getSegmentNumber(),  current_segments.at (0)->getLevel ());
+    SetRequestedPlayerLevel(current_segment->getSegmentNumber(),  current_segment->getLevel ());
   }
 }
 
@@ -174,7 +158,7 @@ void Player::consuming ()
 
         int max_level_available = 0;
         // consume all levels
-        for (int i = 1; i < 6; i++)
+        for (int i = 1; i < buf->GetLevelCount (); i++)
         {
           if (this->buf->ConsumeFromBuffer (this->currentSegmentNumber, i))
           {
@@ -184,6 +168,7 @@ void Player::consuming ()
             break;
           }
         }
+        //todo clear unconsumed segments?
 
         SetConsumedPlayerLevel(this->currentSegmentNumber, max_level_available);
 
@@ -194,7 +179,7 @@ void Player::consuming ()
         // increase current segment number
         this->currentSegmentNumber++;
 
-        if (this->currentSegmentNumber >= 299)
+        if (this->currentSegmentNumber >= alogic->getNumberOfSegmentsOfCurrenPeriod ())
         {
           // DONE
           hasFinished = true;
@@ -227,12 +212,6 @@ void Player::consuming ()
 void Player::update(ObserverMessage msg)
 {
   //fprintf(stderr, "Update received!\n");
-
-  /* No_Message,
-          SegmentReceived,
-          NackReceived,
-          SoonFinished */
-
   switch (msg)
   {
     case No_Message:
@@ -244,21 +223,21 @@ void Player::update(ObserverMessage msg)
       // received several segments
 
       // add it to the buffer
-      this->buf->AddToBuffer(current_segments.at (0)->getSegmentNumber (), current_segments.at (0)->getLevel() );
+      this->buf->AddToBuffer(current_segment->getSegmentNumber (), current_segment->getLevel() );
 
       // tell adaptation logic that we retrieved this segment
       this->alogic->segmentRetrieved (dlStartTime, Simulator::Now(),
-                                      current_segments.at (0)->getSegmentNumber (),
-                                      current_segments.at (0)->getLevel (),
-                                      current_segments.at (0)->getSize ());
+                                      current_segment->getSegmentNumber (),
+                                      current_segment->getLevel (),
+                                      current_segment->getSize ());
       // tell our stats collector some things
-      SetPlayerLevel(current_segments.at (0)->getSegmentNumber(), current_segments.at (0)->getLevel(),
-                     0, current_segments.at (0)->getSize (),
+      SetPlayerLevel(current_segment->getSegmentNumber(), current_segment->getLevel(),
+                     0, current_segment->getSize (),
                      (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
 
 
       // remove from current_segments
-      current_segments.clear();
+      //current_segments.clear();
 
       // fire streaming
       this->scheduleNextStreaming (0.0);
