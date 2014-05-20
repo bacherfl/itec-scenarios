@@ -4,6 +4,8 @@
 #include "../dash/iadaptationlogic.h"
 #include "layeredbuffer.h"
 
+#include <vector>
+
 
 namespace ns3
 {
@@ -30,6 +32,9 @@ namespace ns3
         unsigned int getNextNeededSegmentNumber(int level);
 
         unsigned int last_consumed_segment_number;
+
+
+        std::vector<int> averageBandwidth;
     };
   }
 }

@@ -11,6 +11,9 @@ using namespace ns3::utils;
 #define MAX_LEVEL 5
 
 
+#define BR(i) ceil((double)averageBandwidth.at(i)/(double)averageBandwidth.at(0))
+
+
 
 LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, Ptr<player::LayeredBuffer> buf)
  : IAdaptationLogic(mpd, dataset_path, NULL)
@@ -18,6 +21,27 @@ LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string
   this->buf = buf;
 
   this->last_consumed_segment_number = -1;
+
+
+  averageBandwidth.resize(MAX_LEVEL+1, 0);
+
+  // calculate avg bandwidth (independent per layer)
+  for (int i = 0; i <= MAX_LEVEL; i++)
+  {
+    int bandwidth = getAvgBandwidthForLayer(i);
+    averageBandwidth.at(i) = bandwidth;
+  }
+
+  // make it independent
+  for (int i = 1; i <= MAX_LEVEL; i++)
+  {
+    int sum = 0;
+    for (int j = i+1; j <= MAX_LEVEL; j++)
+    {
+      sum += averageBandwidth.at(j);
+    }
+    averageBandwidth.at(i) = averageBandwidth.at(i) - sum;
+  }
 }
 
 /*
@@ -32,9 +56,9 @@ unsigned int LayeredAdaptationLogic::desired_buffer_size(int i, int i_curr)
 {
   if (i <= MAX_LEVEL)
   {
-    return BUFFER_MIN_SIZE + 1;
+    return BUFFER_MIN_SIZE + BR(i_curr - i);
   } else{
-    return BUFFER_MIN_SIZE + 3;
+    return BUFFER_MIN_SIZE + (i - MAX_LEVEL + 2) * BR(MAX_LEVEL);
   }
 }
 
