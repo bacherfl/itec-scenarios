@@ -25,6 +25,7 @@ namespace ns3
       bool ConsumeFromBuffer(unsigned int segment_number, unsigned int segment_level);
       unsigned int BufferSize(unsigned int segment_level);
       unsigned int LastSegmentNumber(unsigned int segment_level);
+      unsigned int GetLevelCount();
 
     private:
       LayerSegmentMap m_buffer;
