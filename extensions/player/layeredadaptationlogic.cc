@@ -9,6 +9,7 @@ using namespace ns3::utils;
 
 #define BUFFER_MIN_SIZE 3
 #define BUFFER_ALPHA 3
+#define BUFFER_ALPHA_LIMIT 6
 
 
 #define MAX_LEVEL 5
@@ -18,21 +19,15 @@ LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string
  : IAdaptationLogic(mpd, dataset_path, NULL)
 {
   this->buf = buf;
-
   this->last_consumed_segment_number = -1;
+  alpha = BUFFER_ALPHA;
+  gamma = BUFFER_MIN_SIZE;
+  segments_since_last_nack = 0;
 }
-
-/*
-dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (dash::mpd::IPeriod *period)
-{
-  return NULL;
-}
-*/
-
 
 unsigned int LayeredAdaptationLogic::desired_buffer_size(int i, int i_curr)
 {
-  return BUFFER_MIN_SIZE + (i_curr - i) * BUFFER_ALPHA;
+  return gamma + (int)ceil((i_curr - i) * alpha);
 }
 
 
@@ -50,8 +45,8 @@ unsigned int LayeredAdaptationLogic::getNextNeededSegmentNumber(int level)
       return this->last_consumed_segment_number + 1;
     } else {
       // level != 0 and buffer empty? means we "should" be in quality increase phase
-      // request last consumed + BUFFER_MIN_SIZE
-      return this->last_consumed_segment_number + BUFFER_MIN_SIZE;
+      // request last consumed + gamma
+      return this->last_consumed_segment_number + gamma;
     }
   } else {
     // buffer not empty
@@ -63,14 +58,6 @@ unsigned int LayeredAdaptationLogic::getNextNeededSegmentNumber(int level)
 
 dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (dash::mpd::IPeriod *period)
 {
-  /*
-  std::vector<dash::mpd::IAdaptationSet*> sets = period->GetAdaptationSets ();
-  dash::mpd::IAdaptationSet* set = sets.at (0); //Todo deal with different sets
-
-  std::vector<dash::mpd::IRepresentation*> reps = set->GetRepresentation ();
-  */
-
-
   std::vector<dash::mpd::IRepresentation*> reps = this->getRepresentationsOrderdById();
 
 
@@ -153,36 +140,29 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
 
 }
 
-
-/*   std::vector<dash::mpd::IAdaptationSet*> sets = period->GetAdaptationSets ();
-  dash::mpd::IAdaptationSet* set = sets.at (0); //Todo deal with different sets
-
-  std::vector<dash::mpd::IRepresentation*> reps = set->GetRepresentation ();
-
-  dash::mpd::IRepresentation* rep = getLowestRepresentation (period);
-  unsigned int avg = getAvgDLS();
-
-  for(int i = 0; i < reps.size (); i++)
-  {
-    if(reps.at(i)->GetBandwidth() <= avg && reps.at(i)->GetBandwidth() > rep->GetBandwidth ())
-      rep = reps.at (i);
-  }
-
-  return rep;
-
-  */
-
-
-
 void LayeredAdaptationLogic::segmentRetrieved(Time start, Time stop,
                               unsigned int segment_number, unsigned int segment_level, unsigned int segment_size)
 {
+  segments_since_last_nack++;
 
+  //todo magic number
+  if(segments_since_last_nack > 10)
+  {
+    segments_since_last_nack = 0;
+    alpha *= 0.95;
+
+    if(alpha < BUFFER_ALPHA)
+      alpha = BUFFER_ALPHA;
+  }
 }
 
 void LayeredAdaptationLogic::segmentFailed(unsigned int segment_number, unsigned int segment_level)
 {
+  alpha *= 1.2;
+  if(alpha > BUFFER_ALPHA_LIMIT)
+    alpha = BUFFER_ALPHA_LIMIT;
 
+  segments_since_last_nack = 0;
 }
 
 

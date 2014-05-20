@@ -215,8 +215,10 @@ void Player::update(ObserverMessage msg)
   switch (msg)
   {
     case No_Message:
+    {
       fprintf(stderr, "Update received: No message...\n");
       break;
+    }
     case SegmentReceived:
       {
       //fprintf(stderr, "segment received: segmentNr=%d, level=%d\n",
@@ -238,34 +240,27 @@ void Player::update(ObserverMessage msg)
                      0, current_segment->getSize (),
                      (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
 
-/*
-      int    timeDiff = (int) (Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds () );
-      int    tSize = current_segment->getSize ();
-
-      double bytess = (double) tSize  / (double) timeDiff;
-
-      fprintf(stderr, "It took %d ms to download %d byte (= %f kbit/s) \n", timeDiff, tSize, (double)bytess*8.0 );
-*/
-
-      // remove from current_segments
-      //current_segments.clear();
-
       // fire streaming
       this->scheduleNextStreaming (0.0);
 
       break;
       }
     case NackReceived:
-      fprintf(stderr, "Nack received...\n");
-
+    {
+      //fprintf(stderr, "Nack received...\n");
       this->alogic->segmentFailed (current_segment->getSegmentNumber (), current_segment->getLevel ());
-
+      this->scheduleNextStreaming (0.0);
       break;
+    }
     case SoonFinished:
+    {
       fprintf(stderr, "Soon finished...\n");
       break;
+    }
     default:
+    {
       fprintf(stderr, "Unknown message received...\n");
+    }
   }
 }
 

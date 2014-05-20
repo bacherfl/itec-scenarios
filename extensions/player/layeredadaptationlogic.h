@@ -35,6 +35,10 @@ namespace ns3
 
 
         std::vector<int> averageBandwidth;
+
+        double alpha; //
+        int gamma; //BUFFER_MIN_SIZE
+        int segments_since_last_nack;
     };
   }
 }
