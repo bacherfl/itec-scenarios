@@ -172,3 +172,24 @@ int IAdaptationLogic::getAvgBandwidthForLayer(unsigned int segment_level)
   return -1;
 }
 
+// Sort Container function
+bool sortRepresentationById(const dash::mpd::IRepresentation* l, dash::mpd::IRepresentation* r)
+{
+  return (l->GetId () < r->GetId ());
+}
+
+std::vector<dash::mpd::IRepresentation*> IAdaptationLogic::getRepresentationsOrderdById()
+{
+  std::vector<dash::mpd::IAdaptationSet*> sets = currentPeriod->GetAdaptationSets ();
+  dash::mpd::IAdaptationSet* set = sets.at (0); //Todo deal with different sets
+
+  std::vector<dash::mpd::IRepresentation*> reps = set->GetRepresentation ();
+
+  std::sort(reps.begin (), reps.end (), sortRepresentationById);
+
+  return reps;
+}
+
+
+
+

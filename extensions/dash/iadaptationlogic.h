@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <algorithm>
 #include "libdash/libdash.h"
 
 #include "ns3-dev/ns3/timer.h"
@@ -84,10 +85,7 @@ namespace ns3
       */
       virtual void segmentFailed(unsigned int segment_number, unsigned int segment_level) = 0;
 
-      virtual int getAvgBandwidthForLayer(unsigned int segment_level);
-
-
-    protected:
+     protected:
       dash::mpd::IMPD* mpd;
       std::string dataset_path;
       dash::mpd::IPeriod* currentPeriod;
@@ -129,7 +127,11 @@ namespace ns3
        */
       virtual unsigned int getFileSize(std::string filename);
 
+      virtual int getAvgBandwidthForLayer(unsigned int segment_level);
+      virtual std::vector<dash::mpd::IRepresentation*> getRepresentationsOrderdById();
+
     };
   }
 }
 #endif // IADAPTATIONLOGIC_H
+

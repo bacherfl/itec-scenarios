@@ -219,7 +219,6 @@ std::vector<ns3::Ptr<Segment> > LayeredAdaptationLogic::getNextSegments()
                                rep->GetSegmentList()->GetDuration(),
                                rep->GetBandwidth (), atoi(rep->GetId ().c_str ()), currentSegmentNr));
 
-      currentSegmentNr++;
     }
   }
 
