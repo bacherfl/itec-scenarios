@@ -8,6 +8,8 @@
 #include "ns3-dev/ns3/timer.h"
 #include "ns3/pointer.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include "../utils/buffer.h"
 #include "../utils/segment.h"
 
@@ -81,6 +83,8 @@ namespace ns3
         * \param segment_level the level of the segment we failed to receive
       */
       virtual void segmentFailed(unsigned int segment_number, unsigned int segment_level) = 0;
+
+      virtual int getAvgBandwidthForLayer(unsigned int segment_level);
 
 
     protected:

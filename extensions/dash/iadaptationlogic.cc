@@ -154,3 +154,21 @@ unsigned int IAdaptationLogic::getFileSize (std::string filename)
   return fstats.st_size;
 }
 
+int IAdaptationLogic::getAvgBandwidthForLayer(unsigned int segment_level)
+{
+  std::vector<dash::mpd::IAdaptationSet*> sets = currentPeriod->GetAdaptationSets ();
+  dash::mpd::IAdaptationSet* set = sets.at (0); //Todo deal with different sets
+
+  std::vector<dash::mpd::IRepresentation*> reps = set->GetRepresentation ();
+
+  for(size_t j = 0; j < reps.size(); j++)
+  {
+    if(segment_level == boost::lexical_cast<int>(reps.at (j)->GetId().c_str()))
+    {
+        return reps.at(j)->GetBandwidth();
+    }
+  }
+
+  return -1;
+}
+

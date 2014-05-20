@@ -86,7 +86,6 @@ void Player::stop ()
     this->consumeEvent.Cancel ();
   }
 
-
   // stop download manager
   dwnManager->stop ();
   NotifyEnd(Simulator::Now().GetSeconds());
@@ -201,7 +200,7 @@ void Player::consuming ()
           hasFinished = true;
           stop();
         } else {
-          // schedule next consume in SEGMENT_LENGTH seconds
+          // schedule next consume in SEGMENT_LENGTH seconds /*Todo* magic number*/
           this->scheduleNextConsumeEvent (2.0);
         }
 

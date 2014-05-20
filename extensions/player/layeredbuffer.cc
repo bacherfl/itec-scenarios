@@ -99,7 +99,7 @@ unsigned int LayeredBuffer::BufferSize(unsigned int segment_level)
 }
 
 
-
+// are they really orderd?
 unsigned int LayeredBuffer::LastSegmentNumber(unsigned int segment_level)
 {
   return m_buffer[segment_level].back();
