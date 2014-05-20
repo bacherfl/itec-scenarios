@@ -75,6 +75,8 @@ namespace ns3
        */
       Time dlStartTime;
 
+      virtual void SetPlayerLevel (unsigned int segmentNumber, unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration);
+
     private:
       utils::DownloadManager* dwnManager;
       dash::mpd::IMPD *mpd;

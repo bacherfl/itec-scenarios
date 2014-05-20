@@ -56,11 +56,11 @@ void PlayerLevelHistory::SetPlayerLevel(unsigned int segmentNumber,
   else
     segSizeHistory[segmentNumber] = segSize;
 
-  if(dlDurationHistory.find (segmentNumber) == dlDurationHistory.end() ||
-     dlDurationHistory.find (segmentNumber) != dlDurationHistory.end() && dlDurationHistory[segmentNumber] < dlDuration)
-    dlDurationHistory[segmentNumber] += dlDuration;
-  else
+  if(dlDurationHistory.find (segmentNumber) == dlDurationHistory.end()||
+     (dlDurationHistory.find (segmentNumber) != dlDurationHistory.end() && dlDurationHistory[segmentNumber] < dlDuration)
+     )
     dlDurationHistory[segmentNumber] = dlDuration;
+
 }
 
 void PlayerLevelHistory::logUnsmoothSecond (unsigned int segmentNumber, double duration)

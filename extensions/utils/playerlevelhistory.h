@@ -19,7 +19,7 @@ public:
   void NotifyEnd(double endTime);
   void SetRequestedPlayerLevel(unsigned int segmentNumber, unsigned int requestedLevel);
   void SetConsumedPlayerLevel(unsigned int segmentNumber, unsigned int consumedLevel);
-  void SetPlayerLevel(unsigned int segmentNumber, unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration);
+  virtual void SetPlayerLevel(unsigned int segmentNumber, unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration);
   void logUnsmoothSecond(unsigned int segmentNumber, double duration);
   void logDownloadedVideo(std::string mpd_video_name);
   bool WriteToFile(std::string FileName);

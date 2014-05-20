@@ -251,8 +251,30 @@ void Player::update(ObserverMessage msg)
       break;
     default:
       fprintf(stderr, "Unknown message received...\n");
-
   }
+}
 
+/*overwritten*/
+void Player::SetPlayerLevel(unsigned int segmentNumber,
+                                        unsigned int level, unsigned int buffer, unsigned int segSize, int64_t dlDuration)
+{
+ // cout << "SEgmentNumber: " << segmentNumber << ", level=" << level << ", size=" << levelHistory.size() << endl;
 
+  if (levelHistory.find (segmentNumber) == levelHistory.end () ||
+     (levelHistory.find (segmentNumber) != levelHistory.end () || levelHistory[segmentNumber] < level) ) //write biggest level
+    this->levelHistory[segmentNumber] = level;
+
+  if (bufferHistory.find (segmentNumber) == bufferHistory.end () ||
+      (bufferHistory.find (segmentNumber) != bufferHistory.end () && bufferHistory[segmentNumber] > buffer) ) //write smaller buffer
+    this->bufferHistory[segmentNumber] = buffer;
+
+  if(segSizeHistory.find (segmentNumber) != segSizeHistory.end ())
+    segSizeHistory[segmentNumber] += segSize;
+  else
+    segSizeHistory[segmentNumber] = segSize;
+
+  if(dlDurationHistory.find (segmentNumber) == dlDurationHistory.end())
+    dlDurationHistory[segmentNumber] = dlDuration;
+  else
+    dlDurationHistory[segmentNumber] += dlDuration;
 }
