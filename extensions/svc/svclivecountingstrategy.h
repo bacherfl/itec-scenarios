@@ -1,5 +1,5 @@
-#ifndef SVCCOUNTINGSTRATEGY_H
-#define SVCCOUNTINGSTRATEGY_H
+#ifndef SVCLIVECOUNTINGSTRATEGY_H
+#define SVCLIVECOUNTINGSTRATEGY_H
 
 
 #include "ns3-dev/ns3/log.h"
@@ -64,9 +64,9 @@ namespace ns3 {
 namespace ndn {
 namespace fw {
 
-// ns3::ndn::fw::ANYFORWARDINGSTRATEGY::SVCCountingStrategy
+// ns3::ndn::fw::ANYFORWARDINGSTRATEGY::SVCLiveCountingStrategy
 template<class Parent>
-class SVCCountingStrategy: public Parent
+class SVCLiveCountingStrategy: public Parent
 {
   typedef Parent super;
 
@@ -74,9 +74,9 @@ public:
   static TypeId GetTypeId ();
   static std::string GetLogName ();
 
-  SVCCountingStrategy () : super()
+  SVCLiveCountingStrategy () : super()
   {
-    fprintf(stderr, "SVCCountingStrategy activated...\n");
+    fprintf(stderr, "SVCLiveCountingStrategy activated...\n");
 
     // init the uniform random variable
     randomNumber = UniformVariable(0,1);
@@ -85,7 +85,7 @@ public:
     //stats.CreateLevels(m_levelCount);
 
     // schedule first reset event
-    ResetStatisticsTimer = Simulator::Schedule(Seconds(RESET_STATISTICS_TIMER), &SVCCountingStrategy::resetLevelCount, this);
+    ResetStatisticsTimer = Simulator::Schedule(Seconds(RESET_STATISTICS_TIMER), &SVCLiveCountingStrategy::resetLevelCounts, this);
   }
 
   virtual void OnInterest(Ptr< Face > inface, Ptr< Interest > interest);
@@ -99,7 +99,8 @@ public:
   static uint64_t getPhysicalBitrate(Ptr<Face> face);
 
 protected:
-  void resetLevelCount();
+  void resetLevelCounts();
+  void resetLevelCount(Ptr<ndn::Face> face);
   bool HasEnoughResourcesToSend(Ptr< Face > face, Ptr< const Interest > interest);
 
   UniformVariable randomNumber;
@@ -120,35 +121,37 @@ protected:
 
   static LogComponent g_log;
 
+  Time lastResetTime;
+
   EventId ResetStatisticsTimer;
 };
 
 template<class Parent>
-LogComponent SVCCountingStrategy<Parent>::g_log = LogComponent (SVCCountingStrategy<Parent>::GetLogName ().c_str ());
+LogComponent SVCLiveCountingStrategy<Parent>::g_log = LogComponent (SVCLiveCountingStrategy<Parent>::GetLogName ().c_str ());
 
 template<class Parent>
-TypeId SVCCountingStrategy<Parent>::GetTypeId (void)
+TypeId SVCLiveCountingStrategy<Parent>::GetTypeId (void)
 {
-  static TypeId tid = TypeId ((super::GetTypeId ().GetName ()+"::SVCCountingStrategy").c_str ())
+  static TypeId tid = TypeId ((super::GetTypeId ().GetName ()+"::SVCLiveCountingStrategy").c_str ())
       .SetGroupName ("Ndn")
       .template SetParent <super> ()
-      .template AddConstructor <SVCCountingStrategy> ()
+      .template AddConstructor <SVCLiveCountingStrategy> ()
       .template AddAttribute("LevelCount", "The amount of levels as a positive integer > 0",
                     IntegerValue(DEFAULT_AMOUNT_LEVELS),
-                    MakeIntegerAccessor(&SVCCountingStrategy<Parent>::m_levelCount),
+                    MakeIntegerAccessor(&SVCLiveCountingStrategy<Parent>::m_levelCount),
                              MakeIntegerChecker<int32_t>());
   return tid;
 }
 
 template<class Parent>
-std::string SVCCountingStrategy<Parent>::GetLogName ()
+std::string SVCLiveCountingStrategy<Parent>::GetLogName ()
 {
-  return super::GetLogName () + ".SVCCountingStrategy";
+  return super::GetLogName () + ".SVCLiveCountingStrategy";
 }
 
 
 template<class Parent>
-uint64_t SVCCountingStrategy<Parent>::getPhysicalBitrate(Ptr<Face> face)
+uint64_t SVCLiveCountingStrategy<Parent>::getPhysicalBitrate(Ptr<Face> face)
 {
   // Get Device Bitrate of that face (make sure to call face->Getid()
   Ptr<PointToPointNetDevice> nd1 =
@@ -161,47 +164,57 @@ uint64_t SVCCountingStrategy<Parent>::getPhysicalBitrate(Ptr<Face> face)
 
 
 template<class Parent>
-void SVCCountingStrategy<Parent>::resetLevelCount() {
+void SVCLiveCountingStrategy<Parent>::resetLevelCount(Ptr<ndn::Face> face) {
+  // calculate max_packets and metric
+  uint64_t bitrate = getPhysicalBitrate(face);
+  int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
+  max_packets = max_packets * 0.9;
+
+  if (max_packets == 522)
+  {
+    fprintf(stderr, "max_packets=%d\n", max_packets);
+  }
+
+  // set max packets
+  this->map[face->GetId()]->SetMaxPacketsPerTime(max_packets);
+
+  double metric = 0.0;
+
+  // get last packets
+  unsigned int last_packets_ps = this->map[face->GetId ()]->GetPacketsPerTime ();
+
+  // calculate metric only if last_packets > max_packets, else metric stays 0.0
+  if (last_packets_ps > max_packets)
+    metric = ((double)(last_packets_ps-max_packets)) / (double)(last_packets_ps);
+
+  // refresh statistics, update the policy (= feed policy and then reset stats )
+  this->map[face->GetId ()]->UpdatePolicy (metric);
+
+  // reset packets per second
+  this->map[face->GetId ()]->SetPacketsPerTime (0);
+}
+
+
+template<class Parent>
+void SVCLiveCountingStrategy<Parent>::resetLevelCounts() {
   for(std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
       it !=  faces.end (); ++it)
   {
     // get face pointer
     Ptr<Face> face = *it;
-
-    // calculate max_packets and metric
-    uint64_t bitrate = getPhysicalBitrate(face);
-    int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
-    max_packets = max_packets * 0.9;
-
-    // set max packets
-    this->map[face->GetId()]->SetMaxPacketsPerTime(max_packets);
-
-    fprintf(stderr, "max_packets=%d\n", max_packets);
-
-    double metric = 0.0;
-
-    // get last packets
-    unsigned int last_packets_ps = this->map[face->GetId ()]->GetPacketsPerTime ();
-
-    // calculate metric only if last_packets > max_packets, else metric stays 0.0
-    if (last_packets_ps > max_packets)
-      metric = ((double)(last_packets_ps-max_packets)) / (double)(last_packets_ps);
-
-    // refresh statistics, update the policy (= feed policy and then reset stats )
-    this->map[face->GetId ()]->UpdatePolicy (metric);
-
-    // reset packets per second
-    this->map[face->GetId ()]->SetPacketsPerTime (0);
+    resetLevelCount(face);
   }
 
+  lastResetTime = Simulator::Now();
+
   // schedule next reset event
-  ResetStatisticsTimer = Simulator::Schedule(Seconds(RESET_STATISTICS_TIMER), &SVCCountingStrategy::resetLevelCount, this);
+  ResetStatisticsTimer = Simulator::Schedule(Seconds(RESET_STATISTICS_TIMER), &SVCLiveCountingStrategy::resetLevelCounts, this);
 }
 
 
 /* add face */
 template<class Parent>
-void SVCCountingStrategy<Parent>::AddFace (Ptr<Face> face)
+void SVCLiveCountingStrategy<Parent>::AddFace (Ptr<Face> face)
 {
   // add face to our map
   map[face->GetId ()] = new svc::FacePacketStatistic();
@@ -217,7 +230,7 @@ void SVCCountingStrategy<Parent>::AddFace (Ptr<Face> face)
 
 /* remove face */
 template<class Parent>
-void SVCCountingStrategy<Parent>::RemoveFace (Ptr<Face> face)
+void SVCLiveCountingStrategy<Parent>::RemoveFace (Ptr<Face> face)
 {
   // first: get pointer of the Statistics object
   svc::FacePacketStatistic* p = map[face->GetId ()];
@@ -245,7 +258,7 @@ void SVCCountingStrategy<Parent>::RemoveFace (Ptr<Face> face)
 }
 
 template<class Parent>
-bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
+bool SVCLiveCountingStrategy<Parent>::HasEnoughResourcesToSend
     ( Ptr< Face > face, Ptr< const Interest > interest )
 {
   // check chunk number
@@ -274,6 +287,32 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
   // increase level counter for that face
   this->map[face->GetId ()]->IncreasePackets (level);
 
+  // calculate time since last reset
+  int diff = (int) (Simulator::Now().GetMilliSeconds () - lastResetTime.GetMilliSeconds ());
+  // should be less than 1000
+
+
+  int packets = this->map[face->GetId()]->GetPacketsPerTime();
+
+  // calculate new metric
+  // max_packets = per second
+  // now max_packets per "diff" time
+  int new_max_packets = this->map[face->GetId()]->GetMaxPacketsPerTime();
+
+  // dont do anything in the first 100 ms because stats are going to be "bad"
+  if (diff > 100)
+  {
+    new_max_packets = ( (double)(new_max_packets * diff) ) / ((double)1000);
+    if (packets >= new_max_packets)
+    {
+      double metric = ((double)(packets-new_max_packets)) / (double)(packets);
+      //fprintf(stderr, "diff=%d, p=%d, newp=%d, metric=%f\n", diff, packets, new_max_packets, metric);
+
+      this->map[face->GetId ()]->UpdatePolicy (metric);
+    }
+  }
+
+
   // check if RandomNumber(0,1) < DropProbability
   // if yes --> drop (=  NOT CanSendOutInterest)
   double dropProbability = this->map[face->GetId ()]->GetDropProbability (level);
@@ -282,7 +321,7 @@ bool SVCCountingStrategy<Parent>::HasEnoughResourcesToSend
 }
 
 template<class Parent>
-bool SVCCountingStrategy<Parent>::CanSendOutInterest (
+bool SVCLiveCountingStrategy<Parent>::CanSendOutInterest (
     Ptr< Face > inFace, Ptr< Face > outFace,
     Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
@@ -296,12 +335,12 @@ bool SVCCountingStrategy<Parent>::CanSendOutInterest (
 
 
 template<class Parent>
-void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
+void SVCLiveCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
 {
   SVCLevelTag levelTag;
 
   // lookup pit entry for interest (if exists)
-  Ptr<pit::Entry> pitEntry = SVCCountingStrategy<Parent>::m_pit->Lookup (*interest);
+  Ptr<pit::Entry> pitEntry = SVCLiveCountingStrategy<Parent>::m_pit->Lookup (*interest);
 
   // check if duplicate interest first
   bool isDuplicate = false;
@@ -325,7 +364,7 @@ void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest 
       nack->GetPayload ()->AddPacketTag (levelTag);
 
       inface->SendInterest (nack);
-      SVCCountingStrategy<Parent>::m_outNacks (nack, inface);
+      SVCLiveCountingStrategy<Parent>::m_outNacks (nack, inface);
       // nack sent - we dont need anything else --> return
       return;
     }
@@ -337,7 +376,7 @@ void SVCCountingStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest 
 
 
 template<class Parent>
-void SVCCountingStrategy<Parent>::DidExhaustForwardingOptions
+void SVCLiveCountingStrategy<Parent>::DidExhaustForwardingOptions
             (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
   // create the nack packet
@@ -353,7 +392,7 @@ void SVCCountingStrategy<Parent>::DidExhaustForwardingOptions
   {
     //NS_LOG_UNCOND ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
     incoming.m_face->SendInterest (nack);
-    SVCCountingStrategy<Parent>::m_outNacks (nack, incoming.m_face);
+    SVCLiveCountingStrategy<Parent>::m_outNacks (nack, incoming.m_face);
   }
 
   pitEntry->ClearOutgoing (); // to force erasure of the record
@@ -368,4 +407,4 @@ void SVCCountingStrategy<Parent>::DidExhaustForwardingOptions
 } // namespace ns3
 
 
-#endif // SVCCOUNTINGSTRATEGY_H
+#endif // SVCLIVECOUNTINGSTRATEGY_H
