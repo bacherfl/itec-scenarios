@@ -26,8 +26,7 @@
 #include "ns3-dev/ns3/ndnSIM/utils/ndn-rtt-mean-deviation.h"
 #include "ns3-dev/ns3/ndn-l3-protocol.h"
 #include "ns3-dev/ns3/ndn-wire.h"
-
-
+#include "ns3/pointer.h"
 
 #include <stdio.h>
 
@@ -60,8 +59,8 @@ namespace ns3
 
       virtual DownloaderType getDownloaderType ();
 
-      virtual const CongestionWindow getCongWindow() {return CongestionWindow();}
-      virtual void setCongWindow (const CongestionWindow ){return;}
+      virtual const Ptr<CongestionWindow> getCongWindow() {return Create<CongestionWindow>();}
+      virtual void setCongWindow (const Ptr<CongestionWindow> cwnd ){return;}
 
       // gets the physical available bitrate
       uint64_t getPhysicalBitrate();

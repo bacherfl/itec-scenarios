@@ -79,8 +79,8 @@ namespace ns3
 
       virtual DownloaderType getDownloaderType ();
 
-      virtual const CongestionWindow getCongWindow();
-      virtual void setCongWindow (const CongestionWindow window);
+      virtual const Ptr<CongestionWindow> getCongWindow();
+      virtual void setCongWindow (Ptr<CongestionWindow> window);
 
       virtual void reset ();
 
@@ -99,7 +99,7 @@ namespace ns3
 
       Ptr<ndn::RttEstimator> m_rtt;
 
-      CongestionWindow cwnd;
+      Ptr<CongestionWindow> cwnd;
       NDNSegmentStatus curSegmentStatus;
 
       unsigned int packets_received;

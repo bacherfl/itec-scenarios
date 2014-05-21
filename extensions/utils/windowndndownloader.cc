@@ -7,8 +7,8 @@ NS_LOG_COMPONENT_DEFINE ("WindowNDNDownloader");
 
 WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
 {
-
-    interest  = NULL;
+  interest  = NULL;
+  cwnd = Create<CongestionWindow>();
   //init status
   reset();
 
@@ -270,7 +270,7 @@ void WindowNDNDownloader::ScheduleNextChunkDownload()
   * make sure to use Double and Seconds here, to get an accurate timer!
   */
   this->scheduleDownloadTimer =
-      Simulator::Schedule(Seconds(1.0/(double)this->cwnd.GetWindowSize()),
+      Simulator::Schedule(Seconds(1.0/(double)this->cwnd->GetWindowSize()),
                           &WindowNDNDownloader::downloadChunk, this, chunk_number);
 }
 
@@ -359,8 +359,8 @@ void WindowNDNDownloader::OnTimeout (int c_chunk_number)
   {
     had_timeout = true;
     lastTimeout = Simulator::Now();
-    cwnd.DecreaseWindow();
-    cwnd.SetThreshold(this->packets_inflight);
+    cwnd->DecreaseWindow();
+    cwnd->SetThreshold(this->packets_inflight);
   }
 
   m_rtt->IncreaseMultiplier ();
@@ -394,8 +394,8 @@ void WindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
     {
       had_nack = true;
       lastTimeout = Simulator::Now();
-      cwnd.DecreaseWindow();
-      cwnd.SetThreshold(this->packets_inflight);
+      cwnd->DecreaseWindow();
+      cwnd->SetThreshold(this->packets_inflight);
     }
 
     //fprintf(stderr, "WindowNDNDownloader::OnNack: received NACK for URI: %s\n", interest->GetName ().toUri().c_str());
@@ -493,7 +493,7 @@ void WindowNDNDownloader::OnData (Ptr<const ndn::Data> contentObject)
       if (!had_nack && !had_timeout)
       {
         lastValidPacket = Simulator::Now();
-        cwnd.IncreaseWindow();
+        cwnd->IncreaseWindow();
       }
     }
   }
@@ -638,8 +638,9 @@ void WindowNDNDownloader::setNodeForNDN (Ptr<Node> node)
   int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
 
   // set threshold to max_packets / 2
-  cwnd.SetReceiverWindowSize(max_packets);
-  cwnd.SetThreshold(max_packets/2);
+  cwnd->SetReceiverWindowSize(max_packets);
+  cwnd->SetWindowSize (max_packets); //edited by daniel
+  cwnd->SetThreshold(max_packets/2);
 
 }
 
@@ -659,14 +660,14 @@ uint64_t WindowNDNDownloader::getPhysicalBitrate()
   return d.GetBitRate();
 }
 
-const CongestionWindow WindowNDNDownloader::getCongWindow()
+const Ptr<CongestionWindow> WindowNDNDownloader::getCongWindow()
 {
  return this->cwnd;
 }
 
-void WindowNDNDownloader::setCongWindow (const CongestionWindow window)
+void WindowNDNDownloader::setCongWindow (Ptr<CongestionWindow> window)
 {
-this->cwnd = window;
+  cwnd = window; //check
 }
 
 void WindowNDNDownloader::reset ()

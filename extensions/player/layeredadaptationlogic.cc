@@ -11,10 +11,6 @@ using namespace ns3::utils;
 #define BUFFER_ALPHA 3
 #define BUFFER_ALPHA_LIMIT 6
 
-
-#define MAX_LEVEL 5
-
-
 LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string dataset_path, Ptr<player::LayeredBuffer> buf)
  : IAdaptationLogic(mpd, dataset_path, NULL)
 {
@@ -22,7 +18,11 @@ LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string
   this->last_consumed_segment_number = -1;
   alpha = BUFFER_ALPHA;
   gamma = BUFFER_MIN_SIZE;
-  segments_since_last_nack = 0;
+  segments_for_growing = 0;
+  segments_for_upswitching = 0;
+
+  lastPhase = Steady;
+  allowedPhase = Upswitching;
 }
 
 unsigned int LayeredAdaptationLogic::desired_buffer_size(int i, int i_curr)
@@ -87,12 +87,16 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
         //fprintf(stderr, "Steady Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
         this->currentSegmentNr = next_segment_number;
+        lastPhase = Steady;
         return reps.at(i);
       }
     }
 
     i++;
   }
+
+  if(allowedPhase < Growing)
+    return NULL;
 
   i = 0;
 
@@ -109,6 +113,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
         //fprintf(stderr, "Growing Phase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
         this->currentSegmentNr = next_segment_number;
+        lastPhase = Growing;
         return reps.at(i);
       }
     }
@@ -117,6 +122,9 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
   }
 
   //fprintf(stderr, "Growing Phase done for i_curr=%d\n", i_curr);
+
+  if(allowedPhase < Upswitching)
+    return NULL;
 
   // Quality Increase Phase
   if (i != reps.size())
@@ -129,6 +137,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
       //fprintf(stderr, "Quality Increase: The next segment: SegNr=%d, Level=%d\n", next_segment_number, i);
 
       this->currentSegmentNr = next_segment_number;
+      lastPhase = Upswitching;
       return reps.at(i);
     }
   }
@@ -143,26 +152,44 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
 void LayeredAdaptationLogic::segmentRetrieved(Time start, Time stop,
                               unsigned int segment_number, unsigned int segment_level, unsigned int segment_size)
 {
-  segments_since_last_nack++;
+  segments_for_growing--;
+  segments_for_upswitching--;
+
+  if(allowedPhase == Steady && segments_for_growing <= 0 )
+    allowedPhase = Growing;
+
+  if(allowedPhase == Growing && segments_for_upswitching <= 0 )
+    allowedPhase = Upswitching;
 
   //todo magic number
-  if(segments_since_last_nack > 10)
+  /*if(segments_since_last_nack > 10)
   {
     segments_since_last_nack = 0;
     alpha *= 0.95;
 
     if(alpha < BUFFER_ALPHA)
       alpha = BUFFER_ALPHA;
-  }
+  }*/
 }
 
 void LayeredAdaptationLogic::segmentFailed(unsigned int segment_number, unsigned int segment_level)
 {
-  alpha *= 1.2;
-  if(alpha > BUFFER_ALPHA_LIMIT)
-    alpha = BUFFER_ALPHA_LIMIT;
 
-  segments_since_last_nack = 0;
+  //determine i_curr
+
+  std::vector<dash::mpd::IRepresentation*> reps = this->getRepresentationsOrderdById();
+
+  int i_curr = reps.size()-1;
+  while (buf->BufferSize (i_curr) == 0 && i_curr > 0)
+  {
+    i_curr--;
+  }
+
+  allowedPhase = Steady;
+
+  segments_for_growing = desired_buffer_size(0,i_curr) * ceil(i_curr / 2);
+  segments_for_upswitching = desired_buffer_size(0,i_curr) * i_curr;
+
 }
 
 

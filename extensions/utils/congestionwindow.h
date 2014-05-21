@@ -3,6 +3,8 @@
 
 
 #include <algorithm>
+#include "ns3/simple-ref-count.h"
+#include "ns3/pointer.h"
 
 #define CONG_WINDOW_MULTIPLICATOR 2
 #define CONG_WINDOW_MIN 2
@@ -10,13 +12,13 @@
 
 namespace ns3
 {
-  class CongestionWindow
+  class CongestionWindow : public SimpleRefCount<CongestionWindow>
   {
   public:
     CongestionWindow();
     CongestionWindow(int window_size, int window_threshold);
 
-    CongestionWindow& operator=(CongestionWindow const& other);
+    Ptr<CongestionWindow> operator=(Ptr<CongestionWindow> const other);
 
     void Reset();
 

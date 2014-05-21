@@ -8,6 +8,7 @@ NS_LOG_COMPONENT_DEFINE ("SVCWindowNDNDownloader");
 SVCWindowNDNDownloader::SVCWindowNDNDownloader() : WindowNDNDownloader()
 {
   //this->needDownloadBeforeEvent = EventId();
+  this->cwnd = Create<StaticCongestionWindow>();
 }
 
 void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)

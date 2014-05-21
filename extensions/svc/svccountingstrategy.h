@@ -176,7 +176,7 @@ void SVCCountingStrategy<Parent>::resetLevelCount() {
     // set max packets
     this->map[face->GetId()]->SetMaxPacketsPerTime(max_packets);
 
-    fprintf(stderr, "max_packets=%d\n", max_packets);
+    //fprintf(stderr, "max_packets=%d\n", max_packets);
 
     double metric = 0.0;
 

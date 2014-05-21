@@ -25,15 +25,15 @@ CongestionWindow::CongestionWindow(int window_size, int window_threshold)
   this->start_window_threshold = window_threshold;
 }
 
-CongestionWindow& CongestionWindow::operator=(CongestionWindow const& other)
+Ptr<CongestionWindow> CongestionWindow::operator=(Ptr<CongestionWindow> const other)
 {
-  this->window_size = other.window_size;
-  this->window_threshold = other.window_threshold;
-  this->recv_window_size = other.recv_window_size;
-  this->start_window_size = other.start_window_size;
-  this->start_window_threshold = other.start_window_threshold;
+  this->window_size = other->window_size;
+  this->window_threshold = other->window_threshold;
+  this->recv_window_size = other->recv_window_size;
+  this->start_window_size = other->start_window_size;
+  this->start_window_threshold = other->start_window_threshold;
 
-  return *this;
+  return this;
 }
 
 void CongestionWindow::Reset()

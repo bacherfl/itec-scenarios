@@ -38,8 +38,8 @@ namespace ns3
       virtual bool download(Ptr<Segment> s) = 0;
       virtual bool downloadBefore(Ptr<Segment> s, int miliSeconds) = 0;
       virtual void abortDownload() = 0;
-      virtual const CongestionWindow getCongWindow() = 0;
-      virtual void  setCongWindow(const CongestionWindow window) = 0;
+      virtual const Ptr<CongestionWindow> getCongWindow() = 0;
+      virtual void  setCongWindow(Ptr<CongestionWindow> window) = 0;
 
       virtual void setNodeForNDN(Ptr <ns3::Node> node) = 0;
 

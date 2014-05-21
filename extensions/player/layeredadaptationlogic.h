@@ -25,6 +25,14 @@ namespace ns3
         virtual void segmentConsumed(unsigned int segment_number);
 
       protected:
+
+        enum AdaptationPhase
+        {
+          Steady = 0,
+          Growing = 1,
+          Upswitching = 2
+        };
+
         Ptr<ns3::player::LayeredBuffer> buf;
         virtual dash::mpd::IRepresentation* getOptimalRepresentation (dash::mpd::IPeriod *period);
 
@@ -38,7 +46,11 @@ namespace ns3
 
         double alpha; //
         int gamma; //BUFFER_MIN_SIZE
-        int segments_since_last_nack;
+        int segments_for_growing;
+        int segments_for_upswitching;
+
+        AdaptationPhase lastPhase;
+        AdaptationPhase allowedPhase;
     };
   }
 }
