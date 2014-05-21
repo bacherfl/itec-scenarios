@@ -36,6 +36,9 @@ namespace ns3
 
         void UpdatePolicy(double metric);
 
+
+        void PrintPolicy();
+
       protected:
         unsigned int packets_per_time;
         unsigned int max_packets_per_time;

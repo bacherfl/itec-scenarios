@@ -23,11 +23,18 @@ LayeredAdaptationLogic::LayeredAdaptationLogic(dash::mpd::IMPD *mpd, std::string
   alpha = BUFFER_ALPHA;
   gamma = BUFFER_MIN_SIZE;
   segments_since_last_nack = 0;
+  this->max_level_allowed = this->getRepresentationsOrderdById ().size() - 1;
 }
 
 unsigned int LayeredAdaptationLogic::desired_buffer_size(int i, int i_curr)
 {
   return gamma + (int)ceil((i_curr - i) * alpha);
+}
+
+
+void LayeredAdaptationLogic::setMaxLevelAllowed(unsigned int segment_level)
+{
+  this->max_level_allowed = segment_level;
 }
 
 
@@ -63,8 +70,8 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
 
   int i = 0;
 
-  // Get i_curr
-  int i_curr = reps.size()-1;
+  // set i_curr to the maximum allowed level
+  int i_curr = max_level_allowed;
 
   unsigned int next_segment_number = -1;
 
@@ -119,7 +126,7 @@ dash::mpd::IRepresentation* LayeredAdaptationLogic::getOptimalRepresentation (da
   //fprintf(stderr, "Growing Phase done for i_curr=%d\n", i_curr);
 
   // Quality Increase Phase
-  if (i != reps.size())
+  if (i <= max_level_allowed)
   {
     i_curr++;
     next_segment_number = getNextNeededSegmentNumber(i);

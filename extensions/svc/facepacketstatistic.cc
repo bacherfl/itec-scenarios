@@ -23,6 +23,12 @@ FacePacketStatistic::~FacePacketStatistic()
 }
 
 
+void FacePacketStatistic::PrintPolicy()
+{
+  this->policy->Print(cout);
+}
+
+
 LevelStatistics* FacePacketStatistic::getStats()
 {
   return stats;
