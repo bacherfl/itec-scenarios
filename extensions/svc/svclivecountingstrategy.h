@@ -168,12 +168,7 @@ void SVCLiveCountingStrategy<Parent>::resetLevelCount(Ptr<ndn::Face> face) {
   // calculate max_packets and metric
   uint64_t bitrate = getPhysicalBitrate(face);
   int max_packets = bitrate / ( MAX_PACKET_PAYLOAD + PACKET_OVERHEAD ) / 8;
-  max_packets = max_packets * 0.9;
-
-  if (max_packets == 522)
-  {
-    fprintf(stderr, "max_packets=%d\n", max_packets);
-  }
+  max_packets = max_packets * 0.95;
 
   // set max packets
   this->map[face->GetId()]->SetMaxPacketsPerTime(max_packets);
