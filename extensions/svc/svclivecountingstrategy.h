@@ -303,7 +303,7 @@ bool SVCLiveCountingStrategy<Parent>::HasEnoughResourcesToSend
   if (diff > 100)
   {
     new_max_packets = ( (double)(new_max_packets * diff) ) / ((double)1000);
-    if (packets >= new_max_packets)
+    if (packets > new_max_packets)
     {
       double metric = ((double)(packets-new_max_packets)) / (double)(packets);
       //fprintf(stderr, "diff=%d, p=%d, newp=%d, metric=%f\n", diff, packets, new_max_packets, metric);
