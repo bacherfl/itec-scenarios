@@ -35,25 +35,28 @@ SIMULATION_RUNS = 10
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 
 
+dashStr="--mode=dash-svc"
+adapStr="--mode=adaptation"
+
 SCENARIOS = {
 # DASH
-	"CongAvoid_DASH_20M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck20.top --cwnd=tcp" },
-	"CongAvoid_DASH_20M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck20.top --cwnd=static" },
-	"CongAvoid_DASH_30M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck30.top --cwnd=tcp" },
-	"CongAvoid_DASH_30M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck30.top --cwnd=static" },
-	"CongAvoid_DASH_40M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck40.top --cwnd=tcp" },
-	"CongAvoid_DASH_40M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck40.top --cwnd=static" },
-	"CongAvoid_DASH_50M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck50.top --cwnd=tcp" },
-	"CongAvoid_DASH_50M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=dash-svc --top=congavoid_100clients_bottleneck50.top --cwnd=static" },
+	"CongAvoid_DASH_20M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=tcp"] },
+	"CongAvoid_DASH_20M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=static"] },
+	"CongAvoid_DASH_30M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=tcp"] },
+	"CongAvoid_DASH_30M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=static"] },
+	"CongAvoid_DASH_40M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=tcp"] },
+	"CongAvoid_DASH_40M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=static"] },
+	"CongAvoid_DASH_50M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck50.top", "--cwnd=tcp"] },
+	"CongAvoid_DASH_50M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck50.top", "--cwnd=static"] },
 # INA
-	"CongAvoid_INA_20M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck20.top --cwnd=tcp" },
-	"CongAvoid_INA_20M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck20.top --cwnd=static" },
-	"CongAvoid_INA_30M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck30.top --cwnd=tcp" },
-	"CongAvoid_INA_30M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck30.top --cwnd=static" },
-	"CongAvoid_INA_40M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck40.top --cwnd=tcp" },
-	"CongAvoid_INA_40M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck40.top --cwnd=static" },
-	"CongAvoid_INA_50M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck50.top --cwnd=tcp" },
-	"CongAvoid_INA_50M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": "--mode=adaptation --top=congavoid_100clients_bottleneck50.top --cwnd=static" },
+	"CongAvoid_INA_20M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=tcp"] },
+	"CongAvoid_INA_20M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=static"] },
+	"CongAvoid_INA_30M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=tcp"] },
+	"CongAvoid_INA_30M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=static"] },
+	"CongAvoid_INA_40M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=tcp"] },
+	"CongAvoid_INA_40M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck40.top","--cwnd=static"] },
+	"CongAvoid_INA_50M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck50.top","--cwnd=tcp"] },
+	"CongAvoid_INA_50M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck50.top","--cwnd=static"] },
 }
 
 
@@ -71,12 +74,12 @@ for scenarioName in SCENARIOS.keys():
 	
 	executeable = "build/" + executeable
 	print "------------------------------------------------------------------------"
-	print "Starting", runs , "simulations of", scenarioName, "(" + executeable + " " + SCENARIOS[scenarioName]['params'] ,  ")"
+	print "Starting", runs , "simulations of", scenarioName
 	
 	for i in range(0, runs):
 		print "----------"
 		print "Simulation run " + str(i) + " in progress..." 
-		tmp = [SIMULATION_DIR+"/" + executeable, SCENARIOS[scenarioName]['params'] + " --RngRun=" + str(i)]
+		tmp = [SIMULATION_DIR+"/" + executeable] +  SCENARIOS[scenarioName]['params'] + ["--RngRun=" + str(i)]
 		print tmp
 		call(tmp)
 		
