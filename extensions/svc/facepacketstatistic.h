@@ -27,6 +27,9 @@ namespace ns3
         void SetPacketsPerTime(unsigned int packets);
         unsigned int GetPacketsPerTime();
 
+        void SetMaxPacketsPerTime(unsigned int max_packets);
+        unsigned int GetMaxPacketsPerTime();
+
         void IncreasePackets(unsigned int level);
         double GetDropProbability(unsigned int level);
 
@@ -35,6 +38,7 @@ namespace ns3
 
       protected:
         unsigned int packets_per_time;
+        unsigned int max_packets_per_time;
         LevelStatistics* stats;
         DroppingPolicy* policy;
 

@@ -8,6 +8,8 @@ FacePacketStatistic::FacePacketStatistic()
 {
   policy = new PacketBasedDroppingPolicy();
   stats  = new SmoothLevelStatistics();
+
+  max_packets_per_time = 0;
 }
 
 
@@ -48,6 +50,18 @@ void FacePacketStatistic::UpdatePolicy(double metric)
   this->stats->ResetCounters();
 
   //this->policy->Print(cout);
+}
+
+
+void FacePacketStatistic::SetMaxPacketsPerTime(unsigned int max_packets)
+{
+  this->max_packets_per_time = max_packets;
+}
+
+
+unsigned int FacePacketStatistic::GetMaxPacketsPerTime()
+{
+  return this->max_packets_per_time;
 }
 
 
