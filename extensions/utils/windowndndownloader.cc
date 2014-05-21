@@ -5,10 +5,45 @@ using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("WindowNDNDownloader");
 
+
 WindowNDNDownloader::WindowNDNDownloader() : IDownloader()
 {
   interest  = NULL;
-  cwnd = Create<CongestionWindow>();
+
+  //this->needDownloadBeforeEvent = EventId();
+
+  this->cwnd = Create<CongestionWindow>();
+
+
+  //init status
+  reset();
+
+  // init statistics
+  packets_received = 0;
+  packets_timeout = 0;
+  packets_inflight = 0;
+  packets_nack = 0;
+  packets_received_this_second = 0;
+  packets_sent_this_second = 0;
+  had_ack = had_nack = had_timeout = false;
+
+  // create the mean RTT collector
+  m_rtt = CreateObject<ndn::RttMeanDeviation> ();
+  m_rtt->SetMinRto(MilliSeconds(DEFAULT_MEAN_RTT_MS));
+}
+
+WindowNDNDownloader::WindowNDNDownloader(std::string& cwnd_type) : IDownloader()
+{
+  interest  = NULL;
+
+  //this->needDownloadBeforeEvent = EventId();
+  if (cwnd_type.compare("tcp") == 0)
+  {
+    this->cwnd = Create<CongestionWindow>();
+  } else {
+    this->cwnd = Create<StaticCongestionWindow>();
+  }
+
   //init status
   reset();
 

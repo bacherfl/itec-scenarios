@@ -48,6 +48,7 @@ namespace ns3
     {
     public:
       WindowNDNDownloader();
+      WindowNDNDownloader(std::string& cwnd_type);
 
       /* download Segment - calls download(URI) */
       virtual bool download (Ptr<Segment> s);

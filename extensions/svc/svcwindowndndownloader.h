@@ -15,6 +15,7 @@ namespace ns3
     {
     public:
       SVCWindowNDNDownloader();
+      SVCWindowNDNDownloader(std::string& cwnd_type);
 
       // (overriden from WindowNDNDownloader) Call that will be called when a NACK arrives
       virtual void OnNack (Ptr<const ndn::Interest> interest);

@@ -13,7 +13,7 @@ PlayerFactory::PlayerFactory()
   manager = CreateDashManager();
 }
 
-Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwnType,  Ptr<Node> node)
+Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwnType,  std::string& cwnd_type, Ptr<Node> node)
 {
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
   if(mpd == NULL)
@@ -25,7 +25,7 @@ Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwn
   std::string dataset_path = getPWD().append (mpd_path);
   dataset_path = dataset_path.substr (0, dataset_path.find_last_of ('/')+1);
 
-  DownloadManager *dwnManager = new DownloadManager(dwnType, node);
+  DownloadManager *dwnManager = new DownloadManager(dwnType, cwnd_type, node);
 
   Ptr<LayeredBuffer> buffer = Create<LayeredBuffer>();
   ns3::dashimpl::LayeredAdaptationLogic *alogic = new ns3::dashimpl::LayeredAdaptationLogic(mpd, dataset_path, buffer);

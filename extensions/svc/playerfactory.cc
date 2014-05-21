@@ -26,7 +26,9 @@ SvcPlayer* PlayerFactory::createPlayer(std::string mpd_path, unsigned int buffer
 
   utils::Buffer* buffer = new utils::Buffer(buffer_size);
 
-  DownloadManager *dwnManager = new DownloadManager(dwnType, node);
+  string tcpString("tcp");
+
+  DownloadManager *dwnManager = new DownloadManager(dwnType, tcpString, node);
 
   return new SvcPlayer(mpd, dataset_path, dwnManager, buffer, maxWidth, maxHeight, Names::FindName (node));
 }

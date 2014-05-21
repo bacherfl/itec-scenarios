@@ -5,7 +5,7 @@ using namespace ns3::utils;
 NS_LOG_COMPONENT_DEFINE ("DownloadManager");
 
 
-DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
+DownloadManager::DownloadManager(DownloaderType dwType, std::string& cwnd_type, Ptr<Node> node)
 {
   //make downloaders ready
   this->node = node;
@@ -13,7 +13,7 @@ DownloadManager::DownloadManager(DownloaderType dwType, Ptr<Node> node)
   IDownloader* d = NULL;
   for(int i = 0; i < DOWNLOADER_NUMBER; i++)
   {
-    d = resolveDownloader (dwType, node);
+    d = resolveDownloader (dwType, cwnd_type, node);
 
     d->addObserver (this);
     this->downloaders.push_back (d);
@@ -285,7 +285,7 @@ std::vector<ns3::Ptr<Segment> > DownloadManager::retriveUnfinishedSegments()
   return return_segs;
 }
 
-IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, Ptr<Node> node)
+IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, std::string& cwnd_type, Ptr<Node> node)
 {
   IDownloader* d = NULL;
 
@@ -298,17 +298,17 @@ IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, Ptr<N
     }
     case WindowNDN:
     {
-      d = new WindowNDNDownloader();
+      d = new WindowNDNDownloader(cwnd_type);
       break;
     }
     case SVCWindowNDN:
     {
-      d = new SVCWindowNDNDownloader();
+      d = new SVCWindowNDNDownloader(cwnd_type);
       break;
     }
     default:
       NS_LOG_WARN("DownloadManager::resolveDownloader() Could not resolve Downloader, using default Downloader!");
-      d = new WindowNDNDownloader();
+      d = new WindowNDNDownloader(cwnd_type);
   }
 
   d->setNodeForNDN (node);

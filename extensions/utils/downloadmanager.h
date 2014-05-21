@@ -28,7 +28,7 @@ namespace ns3
 
     public:
 
-      DownloadManager(DownloaderType dwType, Ptr<ns3::Node> node);
+      DownloadManager(DownloaderType dwType, std::string& cwnd_type, Ptr<ns3::Node> node);
 
       ~DownloadManager();
 
@@ -70,7 +70,7 @@ namespace ns3
        * \param node Pointer to ns3 Node which will be used by the Downloader.
        * \return Downloader
        */
-      utils::IDownloader* resolveDownloader(utils::DownloaderType downloader, Ptr<Node> node);
+      utils::IDownloader* resolveDownloader(utils::DownloaderType downloader, std::string& cwnd_type, Ptr<Node> node);
 
     };
   }

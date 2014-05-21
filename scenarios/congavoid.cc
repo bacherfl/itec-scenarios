@@ -15,12 +15,14 @@
 
 using namespace ns3;
 
-void parseParameters(int argc, char* argv[], std::string& mode)
+void parseParameters(int argc, char* argv[], std::string& mode, std::string& cwnd)
 {
   bool v0 = false, v1 = false, v2 = false;
   bool vN = false;
 
-  std::string top_path = "topologies/congavoid_100clients.top";
+  std::string top_path = "congavoid_100clients.top";
+
+  cwnd = "tcp";
 
   CommandLine cmd;
   cmd.AddValue ("v0", "Prints all log messages >= LOG_DEBUG. (OPTIONAL)", v0);
@@ -28,6 +30,7 @@ void parseParameters(int argc, char* argv[], std::string& mode)
   cmd.AddValue ("v2", "Prints all log messages. (OPTIONAL)", v2);
   cmd.AddValue ("vN", "Disable all internal logging parameters, use NS_LOG instead", vN);
   cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
+  cmd.AddValue ("cwnd", "Type of congestion window to be used (either tcp (default) or static) (OPTIONAL)", cwnd);
   cmd.AddValue ("mode", "Sets the simulation mode. Either \"mode=dash-svc\" or \"mode=dash-avc or \"mode=adaptation\". (OPTIONAL) Default: mode=dash-svc", mode);
 
   cmd.Parse (argc, argv);
@@ -53,7 +56,8 @@ void parseParameters(int argc, char* argv[], std::string& mode)
     NS_LOG_UNCOND("Disabled internal logging parameters, using NS_LOG as parameter.");
   }
   AnnotatedTopologyReader topologyReader ("", 20);
-  topologyReader.SetFileName (top_path);
+  NS_LOG_UNCOND("Using topology file " << top_path);
+  topologyReader.SetFileName ("topologies/" + top_path);
   topologyReader.Read();
 }
 
@@ -62,7 +66,9 @@ int main(int argc, char* argv[])
   NS_LOG_COMPONENT_DEFINE ("CongAvoidScenario");
 
   std::string mode("dash-svc");
-  parseParameters(argc, argv, mode);
+  std::string cwnd("tcp");
+
+  parseParameters(argc, argv, mode, cwnd);
 
   fprintf(stderr, "Selected Mode = %s\n", mode.c_str ());
 
@@ -176,6 +182,8 @@ int main(int argc, char* argv[])
   } else {
     dashRequesterHelper.SetAttribute("EnableAdaptation", StringValue("0"));
   }
+
+  dashRequesterHelper.SetAttribute("CongestionWindowType", StringValue(cwnd));
 
   /*
 

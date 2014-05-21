@@ -8,18 +8,23 @@ NS_OBJECT_ENSURE_REGISTERED (PlayerRequester);
 TypeId PlayerRequester::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::ndn::PlayerRequester")
-      .SetParent<ndn::App>()
-      .AddConstructor<PlayerRequester>()
+      .SetParent<ndn::App> ()
+      .AddConstructor<PlayerRequester> ()
       .AddAttribute("MPD",
                     "Path to MPD file.",
-                    StringValue("/path/to/mpd"),
-                    MakeStringAccessor(&PlayerRequester::mpd_path),
+                    StringValue ("/path/to/mpd"),
+                    MakeStringAccessor (&PlayerRequester::mpd_path),
                     MakeStringChecker ())
       .AddAttribute("EnableAdaptation",
                     "0 or 1",
-                    IntegerValue(0),
-                    MakeIntegerAccessor(&PlayerRequester::enableAdaptation),
-                    MakeIntegerChecker<int32_t> ());
+                    IntegerValue (0),
+                    MakeIntegerAccessor (&PlayerRequester::enableAdaptation),
+                    MakeIntegerChecker<int32_t> ())
+      .AddAttribute("CongestionWindowType",
+                    "Defines the CWND Type (either tcp or static)",
+                    StringValue ("tcp"),
+                    MakeStringAccessor (&PlayerRequester::cwnd_type),
+                    MakeStringChecker () );
   /* AddAttribute("LevelCount", "The amount of levels as a positive integer > 0",
                     IntegerValue(DEFAULT_AMOUNT_LEVELS),
                     MakeIntegerAccessor(&SVCCountingStrategy<Parent>::m_levelCount),
@@ -34,9 +39,9 @@ void PlayerRequester::StartApplication ()
   ndn::App::StartApplication ();
   if (enableAdaptation == 0)
   {
-    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::WindowNDN, this->GetNode ());
+    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::WindowNDN, cwnd_type, this->GetNode ());
   } else {
-    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::SVCWindowNDN, this->GetNode ());
+    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::SVCWindowNDN, cwnd_type, this->GetNode ());
   }
   player->play();
 }

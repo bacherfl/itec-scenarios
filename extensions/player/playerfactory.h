@@ -37,7 +37,7 @@ namespace ns3
     {
     public:
 
-      Ptr<Player> createPlayer(std::string mpd_path,  utils::DownloaderType dwnType, Ptr<ns3::Node> node);
+      Ptr<Player> createPlayer(std::string mpd_path,  utils::DownloaderType dwnType,  std::string& cwnd_type, Ptr<ns3::Node> node);
 
       static PlayerFactory* getInstance();
 

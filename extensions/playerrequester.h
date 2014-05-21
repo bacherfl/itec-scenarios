@@ -39,7 +39,9 @@ namespace ns3 {
 
     int enableAdaptation;
 
-   Ptr<ns3::player::Player> player;
+    Ptr<ns3::player::Player> player;
+
+    std::string cwnd_type;
   };
 }
 #endif // PLAYERREQUESTER_H

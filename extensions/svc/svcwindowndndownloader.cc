@@ -5,10 +5,15 @@ using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("SVCWindowNDNDownloader");
 
-SVCWindowNDNDownloader::SVCWindowNDNDownloader() : WindowNDNDownloader()
+SVCWindowNDNDownloader::SVCWindowNDNDownloader(std::string& cwnd_type) : WindowNDNDownloader(cwnd_type)
 {
   //this->needDownloadBeforeEvent = EventId();
-  this->cwnd = Create<StaticCongestionWindow>();
+}
+
+SVCWindowNDNDownloader::SVCWindowNDNDownloader() : WindowNDNDownloader()
+{
+
+
 }
 
 void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)

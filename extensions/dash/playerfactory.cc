@@ -34,7 +34,9 @@ DashPlayer* PlayerFactory::createPlayer(std::string mpd_path, AdaptationLogicTyp
     return NULL;
   }
 
-  DownloadManager *dwnManager = new DownloadManager(dwnType, node);
+  string tcpString("tcp");
+
+  DownloadManager *dwnManager = new DownloadManager(dwnType, tcpString, node);
 
   return new DashPlayer(mpd, logic, buffer, dwnManager, Names::FindName (node));
 }
