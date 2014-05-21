@@ -88,10 +88,19 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
 
   int dlSpeed = 0;
 
+  int qualitySwitches = 0;
+  int lastLevel = levelHistory.at(0);
+
   for (int i = 0; i < this->levelHistory.size (); i++)
   {
     avg_level += levelHistory.at(i);
     buf_fill += bufferHistory.at (i);
+
+
+    if (levelHistory.at(i) != lastLevel) // increase qualitySwithces
+    {
+      qualitySwitches++;
+    }
 
     file << i << ", ";
     file << levelHistory.at(i) << ", ";
@@ -116,13 +125,18 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
     file << dlSpeed;
 
     file << endl;
+
+
+    // store last level
+    lastLevel = levelHistory.at(i);
   }
 
-  file << "AVG Level = " << (avg_level/levelHistory.size ()) << endl;
-  file << "AVG Buffer size (seconds) = " << (buf_fill/bufferHistory.size ()) << endl;
-  file << "Unsmooth Seconds = " << unsmooth << endl;
-  file << "AVG Goodput (kbit/s) = " << avg_bandwith / dlDurationHistory.size () << endl; //bits/s / 1000 = kbits / s.
-  file << "Video Downloaded = " << mpd_video_name << endl;
+  file << "# AVG Level = " << (avg_level/levelHistory.size ()) << endl;
+  file << "# AVG Buffer size (seconds) = " << (buf_fill/bufferHistory.size ()) << endl;
+  file << "# Unsmooth Seconds = " << unsmooth << endl;
+  file << "# Quality Switches = " << qualitySwitches << endl;
+  file << "# AVG Goodput (kbit/s) = " << avg_bandwith / dlDurationHistory.size () << endl; //bits/s / 1000 = kbits / s.
+  file << "# Video Downloaded = " << mpd_video_name << endl;
   file << "# StartTime = " << this->startTime << endl;
   file << "# EndTime = " << this->endTime << endl;
 
