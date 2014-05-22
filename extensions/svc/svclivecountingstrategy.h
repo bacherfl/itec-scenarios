@@ -282,6 +282,13 @@ bool SVCLiveCountingStrategy<Parent>::HasEnoughResourcesToSend
   // increase level counter for that face
   this->map[face->GetId ()]->IncreasePackets (level);
 
+  if (level == 0)
+    return true; // dont do anything with level 0, thats not ours to decide
+
+
+
+
+
   // calculate time since last reset
   int diff = (int) (Simulator::Now().GetMilliSeconds () - lastResetTime.GetMilliSeconds ());
   // should be less than 1000

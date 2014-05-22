@@ -1,0 +1,46 @@
+router
+
+# node       comment   yPos    xPos
+
+ContentDst0	NA	100	0
+ContentDst1	NA	99	0
+ContentDst2	NA	98	0
+ContentDst3	NA	97	0
+ContentDst4	NA	96	0
+ContentDst5	NA	95	0
+ContentDst6	NA	94	0
+ContentDst7	NA	93	0
+ContentDst8	NA	92	0
+ContentDst9	NA	91	0
+
+
+
+AdaptiveNode0 NA       50       20
+
+Router0       NA       75       10
+
+Router1       NA       50       30
+
+ContentSrc0   NA       50       40
+
+link
+
+# srcNode     dstNode          bandwidth   metric    delay  queue
+ContentDst0	Router0	8Mbps	1	5ms	50
+ContentDst1	Router0	8Mbps	1	5ms	50
+ContentDst2	Router0	8Mbps	1	5ms	50
+ContentDst3	Router0	8Mbps	1	5ms	50
+ContentDst4	Router0	8Mbps	1	5ms	50
+ContentDst5	Router0	8Mbps	1	5ms	50
+ContentDst6	Router0	8Mbps	1	5ms	50
+ContentDst7	Router0	8Mbps	1	5ms	50
+ContentDst8	Router0	8Mbps	1	5ms	50
+ContentDst9	Router0	8Mbps	1	5ms	50
+
+
+
+AdaptiveNode0 Router1            20Mbps       1        5ms    100
+
+Router1 ContentSrc0              100Mbps       1        5ms    100
+
+Router0 AdaptiveNode0            100Mbps       1        5ms    100
