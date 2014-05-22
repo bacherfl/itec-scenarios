@@ -282,13 +282,6 @@ bool SVCLiveCountingStrategy<Parent>::HasEnoughResourcesToSend
   // increase level counter for that face
   this->map[face->GetId ()]->IncreasePackets (level);
 
-  if (level == 0)
-    return true; // dont do anything with level 0, thats not ours to decide
-
-
-
-
-
   // calculate time since last reset
   int diff = (int) (Simulator::Now().GetMilliSeconds () - lastResetTime.GetMilliSeconds ());
   // should be less than 1000
@@ -314,10 +307,54 @@ bool SVCLiveCountingStrategy<Parent>::HasEnoughResourcesToSend
     }
   }
 
-
   // check if RandomNumber(0,1) < DropProbability
   // if yes --> drop (=  NOT CanSendOutInterest)
   double dropProbability = this->map[face->GetId ()]->GetDropProbability (level);
+
+  //check if level 0
+  if (level == 0 && !(randomNumber.GetValue() >= dropProbability) )
+  {
+    //extract the video
+
+    std::string video = interest->GetName().toUri();
+    video = video.substr (0, video.find_last_of ("/"));
+    video = video.substr (0, video.find_last_of ("/"));
+    video = video.substr (video.find_last_of ("/")+1);
+
+    //fprintf(stderr, "video = %s\n", video.c_str ());
+    //fprintf(stderr, "Pitsize = %d \n",SVCLiveCountingStrategy<Parent>::m_pit->GetSize());
+
+    Ptr<pit::Entry> entry = SVCLiveCountingStrategy<Parent>::m_pit->Begin();
+
+    std::map<std::string, int> different_streams;
+
+    double ratio = 0;
+    while (entry != SVCLiveCountingStrategy<Parent>::m_pit->End())
+    {
+      std::string pit_entry_name = entry->GetInterest ()->GetName ().toUri ();
+      pit_entry_name = pit_entry_name.substr (0, pit_entry_name.find_last_of ("/"));
+      pit_entry_name = pit_entry_name.substr (0, pit_entry_name.find_last_of ("/"));
+      pit_entry_name = pit_entry_name.substr (pit_entry_name.find_last_of ("/")+1);
+
+      if(pit_entry_name.compare (video) == 0)
+        ratio++;
+
+      different_streams[pit_entry_name] = 0;
+
+      entry = SVCLiveCountingStrategy<Parent>::m_pit->Next(entry);
+    }
+    ratio /= SVCLiveCountingStrategy<Parent>::m_pit->GetSize();
+
+    //fprintf(stderr, "Ratio for %s = %f\n", video.c_str (), ratio);
+    //fprintf(stderr, "Different streams = %d\n", different_streams.size ());
+
+    double allowed_ratio = 1.0 / (double) different_streams.size ();
+
+    if(ratio >=  allowed_ratio * 2)
+      return false;
+
+    return true;
+  }
 
   return ( randomNumber.GetValue() >= dropProbability );
 }

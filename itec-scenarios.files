@@ -122,5 +122,7 @@ topologies/congavoid_100clients_bottleneck50.top
 topologies/congavoid_100clients_bottleneck40.top
 topologies/congavoid_100clients_bottleneck30.top
 topologies/congavoid_100clients_bottleneck20.top
+topologies/congavoid_100clients_bottleneck35.top
+topologies/congavoid_100clients_bottleneck25.top
 scenarios/congavoid10clients.cc
 topologies/congavoid_10clients.top
