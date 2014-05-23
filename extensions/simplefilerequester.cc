@@ -54,12 +54,21 @@ void SimpleFileRequester::StartApplication ()
 
     // remove downloader
     delete downloader;
+    downloader = NULL;
   }
 
-  downloader = new ns3::utils::WindowNDNDownloader();
-  downloader->setNodeForNDN(GetNode());
+  if (this->URIPath.compare("") != 0)
+  {
+    std::string cwnd_type = "tcp";
 
-  downloader->download(this->URIPath);
+    downloader = new ns3::utils::WindowNDNDownloader(cwnd_type);
+    downloader->setNodeForNDN(GetNode());
+
+
+    NS_LOG_UNCOND("FileRequester starting download for " << this->URIPath);
+
+    downloader->download(this->URIPath);
+  }
 
 }
 
