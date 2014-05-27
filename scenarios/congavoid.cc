@@ -149,7 +149,7 @@ int main(int argc, char* argv[])
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 1k chunks in cache (about 4MB)
   ndnHelper.Install (providers);
   ndnHelper.Install (streamers);
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 25k chunks in cache (about 100MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "64000"); // all entities can store up to 25k chunks in cache (about 100MB)
   ndnHelper.Install (routers);
 
   //change strategy for adaptive NODE
