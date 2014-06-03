@@ -13,6 +13,7 @@ unsigned int LevelStatistics::GetAmountOfLevels()
     return this->levelCounting.size();
 }
 
+/* get the sum of all level counters */
 unsigned int LevelStatistics::GetTotalLevelCounter()
 {
     unsigned int cnt = 0;
@@ -70,29 +71,32 @@ bool LevelStatistics::CreateLevels(unsigned int numLevels)
 
 unsigned int LevelStatistics::IncreaseLevelCounter(unsigned int level)
 {
-    this->levelCounting[level] = this->levelCounting[level] + 1;
-    return this->levelCounting[level];
+  this->levelCounting[level] = this->levelCounting[level] + 1;
+  return this->levelCounting[level];
 }
 
 
 unsigned int LevelStatistics::DecreaseLevelCounter(unsigned int level)
 {
-    if (this->levelCounting[level] != 0)
-        this->levelCounting[level] = this->levelCounting[level] - 1;
+  // do not decrease below 0
+  if (this->levelCounting[level] != 0)
+    this->levelCounting[level] = this->levelCounting[level] - 1;
 
-    return this->levelCounting[level];
+  return this->levelCounting[level];
 }
 
 
+// get the counter for a specified level
 unsigned int LevelStatistics::GetLevelCounter(unsigned int level)
 {
-    return this->levelCounting[level];
+  return this->levelCounting[level];
 }
 
 
+// get the sum of counts for all levels <= level
 unsigned int LevelStatistics::GetTotalLevelCounter(unsigned int level)
 {
-    double sum = 0.0;
+    unsigned int sum = 0;
     unsigned int numLevels = level;
     if (numLevels >= this->levelCounting.size() && numLevels != 0 && this->levelCounting.size() != 0)
         numLevels = this->levelCounting.size() - 1;
