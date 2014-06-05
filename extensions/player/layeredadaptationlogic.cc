@@ -184,7 +184,7 @@ void LayeredAdaptationLogic::segmentRetrieved(Time start, Time stop,
 void LayeredAdaptationLogic::segmentFailed(unsigned int segment_number, unsigned int segment_level)
 {
 
-  //determine i_curr
+  /*//determine i_curr
 
   std::vector<dash::mpd::IRepresentation*> reps = this->getRepresentationsOrderdById();
 
@@ -196,8 +196,12 @@ void LayeredAdaptationLogic::segmentFailed(unsigned int segment_number, unsigned
 
   allowedPhase = Steady;
 
-  segments_for_growing = desired_buffer_size(0,i_curr) * ceil(i_curr / 2);
-  segments_for_upswitching = desired_buffer_size(0,i_curr) * i_curr;
+  //segments_for_growing = desired_buffer_size(0,i_curr) * i_curr;
+  //segments_for_upswitching = desired_buffer_size(0,i_curr) * i_curr * 2;
+
+
+  segments_for_growing = desired_buffer_size(0,i_curr) * ceil(i_curr / 3);
+  segments_for_upswitching = desired_buffer_size(0,i_curr) * ceil(i_curr/ 2);*/
 
 }
 
