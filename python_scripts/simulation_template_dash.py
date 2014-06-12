@@ -40,7 +40,13 @@ SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 #smallCache="--cacheSize=1000"
 MB256Cache="--cacheSize=64000"
 
-
+bottleneck05="--top=dasheval_100clients_bottleneck05.top"
+bottleneck06="--top=dasheval_100clients_bottleneck06.top"
+bottleneck07="--top=dasheval_100clients_bottleneck07.top"
+bottleneck08="--top=dasheval_100clients_bottleneck08.top"
+bottleneck09="--top=dasheval_100clients_bottleneck09.top"
+bottleneck10="--top=dasheval_100clients_bottleneck10.top"
+bottleneck15="--top=dasheval_100clients_bottleneck15.top"
 bottleneck20="--top=dasheval_100clients_bottleneck20.top"
 bottleneck25="--top=dasheval_100clients_bottleneck25.top"
 bottleneck30="--top=dasheval_100clients_bottleneck30.top"
@@ -56,11 +62,24 @@ threeBgTraffic="--bgTrafficClients=3"
 fourBgTraffic="--bgTrafficClients=4"
 
 SCENARIOS = {
-	"DASH_20M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck20, MB256Cache, noBgTraffic] },
-	"DASH_20M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck25, MB256Cache, noBgTraffic] },
-	"DASH_30M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck30, MB256Cache, noBgTraffic] },
-	"DASH_20M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck35, MB256Cache, noBgTraffic] },
-	"DASH_40M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck40, MB256Cache, noBgTraffic] },
+	"DASH_06M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck06, MB256Cache, noBgTraffic] },
+	"DASH_07M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck07, MB256Cache, noBgTraffic] },
+	"DASH_08M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck08, MB256Cache, noBgTraffic] },
+	"DASH_09M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck09, MB256Cache, noBgTraffic] },
+#	"DASH_05M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck05, MB256Cache, noBgTraffic] },
+#	"DASH_10M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck10, MB256Cache, noBgTraffic] },
+#	"DASH_15M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck15, MB256Cache, noBgTraffic] },
+#	"DASH_20M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck20, MB256Cache, noBgTraffic] },
+#	"DASH_25M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck25, MB256Cache, noBgTraffic] },
+#	"DASH_30M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck30, MB256Cache, noBgTraffic] },
+#	"DASH_35M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck35, MB256Cache, noBgTraffic] },
+#	"DASH_40M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck40, MB256Cache, noBgTraffic] },
+	
+#	"DASH_20M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck20, MB256Cache, noBgTraffic] },
+#	"DASH_25M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck25, MB256Cache, noBgTraffic] },
+#	"DASH_30M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck30, MB256Cache, noBgTraffic] },
+#	"DASH_35M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck35, MB256Cache, noBgTraffic] },
+#	"DASH_40M_XLARGE_NOBG":    { "executeable": "evaldash", "numRuns": SIMULATION_RUNS, "params": [bottleneck40, MB256Cache, noBgTraffic] },
 	
 	
 #### NO BG Traffic
