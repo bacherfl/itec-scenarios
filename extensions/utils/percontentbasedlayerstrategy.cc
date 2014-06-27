@@ -1,0 +1,29 @@
+#include "percontentbasedlayerstrategy.h"
+
+namespace ns3 {
+namespace ndn {
+namespace fw {
+
+//template class PerOutFaceLimits< PerContentBasedLayerStrategy<BestRoute> >;
+
+typedef PerOutFaceLimits< PerContentBasedLayerStrategy<BestRoute> > PerOutFaceLimitsPerContentBasedLayerStrategyBestRoute;
+NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategyBestRoute);
+
+typedef PerContentBasedLayerStrategy<BestRoute> PerContentBasedLayerStrategyBestRoute;
+NS_OBJECT_ENSURE_REGISTERED(PerContentBasedLayerStrategyBestRoute);
+
+typedef PerOutFaceLimits<PerContentBasedLayerStrategy<SmartFlooding> > PerOutFaceLimitsPerContentBasedLayerStrategySmartFlooding;
+NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategySmartFlooding);
+
+typedef PerContentBasedLayerStrategy<SmartFlooding> PerContentBasedLayerStrategySmartFlooding;
+NS_OBJECT_ENSURE_REGISTERED(PerContentBasedLayerStrategySmartFlooding);
+
+typedef PerOutFaceLimits<PerContentBasedLayerStrategy<Flooding> >PerOutFaceLimitsPerContentBasedLayerStrategyFlooding;
+NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategyFlooding);
+
+typedef PerContentBasedLayerStrategy<Flooding> PerContentBasedLayerStrategyFlooding;
+NS_OBJECT_ENSURE_REGISTERED(PerContentBasedLayerStrategyFlooding);
+
+} // namespace fw
+} // namespace ndn
+} // namespace ns3
