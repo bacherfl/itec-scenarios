@@ -128,3 +128,13 @@ scenarios/congavoid10clients.cc
 topologies/congavoid_10clients.top
 scenarios/evaldash.cc
 topologies/dasheval_100clients.top
+extensions/utils/rttbasedcachingstrategy.h
+extensions/utils/rttbasedcachingstrategy.cc
+topologies/medium.top
+scenarios/markow.cc
+extensions/utils/percontentbasedlayerstrategy.h
+extensions/utils/percontentbasedlayerstrategy.cc
+extensions/utils/forwardingengine.h
+extensions/utils/forwardingengine.cc
+extensions/utils/forwardingprobabilitytable.h
+extensions/utils/forwardingprobabilitytable.cc

@@ -133,7 +133,16 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
 {
   int fwFaceId = fwEngine->determineRoute(inFace, interest);
 
-  return true;
+  for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+      it !=  faces.end (); ++it)
+  {
+    if (fwFaceId == (*it)->GetId())
+    {
+      return super::TrySendOutInterest(inFace, *it, interest, pitEntry); /*maybe some more sophisticated handling here...*/
+    }
+  }
+
+  return false;
 }
 
 }

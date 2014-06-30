@@ -32,6 +32,10 @@ protected:
 
   void initTable();
   boost::numeric::ublas::matrix<double> removeFaceFromTable(Ptr<ndn::Face> face);
+  boost::numeric::ublas::matrix<double> normalizeColumns(boost::numeric::ublas::matrix<double> m);
+  int chooseFaceAccordingProbability(boost::numeric::ublas::matrix<double> m, int layer_of_interest, std::vector<int> faceList);
+
+  int determineRowOfFace(Ptr<ndn::Face> face);
 
   ns3::UniformVariable randomVariable;
 };
