@@ -5,13 +5,14 @@ using namespace ns3::ndn;
 ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces)
 {
   init(faces);
+  Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
 }
 
 void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
 {
 
   faceIds.clear ();
-  clearForwardingPropabilityMap();
+  //clearForwardingPropabilityMap(); not needed we have smart pointers now
 
   faceIds.push_back (DROP_FACE_ID); // add dropping face
 
@@ -19,6 +20,8 @@ void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
   {
     faceIds.push_back ((*it)->GetId());
   }
+
+  std::sort(faceIds.begin(), faceIds.end()); // order faces strictly by ID
 }
 
 int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest)
@@ -29,11 +32,15 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
   if(fwMap.find(prefix) == fwMap.end ())
   {
-    fprintf(stderr, "1\n");
-    fwMap[prefix] = new ForwardingProbabilityTable(faceIds);
+    fwMap[prefix] = Create<ForwardingEntry>(faceIds);
   }
 
-  return fwMap[prefix]->determineOutgoingFace(inFace, interest);
+  Ptr<ForwardingEntry> entry = fwMap.find(prefix)->second;
+
+  int out_face_id = entry->getFWTable()->determineOutgoingFace(inFace, interest);
+  //entry->getFWStats()->logForwardedInterest(interest,out_face_id);
+
+  return out_face_id;
 
 }
 
@@ -42,14 +49,59 @@ std::string ForwardingEngine::extractContentPrefix(ndn::Name name)
   return name.get(0).toUri ();
 }
 
-void ForwardingEngine::clearForwardingPropabilityMap()
+void ForwardingEngine::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
 {
-  for(ForwardingPropabilityMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)
+  //check if content prefix has been seen
+  std::string prefix = extractContentPrefix(pitEntry->GetInterest()->GetName());
+  if(fwMap.find(prefix) == fwMap.end ())
+  {
+    NS_LOG_UNCOND("Error in logUnstatisfiedRequest");
+  }
+
+  fwMap[prefix]->getFWStats()->logUnstatisfiedRequest(pitEntry);
+}
+
+void ForwardingEngine::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
+{
+  std::string prefix = extractContentPrefix(pitEntry->GetInterest()->GetName());
+  if(fwMap.find(prefix) == fwMap.end ())
+  {
+    NS_LOG_UNCOND("Error in logStatisfiedRequest");
+  }
+
+   fwMap[prefix]->getFWStats()->logStatisfiedRequest(inFace,pitEntry);
+}
+
+void ForwardingEngine::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace)
+{
+  std::string prefix = extractContentPrefix(pitEntry->GetInterest()->GetName());
+  if(fwMap.find(prefix) == fwMap.end ())
+  {
+    NS_LOG_UNCOND("Error in logExhaustedFace");
+  }
+
+   fwMap[prefix]->getFWStats()->logExhaustedFace(inFace,interest,pitEntry,targetedOutFace);
+}
+
+void ForwardingEngine::update ()
+{
+
+  for(ForwardingEntryMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)
+  {
+    it->second->update();
+  }
+
+  Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
+}
+
+/*void ForwardingEngine::clearForwardingPropabilityMap()
+{
+  for(ForwardingEntryMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)
   {
     delete it->second;
   }
 
   fwMap.clear ();
-}
+}*/
 
 

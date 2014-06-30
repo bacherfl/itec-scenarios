@@ -8,6 +8,7 @@
 #include "ns3/ndn-face.h"
 #include "ns3/ndn-interest.h"
 #include "ns3/log.h"
+#include "ns3/simple-ref-count.h"
 
 #include <vector>
 #include <stdio.h>
@@ -19,10 +20,11 @@ namespace ns3
 {
 namespace ndn
 {
-class ForwardingProbabilityTable
+class ForwardingProbabilityTable : public SimpleRefCount<ForwardingProbabilityTable>
 {
 public:
   ForwardingProbabilityTable(std::vector<int> faceIds);
+
   int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest);
 
 protected:

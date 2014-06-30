@@ -138,3 +138,7 @@ extensions/utils/forwardingengine.h
 extensions/utils/forwardingengine.cc
 extensions/utils/forwardingprobabilitytable.h
 extensions/utils/forwardingprobabilitytable.cc
+extensions/utils/forwardingentry.h
+extensions/utils/forwardingentry.cc
+extensions/utils/forwardingstatistics.h
+extensions/utils/forwardingstatistics.cc

@@ -40,8 +40,10 @@ public:
 
   virtual void AddFace(Ptr< Face> face);
   virtual void RemoveFace(Ptr< Face > face);
-  virtual void OnInterest(Ptr< Face > inface, Ptr< Interest > interest);
+  //virtual void OnInterest(Ptr< Face > inface, Ptr< Interest > interest);
   virtual bool DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
+  virtual void WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry);
+  virtual void WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
 
 protected:
 
@@ -103,7 +105,7 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
 }
 
 
-template<class Parent>
+/*template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
 {
   //SVCLevelTag levelTag;
@@ -112,12 +114,11 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
   Ptr<pit::Entry> pitEntry = PerContentBasedLayerStrategy<Parent>::m_pit->Find (interest->GetName ());
 
   // check if duplicate interest first
-  /*bool isDuplicate = false;
-  if (pitEntry != 0)
-  {
-    isDuplicate = pitEntry->IsNonceSeen (interest->GetNonce () );
-  }
-  */
+  /bool isDuplicate = false;
+  //if (pitEntry != 0)
+  //{
+  //  isDuplicate = pitEntry->IsNonceSeen (interest->GetNonce () );
+  //}
 
   // means we have not seen a request for this chunk, so consider it for our statistics
   if(pitEntry != 0)
@@ -126,7 +127,7 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
   }
   // let parent continue with the interest
   super::OnInterest(inface,interest);
-}
+}*/
 
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
@@ -138,11 +139,32 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
   {
     if (fwFaceId == (*it)->GetId())
     {
-      return super::TrySendOutInterest(inFace, *it, interest, pitEntry); /*maybe some more sophisticated handling here...*/
+      bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
+
+      if(!success)
+        fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it);
+
+      return success; /*maybe some more sophisticated handling here...*/
     }
   }
 
   return false;
+}
+
+template<class Parent>
+void PerContentBasedLayerStrategy<Parent>::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry)
+{
+  fwEngine->logUnstatisfiedRequest (pitEntry);
+  super::WillEraseTimedOutPendingInterest(pitEntry);
+}
+
+template<class Parent>
+void PerContentBasedLayerStrategy<Parent>::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
+{
+  if(inFace != 0) // ==0 means data comes from cache
+    fwEngine->logStatisfiedRequest(inFace,pitEntry);
+
+  super::WillSatisfyPendingInterest(inFace,pitEntry);
 }
 
 }
