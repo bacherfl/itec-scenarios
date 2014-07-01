@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-#define UPDATE_INTERVALL 1.0
+#define UPDATE_INTERVALL 0.5
 
 namespace ns3
 {
@@ -24,10 +24,9 @@ public:
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
   void logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace);
 
-  int getMapIndexFromFaceID(int face_id);
-
   double getLinkReliability(int face_id);
   double getGoodput(int face_id);
+  double getUnstatisfiedTrafficFraction(){return unstatisfied_traffic_fraction;}
 
   void resetStatistics();
 
@@ -38,12 +37,26 @@ protected:
   typedef std::map
     < int, /*face id*/
      int /*value to store*/
-    > ForwardingStatsMap;
+    > ForwardingIntMap;
 
+  typedef std::map
+    < int, /*face id*/
+     double /*value to store*/
+    > ForwardingDoubleMap;
 
-  ForwardingStatsMap statisfied_requests;
-  ForwardingStatsMap unstatisfied_requests;
-  ForwardingStatsMap goodput_bytes_received;
+  int getMapIndexFromFaceID(int face_id);
+
+  void calculateLinkReliabilities();
+  void calculateGoodput();
+  void calculateUnstatisfiedTrafficFraction();
+
+  double unstatisfied_traffic_fraction;
+  ForwardingDoubleMap last_goodput;
+  ForwardingDoubleMap last_reliability;
+
+  ForwardingIntMap statisfied_requests;
+  ForwardingIntMap unstatisfied_requests;
+  ForwardingIntMap goodput_bytes_received;
 };
 
 }

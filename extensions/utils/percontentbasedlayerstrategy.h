@@ -148,6 +148,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     }
   }
 
+  // This case occurs when determineRoute() returns the dropping "face". In this case we dont collect any statistics.
   return false;
 }
 
