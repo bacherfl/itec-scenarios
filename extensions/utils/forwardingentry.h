@@ -6,6 +6,8 @@
 #include "ns3/log.h"
 #include "ns3/simple-ref-count.h"
 
+#include <boost/lexical_cast.hpp>
+
 #include <vector>
 #include <stdio.h>
 
@@ -21,14 +23,19 @@ class ForwardingEntry : public SimpleRefCount<ForwardingEntry>
 public:
   ForwardingEntry(std::vector<int> faceIds);
 
-  Ptr<ForwardingProbabilityTable> getFWTable(){return fwTable;}
-  Ptr<ForwardingStatistics> getFWStats(){return fwStats;}
+  int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest);
+
+  void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry);
+  void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
+  void logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace);
 
   void update();
 
 private:
   Ptr<ForwardingProbabilityTable> fwTable;
   Ptr<ForwardingStatistics> fwStats;
+
+  int determineContentLayer(Ptr<const Interest> interest);
 };
 
 }

@@ -31,11 +31,9 @@ void ForwardingProbabilityTable::initTable ()
    //std::cout << table << std::endl; /* prints matrix line by line ( (first line), (second line) )*/
 }
 
-int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest)
+int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer)
 {
   // determine layer of interest
-
-  int ilayer = 0; //TODO
 
   // normalize column of layer for all possible outgoing faces
   matrix<double> normalized = removeFaceFromTable(inFace);
@@ -141,6 +139,9 @@ int ForwardingProbabilityTable::chooseFaceAccordingProbability(boost::numeric::u
     NS_LOG_UNCOND("Error ForwardingMatrix has not the same amount of rows as the facelist!");
     return DROP_FACE_ID;
   }
+
+  if(faceList.size () == 1 && faceList.at (0) == DROP_FACE_ID) //Todo think if we should do something about this? maybe send a nack?
+    return DROP_FACE_ID;
 
   for(int i = 0; i < m.size1 (); i++)
   {

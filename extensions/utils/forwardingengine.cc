@@ -37,8 +37,7 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
   Ptr<ForwardingEntry> entry = fwMap.find(prefix)->second;
 
-  int out_face_id = entry->getFWTable()->determineOutgoingFace(inFace, interest);
-  //entry->getFWStats()->logForwardedInterest(interest,out_face_id);
+  int out_face_id = entry->determineRoute(inFace, interest);
 
   return out_face_id;
 
@@ -58,7 +57,7 @@ void ForwardingEngine::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
     NS_LOG_UNCOND("Error in logUnstatisfiedRequest");
   }
 
-  fwMap[prefix]->getFWStats()->logUnstatisfiedRequest(pitEntry);
+  fwMap[prefix]->logUnstatisfiedRequest(pitEntry);
 }
 
 void ForwardingEngine::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
@@ -69,7 +68,7 @@ void ForwardingEngine::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pi
     NS_LOG_UNCOND("Error in logStatisfiedRequest");
   }
 
-   fwMap[prefix]->getFWStats()->logStatisfiedRequest(inFace,pitEntry);
+   fwMap[prefix]->logStatisfiedRequest(inFace,pitEntry);
 }
 
 void ForwardingEngine::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace)
@@ -80,7 +79,7 @@ void ForwardingEngine::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> in
     NS_LOG_UNCOND("Error in logExhaustedFace");
   }
 
-   fwMap[prefix]->getFWStats()->logExhaustedFace(inFace,interest,pitEntry,targetedOutFace);
+   fwMap[prefix]->logExhaustedFace(inFace,interest,pitEntry,targetedOutFace);
 }
 
 void ForwardingEngine::update ()

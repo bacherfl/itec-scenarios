@@ -1,7 +1,7 @@
 #ifndef FORWARDINGPROBABILITYTABLE_H
 #define FORWARDINGPROBABILITYTABLE_H
 
-#define MAX_LAYERS 4
+#define MAX_LAYERS 2
 #define DROP_FACE_ID -1
 
 #include "ns3/random-variable.h"
@@ -25,7 +25,7 @@ class ForwardingProbabilityTable : public SimpleRefCount<ForwardingProbabilityTa
 public:
   ForwardingProbabilityTable(std::vector<int> faceIds);
 
-  int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest);
+  int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer);
 
 protected:
 
