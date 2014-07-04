@@ -40,10 +40,11 @@ public:
 
   virtual void AddFace(Ptr< Face> face);
   virtual void RemoveFace(Ptr< Face > face);
-  //virtual void OnInterest(Ptr< Face > inface, Ptr< Interest > interest);
+  virtual void OnInterest(Ptr< Face > inface, Ptr< Interest > interest);
   virtual bool DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
   virtual void WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry);
   virtual void WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
+  virtual void DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
 
 protected:
 
@@ -105,34 +106,47 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
 }
 
 
-/*template<class Parent>
+template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
 {
-  //SVCLevelTag levelTag;
-
-  // lookup pit entry for interest (if exists)
-  Ptr<pit::Entry> pitEntry = PerContentBasedLayerStrategy<Parent>::m_pit->Find (interest->GetName ());
-
-  // check if duplicate interest first
-  /bool isDuplicate = false;
-  //if (pitEntry != 0)
-  //{
-  //  isDuplicate = pitEntry->IsNonceSeen (interest->GetNonce () );
-  //}
-
-  // means we have not seen a request for this chunk, so consider it for our statistics
-  if(pitEntry != 0)
+  if(interest->GetNack () == Interest::NORMAL_INTEREST)
   {
-
+    //fprintf(stderr, "ReceivedRequest for %s on Face %d\n", interest->GetName ().toUri().c_str(), inface->GetId ());
+    super::OnInterest(inface,interest);
   }
-  // let parent continue with the interest
-  super::OnInterest(inface,interest);
-}*/
+  else
+  {
+    //fprintf(stderr, "ReceivedNACK for %s on Face %d\n", interest->GetName ().toUri().c_str(), inface->GetId ());
+
+    Ptr<pit::Entry> pitEntry = PerContentBasedLayerStrategy<Parent>::m_pit->Lookup (*interest);
+    if (pitEntry == 0)
+    {
+      // somebody is doing something bad
+      PerContentBasedLayerStrategy<Parent>::m_dropNacks (interest, inface);
+      fprintf(stderr, "Invalid NACK message\n");
+      return;
+    }
+
+    fwEngine->logUnstatisfiedRequest (pitEntry);
+    //TODO something useful here....
+    pitEntry->ClearOutgoing ();
+  }
+}
 
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
   int fwFaceId = fwEngine->determineRoute(inFace, interest);
+
+  if(fwFaceId == DROP_FACE_ID)
+  {
+    Ptr<Interest> nack = Create<Interest> (*interest);
+    nack->SetNack (ndn::Interest::NACK_CONGESTION);
+    inFace->SendInterest (nack);
+
+    PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
+    return false;
+  }
 
   for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
       it !=  faces.end (); ++it)
@@ -142,13 +156,13 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
       bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
 
       if(!success)
-        fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it);
+        fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
 
       return success; /*maybe some more sophisticated handling here...*/
     }
   }
 
-  // This case occurs when determineRoute() returns the dropping "face". In this case we dont collect any statistics.
+  NS_LOG_UNCOND("Unhandeld Forwarding case!");
   return false;
 }
 
@@ -166,6 +180,13 @@ void PerContentBasedLayerStrategy<Parent>::WillSatisfyPendingInterest (Ptr<Face>
     fwEngine->logStatisfiedRequest(inFace,pitEntry);
 
   super::WillSatisfyPendingInterest(inFace,pitEntry);
+}
+
+template<class Parent>
+void PerContentBasedLayerStrategy<Parent>::DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
+{
+  //fprintf(stderr, "SendOut %s on Face %d\n", interest->GetName ().toUri().c_str(), outFace->GetId ());
+  super::DidSendOutInterest(inFace,outFace,interest,pitEntry);
 }
 
 }

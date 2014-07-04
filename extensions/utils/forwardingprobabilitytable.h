@@ -1,9 +1,6 @@
 #ifndef FORWARDINGPROBABILITYTABLE_H
 #define FORWARDINGPROBABILITYTABLE_H
 
-#define MAX_LAYERS 2
-#define DROP_FACE_ID -1
-
 #include "ns3/random-variable.h"
 #include "ns3/ndn-face.h"
 #include "ns3/ndn-interest.h"
@@ -13,8 +10,12 @@
 #include <vector>
 #include <stdio.h>
 
+#include "forwardingstatistics.h"
+
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
+
+#define RELIABILITY_THRESHOLD 0.95
 
 namespace ns3
 {
@@ -27,6 +28,8 @@ public:
 
   int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer);
 
+  void updateColumns(Ptr<ForwardingStatistics> stats);
+
 protected:
 
   boost::numeric::ublas::matrix<double> table;
@@ -37,7 +40,12 @@ protected:
   boost::numeric::ublas::matrix<double> normalizeColumns(boost::numeric::ublas::matrix<double> m);
   int chooseFaceAccordingProbability(boost::numeric::ublas::matrix<double> m, int layer_of_interest, std::vector<int> faceList);
 
+  double getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer);
+
+  void updateTable(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, bool shift_traffic);
+
   int determineRowOfFace(Ptr<ndn::Face> face);
+  int determineRowOfFace(int face_uid);
 
   ns3::UniformVariable randomVariable;
 };

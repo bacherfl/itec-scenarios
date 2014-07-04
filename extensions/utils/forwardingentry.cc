@@ -14,8 +14,7 @@ void ForwardingEntry::update()
 
   // todo fwTable Update
 
-  //first update columns of table (layer specific updates)
-
+  fwTable->updateColumns(fwStats);
 }
 
 int ForwardingEntry::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest)
@@ -35,7 +34,7 @@ void ForwardingEntry::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pit
 
 void ForwardingEntry::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace)
 {
-  fwStats->logExhaustedFace(inFace,interest,pitEntry,targetedOutFace,determineContentLayer(pitEntry->GetInterest ())); //TODO PER LAYER
+  fwStats->logExhaustedFace(inFace,interest,pitEntry,targetedOutFace,determineContentLayer(pitEntry->GetInterest ()));
 }
 
 /*

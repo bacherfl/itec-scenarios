@@ -1,8 +1,6 @@
 #ifndef FORWARDINGSTATISTICS_H
 #define FORWARDINGSTATISTICS_H
 
-#include "forwardingprobabilitytable.h"
-
 #include "ns3/ndn-face.h"
 #include "ns3/ndn-interest.h"
 #include "ns3/log.h"
@@ -12,6 +10,8 @@
 #include <stdio.h>
 
 #define UPDATE_INTERVALL 1.0
+#define MAX_LAYERS 1
+#define DROP_FACE_ID -1
 
 namespace ns3
 {
@@ -27,8 +27,16 @@ public:
   void logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace, int ilayer);
 
   double getLinkReliability(int face_id, int layer);
+  double getSumOfReliabilies(std::vector<int> set_of_faces, int layer);
+  double getSumOfUnreliabilies(std::vector<int> set_of_faces, int layer);
+  double getActualForwardingProbability(int face_id, int layer);
+  double getNormalizedLinkReliability(int face_id, int layer, std::vector<int> set_of_faces);
+
   double getGoodput(int face_id, int layer);
   double getUnstatisfiedTrafficFraction(int ilayer){return stats[ilayer].unstatisfied_traffic_fraction;}
+
+  std::vector<int>  getReliableFaces(int layer, double threshold);
+  std::vector<int>  getUnreliableFaces(int layer, double threshold);
 
   void resetStatistics();
 
@@ -46,17 +54,19 @@ protected:
      double /*value to store*/
     > ForwardingDoubleMap;
 
-  int getMapIndexFromFaceID(int face_id);
+  //int getMapIndexFromFaceID(int face_id);
 
   void calculateLinkReliabilities(int layer);
   void calculateGoodput(int layer);
   void calculateUnstatisfiedTrafficFraction(int layer);
+  void calculateActualForwardingProbabilities (int layer);
 
   struct ForwardingLayerStats
   {
     double unstatisfied_traffic_fraction;
     ForwardingDoubleMap last_goodput;
     ForwardingDoubleMap last_reliability;
+    ForwardingDoubleMap last_actual_forwarding_probs;
 
     ForwardingIntMap statisfied_requests;
     ForwardingIntMap unstatisfied_requests;
