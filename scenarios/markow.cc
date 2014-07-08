@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
   //Router0->GetDevice(0)->SetAttribute("ReceiveErrorModel", PointerValue(em));
 
   Simulator::Schedule (Seconds (10.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router0"), Names::Find<Node>("ContentSrc0"));
-  Simulator::Schedule (Seconds (100.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("ContentSrc0"));
+  Simulator::Schedule (Seconds (20.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("ContentSrc0"));
 
   /*Simulator::Schedule (Seconds (30.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router2"), Names::Find<Node>("ContentSrc1"));
   Simulator::Schedule (Seconds (40.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router2"), Names::Find<Node>("ContentSrc1"));

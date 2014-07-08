@@ -55,7 +55,7 @@ void ForwardingStatistics::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest
 
 void ForwardingStatistics::logDroppingFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, int ilayer)
 {
-  stats[ilayer].dropped_requests += 1;
+  stats[ilayer].statisfied_requests[DROP_FACE_ID] += 1;
 }
 
 void ForwardingStatistics::resetStatistics ()
@@ -73,13 +73,10 @@ void ForwardingStatistics::resetStatistics ()
     calculateGoodput(i);
     calculateUnstatisfiedTrafficFraction (i);
     calculateActualForwardingProbabilities (i);
-    stats[i].last_dropped_requests = stats[i].dropped_requests;
-
 
     stats[i].unstatisfied_requests.clear ();
     stats[i].statisfied_requests.clear ();
     stats[i].goodput_bytes_received.clear ();
-    stats[i].dropped_requests = 0;
 
     for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it) // for each face
     {
@@ -135,10 +132,7 @@ void ForwardingStatistics::calculateLinkReliabilities(int layer)
     else
       stats[layer].last_reliability[*it] =
           (double)stats[layer].statisfied_requests[*it] / ((double)(stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it]));
-    if(*it == DROP_FACE_ID)
-      fprintf(stderr, "Reliabilty for Face %d = %f      in total %d interest dropped\n", *it, 1.0,
-              stats[layer].dropped_requests);
-    else
+
       fprintf(stderr, "Reliabilty for Face %d = %f      in total %d interest forwarded\n", *it, stats[layer].last_reliability[*it],
         stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it]);
   }
@@ -249,12 +243,7 @@ double ForwardingStatistics::getActualForwardingProbability(int face_id, int lay
 
 void ForwardingStatistics::calculateActualForwardingProbabilities (int layer)
 {
-  double sum = 0.0;
-
-  for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-  {
-    sum += stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it];
-  }
+  double sum = stats[layer].total_forwarded_requests;
 
   for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
   {
@@ -264,4 +253,9 @@ void ForwardingStatistics::calculateActualForwardingProbabilities (int layer)
       stats[layer].last_actual_forwarding_probs[*it] =
         (stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it]) / sum;
   }
+}
+
+double ForwardingStatistics::getForwardedInterests(int face_id, int layer)
+{
+  return getActualForwardingProbability (face_id,layer) * getTotalForwardedInterests (layer);
 }

@@ -202,7 +202,6 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
     //check if we need to shift traffic
     if(utf > 0)
     {
-
       double r_faces_actual_fowarding_prob = 0.0;
       //check if relialbe faces act forwarding Prob > 0
       for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each r_face
@@ -215,23 +214,16 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       //if we have no place to shift; or no interests can be forwarded on reliable faces
       if(r_faces.size () == 0 || r_faces_actual_fowarding_prob == 0.0) // we drop everything in this case
       {
-
-        double actual_d_face_prob = ((double)stats->getDroppedInterests (i)) / (double)(stats->getDroppedInterests (i) + stats->getForwardedInterests (i));
-
-        fprintf(stderr, "actual_d_face_prob = %f\n", actual_d_face_prob);
-
-        double forwarded_fraction = ((double)stats->getForwardedInterests (i)) / (double)(stats->getDroppedInterests (i) + stats->getForwardedInterests (i));
-
-        table(determineRowOfFace(DROP_FACE_ID), i) = actual_d_face_prob + utf * forwarded_fraction;
-        updateColumn (ur_faces, i, stats, false);
+        table(determineRowOfFace(DROP_FACE_ID), i) = stats->getActualForwardingProbability (DROP_FACE_ID,i)+ utf;
+        updateColumn (ur_faces, i, stats, utf, false);
       }
       else
       {
         //add traffic
-        updateColumn (r_faces, i, stats, true);
+        updateColumn (r_faces, i, stats, utf, true);
 
         //remove traffic
-        updateColumn (ur_faces, i, stats, false);
+        updateColumn (ur_faces, i, stats, utf, false);
        }
     }
     else if(r_faces.size () > 0)
@@ -239,13 +231,12 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       if(table(determineRowOfFace(DROP_FACE_ID),i) > 0)
       {
         fprintf(stderr,"WE SHOULD DECREASE DROPPING TRAFFIC\n");
-        fprintf(stderr,"Dropped %d interests for laye %d\n", stats->getDroppedInterests(i), i);
 
         //check if we should do probing or shift traffic
         std::vector<int> shift_faces;
         for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each r_face
         {
-          if(stats->getActualForwardingProbability (*it,i) > PROBING_THRESHOLD)
+          if(stats->getActualForwardingProbability (*it,i) > SHIFT_THRESHOLD)
             shift_faces.push_back (*it);
         }
 
@@ -269,8 +260,11 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 }
 
 //shift == true means shift trafic towards faces, else remove traffic from faces.
-void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, bool shift_traffic)
+void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, double utf, bool shift_traffic)
 {
+  if(faces.size () == 0)
+    return;
+
   double sum_reliabilities = 0.0;
 
   if(shift_traffic)
@@ -279,7 +273,6 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
     sum_reliabilities = stats->getSumOfUnreliabilies (faces, layer);
 
   double sum_fwProbs = getSumOfForwardingProbabilities (faces, layer);
-  double utf = stats->getUnstatisfiedTrafficFraction (layer);
 
   if(sum_reliabilities == 0)
   {
@@ -341,13 +334,12 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
 void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats)
 {
   fprintf(stderr, "PROBING\n");
-  // we take 3% of the dropping traffic and for each reliable face and probe on them..
-  double actual_d_face_prob = ((double)stats->getDroppedInterests (layer)) / (double)(stats->getDroppedInterests (layer) + stats->getForwardedInterests (layer));
-  double probe = actual_d_face_prob * (PROBING_TRAFFIC * faces.size ());
-  table(determineRowOfFace (DROP_FACE_ID), layer) = actual_d_face_prob - probe;
+
+  double probe = stats->getActualForwardingProbability (DROP_FACE_ID,layer) * PROBING_TRAFFIC;
+  table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
 
   //split the forwarding percents....
-  for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each r_face
+  for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each ur_face
   {
     table(determineRowOfFace (*it), layer) = stats->getActualForwardingProbability (*it, layer) + (probe / ((double)faces.size ()));
   }
@@ -355,31 +347,27 @@ void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,P
 
 void ForwardingProbabilityTable::shiftDroppingTraffic(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats)
 {
-  /*//calcualte how much traffic we can take
-  int forwarded_interests = 0;
+  //calcualte how much traffic we can take
+  double interests_to_shift = 0;
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each r_face
   {
-    forwarded_interests += (int) stats->getForwardedInterests (face, layer);
+    interests_to_shift += stats->getForwardedInterests (*it, layer);
   }
 
-  int dropped = stats->getDroppedInterests (layer);
-  int shift = 0;
+  interests_to_shift *= SHIFT_TRAFFIC;
 
-  if(forwarded_interests * SHIFT_TRAFFIC > dropped)
+  double dropped_interests = stats->getForwardedInterests(DROP_FACE_ID, layer);
+
+  if(dropped_interests <= interests_to_shift)
   {
-    //shift everthing
-    table(determineRowOfFace(DROP_FACE_ID), i) = 0;
-  }
-  else
-  {
-    //shift SHIFT_TRAFFIC
+    interests_to_shift = dropped_interests;
   }
 
-  //split the forwarding percents....
-  for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each r_face
-  {
-    //table(determineRowOfFace (*it), layer) += fwPercent;
-  }*/
+  double utf = (interests_to_shift/ (double)stats->getTotalForwardedInterests (layer));
+
+  table(determineRowOfFace(DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID, layer) - utf;
+  updateColumn (faces, layer,stats,utf,true);
+
 }
 
 double ForwardingProbabilityTable::getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer)
