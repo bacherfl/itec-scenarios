@@ -53,6 +53,11 @@ void ForwardingStatistics::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest
   stats[ilayer].unstatisfied_requests[targetedOutFace->GetId ()] += 1;
 }
 
+void ForwardingStatistics::logDroppingFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, int ilayer)
+{
+  stats[ilayer].dropped_requests += 1;
+}
+
 void ForwardingStatistics::resetStatistics ()
 {
   //fprintf(stderr, "\nNew Node:\n");
@@ -63,14 +68,18 @@ void ForwardingStatistics::resetStatistics ()
     stats[i].unstatisfied_traffic_fraction = 0;
     stats[i].last_actual_forwarding_probs.clear();
 
+    calculatTotalForwardedRequests(i);
     calculateLinkReliabilities (i);
     calculateGoodput(i);
     calculateUnstatisfiedTrafficFraction (i);
     calculateActualForwardingProbabilities (i);
+    stats[i].last_dropped_requests = stats[i].dropped_requests;
+
 
     stats[i].unstatisfied_requests.clear ();
     stats[i].statisfied_requests.clear ();
     stats[i].goodput_bytes_received.clear ();
+    stats[i].dropped_requests = 0;
 
     for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it) // for each face
     {
@@ -81,20 +90,29 @@ void ForwardingStatistics::resetStatistics ()
   }
 }
 
+void ForwardingStatistics::calculatTotalForwardedRequests(int layer)
+{
+  stats[layer].total_forwarded_requests = 0;
+  for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+  {
+    stats[layer].total_forwarded_requests += stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it];
+  }
+}
+
 void ForwardingStatistics::calculateUnstatisfiedTrafficFraction(int layer)
 {
   //sum up total goodput
-  double total_interests = 0.0;
+  double total_interests =  stats[layer].total_forwarded_requests;
 
-  for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+  /*for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
   {
     total_interests += stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it];
-  }
+  }*/
 
   double fraction = 0;
   if(total_interests < 0.1) // goodput == 0
   {
-    fraction = 0; // or 1 dont know whats best for now...
+    fraction = 1; // or 1 dont know whats best for now...
   }
   else
   {
@@ -105,37 +123,8 @@ void ForwardingStatistics::calculateUnstatisfiedTrafficFraction(int layer)
     }
   }
 
-  fprintf(stderr, "layer[%d] unstatisfied traffic over all faces = %f\n", layer,1-fraction);
   stats[layer].unstatisfied_traffic_fraction = 1 - fraction;
 }
-
-/*void ForwardingStatistics::calculateUnstatisfiedTrafficFraction(int layer)
-{
-  //sum up total goodput
-  double total_goodput = 0.0;
-
-  for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-  {
-    total_goodput += getGoodput(*it, layer);
-  }
-
-  double fraction = 0;
-  if(total_goodput < 0.1) // goodput == 0
-  {
-    fraction = 0; // or 1 dont know whats best for now...
-  }
-  else
-  {
-    // for each face we determine the unstatisfied traffic fraction and normalize it finally
-    for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-    {
-      fraction += getLinkReliability(*it,layer) * (getGoodput (*it,layer) / total_goodput);
-    }
-  }
-
-  fprintf(stderr, "layer[%d] unstatisfied traffic over all faces = %f\n", layer,1-fraction);
-  stats[layer].unstatisfied_traffic_fraction = 1 - fraction;
-}*/
 
 void ForwardingStatistics::calculateLinkReliabilities(int layer)
 {
@@ -146,7 +135,11 @@ void ForwardingStatistics::calculateLinkReliabilities(int layer)
     else
       stats[layer].last_reliability[*it] =
           (double)stats[layer].statisfied_requests[*it] / ((double)(stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it]));
-    fprintf(stderr, "Reliabilty for Face %d = %f      in total %d interest forwarded\n", *it, stats[layer].last_reliability[*it],
+    if(*it == DROP_FACE_ID)
+      fprintf(stderr, "Reliabilty for Face %d = %f      in total %d interest dropped\n", *it, 1.0,
+              stats[layer].dropped_requests);
+    else
+      fprintf(stderr, "Reliabilty for Face %d = %f      in total %d interest forwarded\n", *it, stats[layer].last_reliability[*it],
         stats[layer].unstatisfied_requests[*it] + stats[layer].statisfied_requests[*it]);
   }
 }

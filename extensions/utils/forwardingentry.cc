@@ -37,6 +37,11 @@ void ForwardingEntry::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> int
   fwStats->logExhaustedFace(inFace,interest,pitEntry,targetedOutFace,determineContentLayer(pitEntry->GetInterest ()));
 }
 
+void ForwardingEntry::logDroppingFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
+{
+  fwStats->logDroppingFace(inFace,interest,pitEntry,determineContentLayer(pitEntry->GetInterest ()));
+}
+
 /*
  *This function has to be adapted to fit your content needs....
  */

@@ -16,6 +16,9 @@
 #include <boost/numeric/ublas/io.hpp>
 
 #define RELIABILITY_THRESHOLD 0.95
+#define PROBING_TRAFFIC 0.03
+#define PROBING_THRESHOLD 0.01
+#define SHIFT_TRAFFIC 0.20
 
 namespace ns3
 {
@@ -42,7 +45,9 @@ protected:
 
   double getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer);
 
-  void updateTable(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, bool shift_traffic);
+  void updateColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, bool shift_traffic);
+  void probeColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats);
+  void shiftDroppingTraffic(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats);
 
   int determineRowOfFace(Ptr<ndn::Face> face);
   int determineRowOfFace(int face_uid);

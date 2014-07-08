@@ -93,6 +93,18 @@ void ForwardingEngine::update ()
   Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
 }
 
+void ForwardingEngine::logDroppingFace (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
+{
+  //check if content prefix has been seen
+  std::string prefix = extractContentPrefix(interest->GetName());
+  if(fwMap.find(prefix) == fwMap.end ())
+  {
+    NS_LOG_UNCOND("Error in logDroppingFace");
+  }
+
+  fwMap[prefix]->logDroppingFace(inFace,interest,pitEntry);
+}
+
 /*void ForwardingEngine::clearForwardingPropabilityMap()
 {
   for(ForwardingEntryMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)

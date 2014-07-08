@@ -109,6 +109,9 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
 template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
 {
+  //todo
+  interest->SetInterestLifetime (Time::FromDouble (0.5,Time::S));
+
   if(interest->GetNack () == Interest::NORMAL_INTEREST)
   {
     //fprintf(stderr, "ReceivedRequest for %s on Face %d\n", interest->GetName ().toUri().c_str(), inface->GetId ());
@@ -145,6 +148,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     inFace->SendInterest (nack);
 
     PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
+    fwEngine->logDroppingFace(inFace, interest, pitEntry);
     return false;
   }
 
@@ -156,7 +160,9 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
       bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
 
       if(!success)
+      {
         fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
+      }
 
       return success; /*maybe some more sophisticated handling here...*/
     }

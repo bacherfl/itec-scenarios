@@ -25,15 +25,19 @@ public:
   void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry, int ilayer);
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry, int ilayer);
   void logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace, int ilayer);
+  void logDroppingFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, int ilayer);
 
   double getLinkReliability(int face_id, int layer);
   double getSumOfReliabilies(std::vector<int> set_of_faces, int layer);
   double getSumOfUnreliabilies(std::vector<int> set_of_faces, int layer);
   double getActualForwardingProbability(int face_id, int layer);
   double getNormalizedLinkReliability(int face_id, int layer, std::vector<int> set_of_faces);
+  int getDroppedInterests(int layer){return stats[layer].last_dropped_requests;}
 
   double getGoodput(int face_id, int layer);
   double getUnstatisfiedTrafficFraction(int ilayer){return stats[ilayer].unstatisfied_traffic_fraction;}
+  int getForwardedInterests(int ilayer){return stats[ilayer].total_forwarded_requests;}
+  double getForwardedInterests(int face, int ilayer){return getActualForwardingProbability(face, ilayer) * getForwardedInterests (ilayer);}
 
   std::vector<int>  getReliableFaces(int layer, double threshold);
   std::vector<int>  getUnreliableFaces(int layer, double threshold);
@@ -60,10 +64,15 @@ protected:
   void calculateGoodput(int layer);
   void calculateUnstatisfiedTrafficFraction(int layer);
   void calculateActualForwardingProbabilities (int layer);
+  void calculatTotalForwardedRequests(int layer);
 
   struct ForwardingLayerStats
   {
     double unstatisfied_traffic_fraction;
+    int dropped_requests;
+    int last_dropped_requests;
+    int total_forwarded_requests;
+
     ForwardingDoubleMap last_goodput;
     ForwardingDoubleMap last_reliability;
     ForwardingDoubleMap last_actual_forwarding_probs;
@@ -75,6 +84,9 @@ protected:
     ForwardingLayerStats()
     {
       unstatisfied_traffic_fraction = 0.0;
+      last_dropped_requests = 0;
+      dropped_requests = 0;
+      total_forwarded_requests = 0;
     }
 
     ForwardingLayerStats(const ForwardingLayerStats& other)
@@ -82,9 +94,14 @@ protected:
       unstatisfied_traffic_fraction = other.unstatisfied_traffic_fraction;
       last_goodput = other.last_goodput;
       last_reliability = other.last_reliability;
+      last_actual_forwarding_probs = other.last_actual_forwarding_probs;
+
       statisfied_requests = other.statisfied_requests;
       unstatisfied_requests = other.unstatisfied_requests;
       goodput_bytes_received = other.goodput_bytes_received;
+      dropped_requests = other.dropped_requests;
+      last_dropped_requests = other.last_dropped_requests;
+      total_forwarded_requests = other.total_forwarded_requests;
     }
 
   };
