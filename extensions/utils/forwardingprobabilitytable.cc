@@ -234,17 +234,22 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 
         //check if we should do probing or shift traffic
         std::vector<int> shift_faces;
+        std::vector<int> probe_faces;
         for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each r_face
         {
           if(stats->getActualForwardingProbability (*it,i) > SHIFT_THRESHOLD)
             shift_faces.push_back (*it);
+          else
+            probe_faces.push_back (*it);
         }
 
-        if(shift_faces.size () == 0) // probing
-          probeColumn(ur_faces, i, stats);
-        else //shift traffic
-          shiftDroppingTraffic(shift_faces, i, stats);
-
+        if(shift_faces.size () == 0)
+          probeColumn(probe_faces, i, stats, true); // do only probing
+        else
+        {
+          shiftDroppingTraffic(shift_faces, i, stats); //shift traffic
+          probeColumn(probe_faces, i, stats, false); // and probe then
+        }
       }
     }
   }
@@ -331,14 +336,29 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
   }
 }
 
-void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats)
+void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, bool useActualProbability)
 {
   fprintf(stderr, "PROBING\n");
 
-  double probe = stats->getActualForwardingProbability (DROP_FACE_ID,layer) * PROBING_TRAFFIC;
-  table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
+  if(faces.size () == 0)
+    return;
 
-  //split the forwarding percents....
+   double probe = 0.0;
+
+  if(useActualProbability)
+    probe = stats->getActualForwardingProbability (DROP_FACE_ID,layer) * PROBING_TRAFFIC;
+  else
+    probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;
+
+  if(probe < 0.01) // dropping prob is very low, probing is useless...
+    return;
+
+  if(useActualProbability)
+    table(determineRowOfFace (DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID,layer) - probe;
+  else
+    table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
+
+  //split the probe (forwarding percents)....
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each ur_face
   {
     table(determineRowOfFace (*it), layer) = stats->getActualForwardingProbability (*it, layer) + (probe / ((double)faces.size ()));
