@@ -45,6 +45,7 @@ public:
   virtual void WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry);
   virtual void WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
   virtual void DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
+  virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
 
 protected:
 
@@ -193,6 +194,13 @@ void PerContentBasedLayerStrategy<Parent>::DidSendOutInterest (Ptr< Face > inFac
 {
   //fprintf(stderr, "SendOut %s on Face %d\n", interest->GetName ().toUri().c_str(), outFace->GetId ());
   super::DidSendOutInterest(inFace,outFace,interest,pitEntry);
+}
+
+template<class Parent>
+void PerContentBasedLayerStrategy<Parent>::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry)
+{
+  fwEngine->logUnstatisfiedRequest (pitEntry);
+  super::DidExhaustForwardingOptions (inFace, nack, pitEntry);
 }
 
 }

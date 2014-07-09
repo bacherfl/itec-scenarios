@@ -2,12 +2,6 @@ router
 
 # node       comment   yPos    xPos
 
-#ContentDst0   NA       4       0
-#ContentDst1   NA       3       0
-#ContentDst2   NA       2       0
-
-#AdaptiveNode0 NA       3       2
-
 Router0       NA       40       20
 Router1       NA       30       10
 Router2       NA       30       25
@@ -21,8 +15,8 @@ Router9       NA       10       50
 
 ContentSrc0   NA       20       60
 
-ContentDst0   NA       35       0
-ContentDst1   NA       25       0
+ContentDst0   NA       30       0
+#ContentDst1   NA       25       0
 
 link
 
@@ -45,4 +39,4 @@ Router8     Router9      30Mbps       1        3ms    50
 Router8     ContentSrc0  100Mbps      1        1ms    50
 
 Router1     ContentDst0  100Mbps      1        1ms    50
-Router1     ContentDst1  100Mbps      1        1ms    50
+#Router1     ContentDst1  100Mbps      1        1ms    50

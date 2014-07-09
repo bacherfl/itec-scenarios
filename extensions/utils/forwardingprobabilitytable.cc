@@ -198,9 +198,10 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 
     //utf = unstatisfied_trafic_fraction
     double utf = stats->getUnstatisfiedTrafficFraction (i);
+    utf *= ALPHA;
 
     //check if we need to shift traffic
-    if(utf > 0)
+    if(utf > 0 && ur_faces.size () > 0)
     {
       double r_faces_actual_fowarding_prob = 0.0;
       //check if relialbe faces act forwarding Prob > 0
@@ -216,6 +217,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       {
         table(determineRowOfFace(DROP_FACE_ID), i) = stats->getActualForwardingProbability (DROP_FACE_ID,i)+ utf;
         updateColumn (ur_faces, i, stats, utf, false);
+        probeColumn(r_faces, i, stats, false);
       }
       else
       {
@@ -250,6 +252,11 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
           shiftDroppingTraffic(shift_faces, i, stats); //shift traffic
           probeColumn(probe_faces, i, stats, false); // and probe then
         }
+      }
+      else
+      {
+        for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+          table(determineRowOfFace(*it), i) = stats->getActualForwardingProbability (*it,i);
       }
     }
   }
@@ -333,6 +340,21 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
       table(determineRowOfFace(*it), layer) = actualFWProb -
           utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
     }
+    /*if(shift_traffic)
+    {
+      table(determineRowOfFace(*it), layer) +=
+        utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities) / normalization_value;
+    }
+    else if (sum_fwProbs == 0) // special case
+    {
+      table(determineRowOfFace(*it), layer) -=
+          utf * (1.0 /((double)faces.size ())) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
+    }
+    else
+    {
+      table(determineRowOfFace(*it), layer) -=
+          utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
+    }*/
   }
 }
 
@@ -350,8 +372,8 @@ void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,P
   else
     probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;
 
-  if(probe < 0.01) // dropping prob is very low, probing is useless...
-    return;
+  /*if(probe < 0.01) // dropping prob is very low, probing is useless...
+    return;*/
 
   if(useActualProbability)
     table(determineRowOfFace (DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID,layer) - probe;

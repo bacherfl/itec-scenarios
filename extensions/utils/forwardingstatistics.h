@@ -9,7 +9,7 @@
 
 #include <stdio.h>
 
-#define UPDATE_INTERVALL 1.0
+#define UPDATE_INTERVALL 0.2
 #define MAX_LAYERS 1
 #define DROP_FACE_ID -1
 

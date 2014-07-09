@@ -116,7 +116,8 @@ void ForwardingStatistics::calculateUnstatisfiedTrafficFraction(int layer)
     // for each face we determine the unstatisfied traffic fraction and normalize it finally
     for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
     {
-      fraction += getLinkReliability(*it,layer) * (stats[layer].statisfied_requests[*it] / total_interests);
+      //fraction += getLinkReliability(*it,layer) * (stats[layer].statisfied_requests[*it] / total_interests);
+      fraction += (stats[layer].statisfied_requests[*it] / total_interests);
     }
   }
 

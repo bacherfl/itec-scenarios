@@ -15,9 +15,12 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#define RELIABILITY_THRESHOLD 0.95
-#define PROBING_TRAFFIC 0.05
-#define SHIFT_THRESHOLD 0.001
+#define RELIABILITY_THRESHOLD 0.98
+
+#define ALPHA 0.2
+
+#define PROBING_TRAFFIC 0.3
+#define SHIFT_THRESHOLD 0.01
 #define SHIFT_TRAFFIC 0.20
 
 namespace ns3
