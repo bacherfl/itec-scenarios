@@ -22,6 +22,8 @@ class ForwardingEngine : public SimpleRefCount<ForwardingEngine>
 public:
   ForwardingEngine(std::vector<Ptr<ndn::Face> > faces);
 
+  ~ForwardingEngine();
+
   int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest);
   void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry);
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);

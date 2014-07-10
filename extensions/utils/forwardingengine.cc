@@ -8,6 +8,10 @@ ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces)
   Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
 }
 
+ForwardingEngine::~ForwardingEngine ()
+{
+}
+
 void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
 {
 
@@ -84,6 +88,14 @@ void ForwardingEngine::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> in
 
 void ForwardingEngine::update ()
 {
+  fprintf(stderr, "New FWT UPDATE at SimTime %f\n\n", Simulator::Now ().GetSeconds ());
+  /*experimental*/
+  if(this->GetReferenceCount () == 1)
+  {
+      Simulator::Cancel (this->updateEvent);
+      this->Unref ();
+      return;
+  }
 
   for(ForwardingEntryMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)
   {

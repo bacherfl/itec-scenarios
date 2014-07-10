@@ -15,9 +15,9 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#define RELIABILITY_THRESHOLD 0.95
+#define RELIABILITY_THRESHOLD 0.98
 
-#define ALPHA 0.2
+#define ALPHA 0.25
 
 #define PROBING_TRAFFIC 0.25
 #define SHIFT_THRESHOLD 0.01

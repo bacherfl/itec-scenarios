@@ -82,9 +82,7 @@ void PerContentBasedLayerStrategy<Parent>::AddFace (Ptr<Face> face)
 {
   // add face to faces vector
   faces.push_back (face);
-
   fwEngine = new ForwardingEngine(faces);
-
   super::AddFace(face);
 }
 
@@ -113,6 +111,8 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
 {
   //TODO
   interest->SetInterestLifetime (Time::FromDouble (0.5,Time::S));
+
+  //fprintf(stderr, "OnInterest %s \n", interest->GetName ().toUri ().c_str ());
 
   if(interest->GetNack () == Interest::NORMAL_INTEREST)
   {
@@ -148,6 +148,8 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     Ptr<Interest> nack = Create<Interest> (*interest);
     nack->SetNack (ndn::Interest::NACK_CONGESTION);
     inFace->SendInterest (nack);
+
+    //fprintf(stderr, "Droping %s due to congestion\n", interest->GetName ().toUri ().c_str ());
 
     PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
     fwEngine->logDroppingFace(inFace, interest, pitEntry);
