@@ -15,11 +15,11 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#define RELIABILITY_THRESHOLD 0.98
+#define RELIABILITY_THRESHOLD 0.95
 
 #define ALPHA 0.2
 
-#define PROBING_TRAFFIC 0.3
+#define PROBING_TRAFFIC 0.25
 #define SHIFT_THRESHOLD 0.01
 #define SHIFT_TRAFFIC 0.20
 
@@ -47,6 +47,7 @@ protected:
   int chooseFaceAccordingProbability(boost::numeric::ublas::matrix<double> m, int layer_of_interest, std::vector<int> faceList);
 
   double getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer);
+  double getSumOfActualForwardingProbabilities(std::vector<int> set_of_faces, int layer, Ptr<ForwardingStatistics> stats);
 
   void updateColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, double utf, bool shift_traffic);
   void probeColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, bool useActualProbability);

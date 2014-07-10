@@ -421,3 +421,13 @@ double ForwardingProbabilityTable::getSumOfForwardingProbabilities(std::vector<i
   }
   return sum;
 }
+
+double ForwardingProbabilityTable::getSumOfActualForwardingProbabilities(std::vector<int> set_of_faces, int layer, Ptr<ForwardingStatistics> stats)
+{
+  double sum = 0.0;
+  for(std::vector<int>::iterator it = set_of_faces.begin(); it != set_of_faces.end(); ++it)
+  {
+    sum += stats->getActualForwardingProbability (*it, layer);
+  }
+  return sum;
+}

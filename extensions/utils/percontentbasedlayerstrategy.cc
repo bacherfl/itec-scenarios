@@ -5,7 +5,7 @@ namespace ndn {
 namespace fw {
 
 //template class PerOutFaceLimits< PerContentBasedLayerStrategy<BestRoute> >;
-
+/*
 typedef PerOutFaceLimits< PerContentBasedLayerStrategy<BestRoute> > PerOutFaceLimitsPerContentBasedLayerStrategyBestRoute;
 NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategyBestRoute);
 
@@ -23,6 +23,13 @@ NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategyFlooding
 
 typedef PerContentBasedLayerStrategy<Flooding> PerContentBasedLayerStrategyFlooding;
 NS_OBJECT_ENSURE_REGISTERED(PerContentBasedLayerStrategyFlooding);
+*/
+
+typedef PerOutFaceLimits< PerContentBasedLayerStrategy<Nacks> > PerOutFaceLimitsPerContentBasedLayerStrategyNacks;
+NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategyNacks);
+
+typedef PerContentBasedLayerStrategy<Nacks> PerContentBasedLayerStrategyNacks;
+NS_OBJECT_ENSURE_REGISTERED(PerContentBasedLayerStrategyNacks);
 
 } // namespace fw
 } // namespace ndn

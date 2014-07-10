@@ -13,6 +13,7 @@
 #include "../../../ns-3/src/ndnSIM/model/fw/flooding.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/smart-flooding.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/per-out-face-limits.h"
+#include "../../../ns-3/src/ndnSIM/model/fw/nacks.h"
 
 #include <stdio.h>
 
@@ -110,7 +111,7 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
 template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
 {
-  //todo
+  //TODO
   interest->SetInterestLifetime (Time::FromDouble (0.5,Time::S));
 
   if(interest->GetNack () == Interest::NORMAL_INTEREST)
