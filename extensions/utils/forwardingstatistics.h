@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #define UPDATE_INTERVALL 0.2
-#define MAX_LAYERS 1
+#define MAX_LAYERS 3
 #define DROP_FACE_ID -1
 
 namespace ns3
@@ -34,7 +34,6 @@ public:
   double getNormalizedLinkReliability(int face_id, int layer, std::vector<int> set_of_faces);
   int getTotalForwardedInterests(int layer){return stats[layer].total_forwarded_requests;}
   double getForwardedInterests(int face_id, int layer);
-  //int getDroppedInterests(int layer){return stats[layer].last_dropped_requests;}
 
   double getGoodput(int face_id, int layer);
   double getUnstatisfiedTrafficFraction(int ilayer){return stats[ilayer].unstatisfied_traffic_fraction;}

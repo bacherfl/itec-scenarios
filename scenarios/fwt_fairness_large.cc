@@ -22,8 +22,7 @@ void parseParameters(int argc, char* argv[])
   bool v0 = false, v1 = false, v2 = false;
   bool vN = false;
 
-  //std::string top_path = "medium.top";
-  std::string top_path = "small.top";
+  std::string top_path = "validation_tops/fwt_fairness_large.top";
 
   CommandLine cmd;
   cmd.AddValue ("v0", "Prints all log messages >= LOG_DEBUG. (OPTIONAL)", v0);
@@ -62,7 +61,7 @@ void parseParameters(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-  NS_LOG_COMPONENT_DEFINE ("CongAvoidScenario");
+  NS_LOG_COMPONENT_DEFINE ("ContentLookup");
 
   parseParameters(argc, argv);
 
@@ -92,104 +91,58 @@ int main(int argc, char* argv[])
   Ptr<Node> router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   while(router != NULL)
   {
-
-    if(nodeIndex == 1)
-    {
-      nodeIndex++;
-      continue;
-    }
-
     routers.Add (router);
     router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   }
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
-  //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+
   ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 1k chunks in cache (about 4MB)
   ndnHelper.Install (providers);
   ndnHelper.Install (streamers);
 
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "64000"); // all entities can store up to 25k chunks in cache (about 100MB)
-  //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
   ndnHelper.Install (routers);
-
-  Ptr<Node> Router3 = Names::Find<Node>("Router1");
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Window", "EnableNACKs", "true");
-  ndnHelper.Install (Router3);
 
   // Install NDN applications
   std::string prefix = "/data";
 
   ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
-  consumerHelper.SetPrefix (prefix + "/layer0");
-  consumerHelper.SetAttribute ("Frequency", StringValue ("100")); // X interests a second
-  //consumerHelper.Install (streamers);
-
-  Ptr<Node> ContentDst0 = Names::Find<Node>("ContentDst0");
-  consumerHelper.SetPrefix (prefix+"/layer0");
-  consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
+  consumerHelper.SetPrefix (prefix);
+  consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // ca. 3Mbit/s per streamer
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
-  consumerHelper.Install (ContentDst0);
 
-  Ptr<Node> ContentDst1 = Names::Find<Node>("ContentDst1");
-  consumerHelper.SetPrefix (prefix +"/layer1");
-  consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
-  consumerHelper.Install (ContentDst1);
-
-  Ptr<Node> ContentDst2 = Names::Find<Node>("ContentDst2");
-  consumerHelper.SetPrefix (prefix +"/layer2");
-  consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
-  consumerHelper.Install (ContentDst2);
+  for(int i=0; i < streamers.size (); i++)
+  {
+    consumerHelper.SetPrefix (prefix + "_c" + boost::lexical_cast<std::string>(i) + "/layer0");
+    consumerHelper.Install (streamers.Get (i));
+  }
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
   producerHelper.SetPrefix (prefix);
   producerHelper.SetAttribute ("PayloadSize", StringValue("4096"));
   producerHelper.Install (providers);
 
-  /*Ptr<Node> ContentSrc1 = Names::Find<Node>("ContentSrc1");
-  producerHelper.SetPrefix (prefix +"c1/layer0");
-  producerHelper.Install (ContentSrc1);*/
+  for(int i=0; i < providers.size (); i++)
+  {
+    producerHelper.SetPrefix (prefix + "_c" + boost::lexical_cast<std::string>(i));
+    producerHelper.Install (providers.Get (i));
+  }
 
-  // Installing global routing interface on all nodes
+   // Installing global routing interface on all nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.InstallAll ();
 
-  ndnGlobalRoutingHelper.AddOrigins(prefix, providers);
-  ndnGlobalRoutingHelper.AddOrigins(prefix+"c0", providers);
-  ndnGlobalRoutingHelper.AddOrigins(prefix+"c1", providers);
+  for(int i=0; i < providers.size (); i++)
+    ndnGlobalRoutingHelper.AddOrigins(prefix + "_c" + boost::lexical_cast<std::string>(i), providers.Get (i));
 
   // Calculate and install FIBs
   //this is needed because otherwise On::Interest()-->createPITEntry will fail. Has no negative effect on the algorithm
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
-
-  //Error Model
-  /*Ptr<RateErrorModel> em = CreateObjectWithAttributes<RateErrorModel>
-      ("RanVar", RandomVariableValue (UniformVariable (0.0, 1.0)),
-       "ErrorRate", DoubleValue (0.01));
-
-  Ptr<RateErrorModel> em = Create<RateErrorModel>();
-  em->SetRate (0.001);
-  em->SetUnit (RateErrorModel::ERROR_UNIT_PACKET);
-  em->SetRandomVariable (Create<UniformRandomVariable>(0.0, 1.0));
-  Ptr<Node> Router0 = Names::Find<Node>("Router0");*/
-
-  //Router0->GetDevice(0)->SetAttribute("ReceiveErrorModel", PointerValue(em));
-
-  /*Simulator::Schedule (Seconds (20.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
-  Simulator::Schedule (Seconds (30.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
-
-  Simulator::Schedule (Seconds (50.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router3"), Names::Find<Node>("Router5"));
-  Simulator::Schedule (Seconds (60.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router3"), Names::Find<Node>("Router5"));
-
-  Simulator::Schedule (Seconds (70.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router4"), Names::Find<Node>("Router9"));
-  Simulator::Schedule (Seconds (80.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router4"), Names::Find<Node>("Router9"));
-
-  /*Simulator::Schedule (Seconds (50.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router0"), Names::Find<Node>("ContentSrc0"));
-  Simulator::Schedule (Seconds (60.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("ContentSrc0"));*/
-
 
   NS_LOG_UNCOND("Simulation will be started!");
 

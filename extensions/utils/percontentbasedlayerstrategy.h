@@ -141,7 +141,8 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
-  int fwFaceId = fwEngine->determineRoute(inFace, interest);
+  bool content_seen = false;
+  int fwFaceId = fwEngine->determineRoute(inFace, interest, content_seen);
 
   if(fwFaceId == DROP_FACE_ID)
   {
@@ -156,20 +157,40 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     return false;
   }
 
-  for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
-      it !=  faces.end (); ++it)
+  if(content_seen)
   {
-    if (fwFaceId == (*it)->GetId())
+    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+        it !=  faces.end (); ++it)
     {
-      bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
-
-      if(!success)
+      if (fwFaceId == (*it)->GetId())
       {
-        fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
-      }
+        bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
 
-      return success; /*maybe some more sophisticated handling here...*/
+        if(!success)
+        {
+          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
+        }
+
+        return success; /*maybe some more sophisticated handling here...*/
+      }
     }
+  }
+  else
+  {
+    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+        it !=  faces.end (); ++it)
+    {
+      if (inFace->GetId () != (*it)->GetId())
+      {
+        bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
+
+        if(!success)
+        {
+          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
+        }
+      }
+    }
+    return true;
   }
 
   NS_LOG_UNCOND("Unhandeld Forwarding case!");

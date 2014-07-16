@@ -77,8 +77,12 @@ int ForwardingProbabilityTable::determineRowOfFace(int face_id)
 
 matrix<double> ForwardingProbabilityTable::removeFaceFromTable(Ptr<ndn::Face> face)
 {
+  return removeFaceFromTable(face->GetId ());
+}
 
-  int faceRow = determineRowOfFace (face);
+boost::numeric::ublas::matrix<double> ForwardingProbabilityTable::removeFaceFromTable (int faceId)
+{
+  int faceRow = determineRowOfFace (faceId);
 
   if(faceRow == -1)
     return table;
@@ -431,3 +435,115 @@ double ForwardingProbabilityTable::getSumOfActualForwardingProbabilities(std::ve
   }
   return sum;
 }
+
+void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> stats)
+{
+  fprintf(stderr,"syncDroppingPolicy\n");
+
+  fprintf(stderr,"Forwarding Matrix before update:\n");
+  std::cout << table << std::endl;
+
+  int first = getFirstDroppingLayer ();
+  int last = getLastDroppingLayer ();
+
+  while(first != last)
+  {
+    fprintf(stderr, "first = %d\n", first);
+    fprintf(stderr, "last = %d\n", last);
+
+    //double ts = stats->getForwardedInterests (DROP_FACE_ID, first); // interest forwared to the drop face
+    double ts = table(determineRowOfFace (DROP_FACE_ID), first) * stats->getTotalForwardedInterests (first); // interest forwared to the drop face
+
+    fprintf(stderr, "ts = %f\n", ts);
+
+    double m_shift = 0; //max traffic u can shift
+    //determine the sum of interest forwared on all faces without dropface for highest layer
+    for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+    {
+      if(*it == DROP_FACE_ID)
+        continue;
+
+      m_shift += stats->getForwardedInterests (*it, last);
+    }
+
+    fprintf(stderr, "m_shift = %f\n", m_shift);
+
+    if(m_shift == 0) // nothing has been forwarded via the last face, set drop prob to 100%
+    {
+      for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+      {
+        if(*it == DROP_FACE_ID)
+          table(determineRowOfFace (*it), last) = 1;
+        else
+          table(determineRowOfFace (*it), last) = 0;
+      }
+    }
+    else
+    {
+      if(m_shift > ts) //if we can shift more than we need to, we just shift how much we need
+        m_shift = ts;
+
+      //reduce dropping prob for lower layer
+      table(determineRowOfFace (DROP_FACE_ID), first) -= (m_shift / stats->getTotalForwardedInterests (first));
+
+      //increase dropping prob for higher layer
+      table(determineRowOfFace (DROP_FACE_ID), last)  += (m_shift / stats->getTotalForwardedInterests (last));
+
+      //calc n_frist , n_last normalization value without dropping face;
+      double n_first = 0;
+      double n_last = 0;
+
+      for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+      {
+        if(*it == DROP_FACE_ID)
+          continue;
+
+        n_first += table(determineRowOfFace (*it), first);
+        n_last +=  table(determineRowOfFace (*it), last);
+      }
+
+      //increase & decrease other faces accordingly
+      for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+      {
+        if(*it == DROP_FACE_ID)
+          continue;
+
+        table(determineRowOfFace (*it), first) += (m_shift/stats->getTotalForwardedInterests (first)) * (table(determineRowOfFace (*it), first)/n_first);
+        table(determineRowOfFace (*it), last) -= (m_shift/stats->getTotalForwardedInterests (last)) * (table(determineRowOfFace (*it), last)/n_last);
+      }
+
+      fprintf(stderr,"Forwarding Matrix after sync:\n");
+      std::cout << table << std::endl;
+
+      table = normalizeColumns(table);
+
+      fprintf(stderr,"Forwarding Matrix after normalization:\n");
+      std::cout << table << std::endl << std::endl;
+    }
+
+    first = getFirstDroppingLayer ();
+    last = getLastDroppingLayer ();
+  }
+}
+
+int ForwardingProbabilityTable::getFirstDroppingLayer()
+{
+  for(int i = 0; i < MAX_LAYERS; i++) // for each layer
+  {
+    if(table(determineRowOfFace (DROP_FACE_ID), i) > 0.0)
+      return i;
+  }
+  return MAX_LAYERS;
+}
+
+int ForwardingProbabilityTable::getLastDroppingLayer()
+{
+  for(int i = MAX_LAYERS - 1; i >= 0; i--) // for each layer
+  {
+    if(table(determineRowOfFace (DROP_FACE_ID), i) < 1.0)
+      return i;
+  }
+
+  return MAX_LAYERS;
+}
+

@@ -28,8 +28,10 @@ void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
   std::sort(faceIds.begin(), faceIds.end()); // order faces strictly by ID
 }
 
-int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest)
+int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, bool &content_seen)
 {
+
+  content_seen = true;
 
   //check if content prefix has been seen
   std::string prefix = extractContentPrefix(interest->GetName());
@@ -37,6 +39,7 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
   if(fwMap.find(prefix) == fwMap.end ())
   {
     fwMap[prefix] = Create<ForwardingEntry>(faceIds);
+    content_seen = false;
   }
 
   Ptr<ForwardingEntry> entry = fwMap.find(prefix)->second;
@@ -99,6 +102,7 @@ void ForwardingEngine::update ()
 
   for(ForwardingEntryMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)
   {
+    fprintf(stderr, "Update for FWT for content %s\n", it->first.c_str());
     it->second->update();
   }
 

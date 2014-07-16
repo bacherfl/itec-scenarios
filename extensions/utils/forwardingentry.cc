@@ -15,6 +15,8 @@ void ForwardingEntry::update()
   // todo fwTable Update
 
   fwTable->updateColumns(fwStats);
+  fwTable->syncDroppingPolicy(fwStats);
+
 }
 
 int ForwardingEntry::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest)

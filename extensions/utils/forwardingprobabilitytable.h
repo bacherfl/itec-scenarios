@@ -19,7 +19,7 @@
 
 #define ALPHA 0.25
 
-#define PROBING_TRAFFIC 0.25
+#define PROBING_TRAFFIC 0.20
 #define SHIFT_THRESHOLD 0.01
 #define SHIFT_TRAFFIC 0.20
 
@@ -36,6 +36,8 @@ public:
 
   void updateColumns(Ptr<ForwardingStatistics> stats);
 
+  void syncDroppingPolicy(Ptr<ForwardingStatistics> stats);
+
 protected:
 
   boost::numeric::ublas::matrix<double> table;
@@ -43,6 +45,7 @@ protected:
 
   void initTable();
   boost::numeric::ublas::matrix<double> removeFaceFromTable(Ptr<ndn::Face> face);
+  boost::numeric::ublas::matrix<double> removeFaceFromTable (int faceId);
   boost::numeric::ublas::matrix<double> normalizeColumns(boost::numeric::ublas::matrix<double> m);
   int chooseFaceAccordingProbability(boost::numeric::ublas::matrix<double> m, int layer_of_interest, std::vector<int> faceList);
 
@@ -55,6 +58,9 @@ protected:
 
   int determineRowOfFace(Ptr<ndn::Face> face);
   int determineRowOfFace(int face_uid);
+
+  int getFirstDroppingLayer();
+  int getLastDroppingLayer();
 
   ns3::UniformVariable randomVariable;
 };
