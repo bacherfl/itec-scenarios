@@ -22,8 +22,7 @@ void parseParameters(int argc, char* argv[])
   bool v0 = false, v1 = false, v2 = false;
   bool vN = false;
 
-  //std::string top_path = "medium.top";
-  std::string top_path = "small.top";
+  std::string top_path = "validation_tops/fwt_per_content_fairness.top";
 
   CommandLine cmd;
   cmd.AddValue ("v0", "Prints all log messages >= LOG_DEBUG. (OPTIONAL)", v0);
@@ -186,32 +185,6 @@ int main(int argc, char* argv[])
   //this is needed because otherwise On::Interest()-->createPITEntry will fail. Has no negative effect on the algorithm
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
 
-  //Error Model
-  /*Ptr<RateErrorModel> em = CreateObjectWithAttributes<RateErrorModel>
-      ("RanVar", RandomVariableValue (UniformVariable (0.0, 1.0)),
-       "ErrorRate", DoubleValue (0.01));
-
-  Ptr<RateErrorModel> em = Create<RateErrorModel>();
-  em->SetRate (0.001);
-  em->SetUnit (RateErrorModel::ERROR_UNIT_PACKET);
-  em->SetRandomVariable (Create<UniformRandomVariable>(0.0, 1.0));
-  Ptr<Node> Router0 = Names::Find<Node>("Router0");*/
-
-  //Router0->GetDevice(0)->SetAttribute("ReceiveErrorModel", PointerValue(em));
-
-  /*Simulator::Schedule (Seconds (20.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
-  Simulator::Schedule (Seconds (30.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
-
-  Simulator::Schedule (Seconds (50.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router3"), Names::Find<Node>("Router5"));
-  Simulator::Schedule (Seconds (60.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router3"), Names::Find<Node>("Router5"));
-
-  Simulator::Schedule (Seconds (70.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router4"), Names::Find<Node>("Router9"));
-  Simulator::Schedule (Seconds (80.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router4"), Names::Find<Node>("Router9"));
-
-  /*Simulator::Schedule (Seconds (50.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router0"), Names::Find<Node>("ContentSrc0"));
-  Simulator::Schedule (Seconds (60.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("ContentSrc0"));*/
-
-
   NS_LOG_UNCOND("Simulation will be started!");
 
   Simulator::Stop (Seconds(300)); //runs for 5 min.
@@ -221,4 +194,5 @@ int main(int argc, char* argv[])
   NS_LOG_UNCOND("Simulation completed!");
   return 0;
 }
+
 

@@ -15,7 +15,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#define RELIABILITY_THRESHOLD 0.98
+#define RELIABILITY_THRESHOLD 0.95
 
 #define ALPHA 0.25
 
@@ -42,6 +42,7 @@ protected:
 
   boost::numeric::ublas::matrix<double> table;
   std::vector<int> faceIds;
+  std::map<int /*layer*/, bool /*punished*/> jammed;
 
   void initTable();
   boost::numeric::ublas::matrix<double> removeFaceFromTable(Ptr<ndn::Face> face);

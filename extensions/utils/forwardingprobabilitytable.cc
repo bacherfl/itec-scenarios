@@ -28,6 +28,9 @@ void ForwardingProbabilityTable::initTable ()
     }
   }
 
+  for(int i = 0; i < MAX_LAYERS; i++)
+    jammed[i] = false;
+
    //std::cout << table << std::endl; /* prints matrix line by line ( (first line), (second line) )*/
 }
 
@@ -204,43 +207,57 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
     fprintf(stderr, "Layer %d UTF =%f UTF*alpha=%f\n",stats->getUnstatisfiedTrafficFraction (i), i, utf);
 
     //check if we need to shift traffic
-    if(utf > 0 && ur_faces.size () > 0)
+    if(utf > 0)
     {
-      double r_faces_actual_fowarding_prob = 0.0;
-      //check if relialbe faces act forwarding Prob > 0
-      for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each r_face
+
+      if (ur_faces.size () == 0) //  there are no faces classified as unreliable...
       {
-        r_faces_actual_fowarding_prob += stats->getActualForwardingProbability (*it,i);
+        for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+          table(determineRowOfFace(*it), i) = stats->getActualForwardingProbability (*it,i);
       }
-
-      fprintf(stderr, "r_faces.size () = %d and r_faces_actual_fowarding_prob = %f\n",r_faces.size (),r_faces_actual_fowarding_prob );
-
-      //if we have no place to shift; or no interests can be forwarded on reliable faces
-      if(r_faces.size () == 0 || r_faces_actual_fowarding_prob == 0.0) // we drop everything in this case
+      else // there are unrelaible faces : ur_faces.size () > 0
       {
-        table(determineRowOfFace(DROP_FACE_ID), i) = stats->getActualForwardingProbability (DROP_FACE_ID,i)+ utf;
-        updateColumn (ur_faces, i, stats, utf, false);
-        probeColumn(r_faces, i, stats, false);
+
+        //determine the relialbe faces act forwarding Prob > 0
+        double r_faces_actual_fowarding_prob = 0.0;
+        for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each r_face
+        {
+          r_faces_actual_fowarding_prob += stats->getActualForwardingProbability (*it,i);
+        }
+
+        //if we have no relible faces, or no interests can be forwarded to reliable faces
+        if(r_faces.size () == 0 || r_faces_actual_fowarding_prob == 0.0) // we drop everything in this case
+        {
+          table(determineRowOfFace(DROP_FACE_ID), i) = stats->getActualForwardingProbability (DROP_FACE_ID,i)+ utf;
+          updateColumn (ur_faces, i, stats, utf, false);
+
+          if(!jammed[i])  // only probe if not jammed
+            probeColumn(r_faces, i, stats, false);
+        }
+        else
+        {
+          //add traffic to relialbe faces
+          updateColumn (r_faces, i, stats, utf, true);
+          //remove traffic from unreliable faces
+          updateColumn (ur_faces, i, stats, utf, false);
+         }
+      }
+    }
+    else if (!jammed[i]) // utf == 0 and layer has not been jammed last time
+    {
+      if(table(determineRowOfFace(DROP_FACE_ID),i) == 0.0 || r_faces.size () == 0) // dropping prob == 0 or there are no reliable faces
+      {
+        for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+          table(determineRowOfFace(*it), i) = stats->getActualForwardingProbability (*it,i);
       }
       else
       {
-        //add traffic
-        updateColumn (r_faces, i, stats, utf, true);
-
-        //remove traffic
-        updateColumn (ur_faces, i, stats, utf, false);
-       }
-    }
-    else if(r_faces.size () > 0)
-    {
-      if(table(determineRowOfFace(DROP_FACE_ID),i) > 0)
-      {
         fprintf(stderr,"WE SHOULD DECREASE DROPPING TRAFFIC\n");
 
-        //check if we should do probing or shift traffic
+        //check if we should do probing or shifting and probing
         std::vector<int> shift_faces;
         std::vector<int> probe_faces;
-        for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each r_face
+        for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it)
         {
           if(stats->getActualForwardingProbability (*it,i) > SHIFT_THRESHOLD)
             shift_faces.push_back (*it);
@@ -249,17 +266,14 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         }
 
         if(shift_faces.size () == 0)
+        {
           probeColumn(probe_faces, i, stats, true); // do only probing
+        }
         else
         {
           shiftDroppingTraffic(shift_faces, i, stats); //shift traffic
           probeColumn(probe_faces, i, stats, false); // and probe then
         }
-      }
-      else
-      {
-        for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-          table(determineRowOfFace(*it), i) = stats->getActualForwardingProbability (*it,i);
       }
     }
   }
@@ -437,13 +451,24 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
   fprintf(stderr,"Forwarding Matrix before update:\n");
   std::cout << table << std::endl;
 
+  //set all layers as not jammed
+  for(int i=0; i < MAX_LAYERS; i++)
+    jammed[i] = false;
+
   int first = getFirstDroppingLayer ();
   int last = getLastDroppingLayer ();
+
+  //jamm all layers until > last all layers
+  for(int i= MAX_LAYERS -1; i > last; i--)
+    jammed[i] = true;
 
   while(first < last)
   {
     fprintf(stderr, "first = %d\n", first);
     fprintf(stderr, "last = %d\n", last);
+
+    //set last as jammed
+    jammed[last] = true;
 
     // interest forwared to the dropping face of first
     double theta = table(determineRowOfFace (DROP_FACE_ID), first) * stats->getTotalForwardedInterests (first);

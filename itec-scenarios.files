@@ -149,3 +149,5 @@ scenarios/fwt_content_lookup_with_link_failures.cc
 scenarios/fwt_fairness_small.cc
 topologies/validation_tops/fwt_fairness_large.top
 scenarios/fwt_fairness_large.cc
+scenarios/fwt_per_content_fairness.cc
+topologies/validation_tops/fwt_per_content_fairness.top
