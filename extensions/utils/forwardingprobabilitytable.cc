@@ -183,11 +183,8 @@ int ForwardingProbabilityTable::chooseFaceAccordingProbability(boost::numeric::u
 
 void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 {
-
   fprintf(stderr,"Forwarding Matrix before update:\n");
   std::cout << table << std::endl;
-
-  fprintf(stderr, "UTF = %f\n", stats->getUnstatisfiedTrafficFraction (0));
 
   std::vector<int> r_faces;
   std::vector<int> ur_faces;
@@ -203,6 +200,8 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
     //utf = unstatisfied_trafic_fraction
     double utf = stats->getUnstatisfiedTrafficFraction (i);
     utf *= ALPHA;
+
+    fprintf(stderr, "Layer %d UTF =%f UTF*alpha=%f\n",stats->getUnstatisfiedTrafficFraction (i), i, utf);
 
     //check if we need to shift traffic
     if(utf > 0 && ur_faces.size () > 0)
@@ -276,7 +275,8 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 }
 
 //shift == true means shift trafic towards faces, else remove traffic from faces.
-void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, double utf, bool shift_traffic)
+void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, double utf,
+                                              bool shift_traffic/*true -> traffic will be shifted towards faces, false traffic will be shifted away*/)
 {
   if(faces.size () == 0)
     return;
@@ -290,28 +290,34 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
 
   double sum_fwProbs = getSumOfForwardingProbabilities (faces, layer);
 
-  if(sum_reliabilities == 0)
+  /*if(sum_reliabilities == 0)
   {
     NS_LOG_UNCOND("Error sum_reliabilities == 0.\n");
-  }
-
-  if(sum_fwProbs == 0 && shift_traffic)
-  {
-    NS_LOG_UNCOND("Error sum_fwProbs == 0 for shift_traffic == true.\n");
-  }
+  }*/
 
   double normalization_value = 0.0;
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each r_face
   {
-    if(shift_traffic)
+    if(shift_traffic && sum_fwProbs > 0)
+    {
       normalization_value +=
         (table(determineRowOfFace (*it), layer) / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities);
-    else if(sum_fwProbs == 0)  // special case when forwarding probabilities are all 0 for all non relialbe faces. e.g. (0, 0, 1) where f3() = 1 is the incoming face of the interests
+    }
+    else if(shift_traffic && sum_fwProbs == 0)  // special case when forwarding probabilities are all 0 for all non relialbe faces. e.g. (0, 0, 1) where f3() = 1 is the incoming face of the interests
+    {
+      normalization_value +=
+        (1.0 /((double)faces.size ())) * (stats->getLinkReliability (*it,layer) / sum_reliabilities);
+    }
+    else if(!shift_traffic && sum_reliabilities == 0)
+    {
       normalization_value +=
         (1.0 /((double)faces.size ())) * ((1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities);
+    }
     else
+    {
       normalization_value +=
         (table(determineRowOfFace (*it), layer) / sum_fwProbs) * ((1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities);
+    }
   }
 
   if(normalization_value == 0)
@@ -326,15 +332,17 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
 
     fprintf(stderr, "actual fwProb = %f\n", actualFWProb);
 
-    //if(actualFWProb == 0) // means no traffic for this content has been observed
-      //actualFWProb = table(determineRowOfFace (*it), layer); // then use old probs.
-
-    if(shift_traffic)
+    if(shift_traffic && sum_fwProbs > 0)
     {
       table(determineRowOfFace(*it), layer) = actualFWProb +
         utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities) / normalization_value;
     }
-    else if (sum_fwProbs == 0) // special case
+    else if (shift_traffic && sum_fwProbs == 0) // special case
+    {
+      table(determineRowOfFace(*it), layer) = actualFWProb -
+          utf * (1.0 /((double)faces.size ())) * ( stats->getLinkReliability (*it,layer) / sum_reliabilities / normalization_value);
+    }
+    else if (!shift_traffic && sum_fwProbs == 0) // special case
     {
       table(determineRowOfFace(*it), layer) = actualFWProb -
           utf * (1.0 /((double)faces.size ())) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
@@ -344,21 +352,6 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
       table(determineRowOfFace(*it), layer) = actualFWProb -
           utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
     }
-    /*if(shift_traffic)
-    {
-      table(determineRowOfFace(*it), layer) +=
-        utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities) / normalization_value;
-    }
-    else if (sum_fwProbs == 0) // special case
-    {
-      table(determineRowOfFace(*it), layer) -=
-          utf * (1.0 /((double)faces.size ())) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
-    }
-    else
-    {
-      table(determineRowOfFace(*it), layer) -=
-          utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
-    }*/
   }
 }
 
@@ -409,7 +402,8 @@ void ForwardingProbabilityTable::shiftDroppingTraffic(std::vector<int> faces, in
     interests_to_shift = dropped_interests;
   }
 
-  double utf = (interests_to_shift/ (double)stats->getTotalForwardedInterests (layer));
+  double utf = (interests_to_shift / (double)stats->getTotalForwardedInterests (layer));
+  fprintf(stderr, "shiftDroppingTraffic utf = %f\n", utf);
 
   table(determineRowOfFace(DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID, layer) - utf;
   updateColumn (faces, layer,stats,utf,true);
@@ -446,29 +440,21 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
   int first = getFirstDroppingLayer ();
   int last = getLastDroppingLayer ();
 
-  while(first != last)
+  while(first < last)
   {
     fprintf(stderr, "first = %d\n", first);
     fprintf(stderr, "last = %d\n", last);
 
-    //double ts = stats->getForwardedInterests (DROP_FACE_ID, first); // interest forwared to the drop face
-    double ts = table(determineRowOfFace (DROP_FACE_ID), first) * stats->getTotalForwardedInterests (first); // interest forwared to the drop face
+    // interest forwared to the dropping face of first
+    double theta = table(determineRowOfFace (DROP_FACE_ID), first) * stats->getTotalForwardedInterests (first);
+    fprintf(stderr, "theta = %f\n", theta);
 
-    fprintf(stderr, "ts = %f\n", ts);
+    //max traffic that can be shifted towards face(s) of last
+    double chi = (1.0 - table(determineRowOfFace (DROP_FACE_ID), last)) * stats->getTotalForwardedInterests (last);
 
-    double m_shift = 0; //max traffic u can shift
-    //determine the sum of interest forwared on all faces without dropface for highest layer
-    for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-    {
-      if(*it == DROP_FACE_ID)
-        continue;
+    fprintf(stderr, "chi = %f\n", chi);
 
-      m_shift += stats->getForwardedInterests (*it, last);
-    }
-
-    fprintf(stderr, "m_shift = %f\n", m_shift);
-
-    if(m_shift == 0) // nothing has been forwarded via the last face, set drop prob to 100%
+    if(chi == 0) // nothing has been forwarded via the last face, set drop prob to 100%
     {
       for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
       {
@@ -480,14 +466,14 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
     }
     else
     {
-      if(m_shift > ts) //if we can shift more than we need to, we just shift how much we need
-        m_shift = ts;
+      if(chi > theta) //if we can shift more than we need to, we just shift how much we need
+        chi = theta;
 
       //reduce dropping prob for lower layer
-      table(determineRowOfFace (DROP_FACE_ID), first) -= (m_shift / stats->getTotalForwardedInterests (first));
+      table(determineRowOfFace (DROP_FACE_ID), first) -= (chi / stats->getTotalForwardedInterests (first));
 
       //increase dropping prob for higher layer
-      table(determineRowOfFace (DROP_FACE_ID), last)  += (m_shift / stats->getTotalForwardedInterests (last));
+      table(determineRowOfFace (DROP_FACE_ID), last)  += (chi / stats->getTotalForwardedInterests (last));
 
       //calc n_frist , n_last normalization value without dropping face;
       double n_first = 0;
@@ -508,8 +494,8 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
         if(*it == DROP_FACE_ID)
           continue;
 
-        table(determineRowOfFace (*it), first) += (m_shift/stats->getTotalForwardedInterests (first)) * (table(determineRowOfFace (*it), first)/n_first);
-        table(determineRowOfFace (*it), last) -= (m_shift/stats->getTotalForwardedInterests (last)) * (table(determineRowOfFace (*it), last)/n_last);
+        table(determineRowOfFace (*it), first) += (chi/stats->getTotalForwardedInterests (first)) * (table(determineRowOfFace (*it), first)/n_first);
+        table(determineRowOfFace (*it), last) -= (chi/stats->getTotalForwardedInterests (last)) * (table(determineRowOfFace (*it), last)/n_last);
       }
 
       fprintf(stderr,"Forwarding Matrix after sync:\n");
@@ -533,7 +519,7 @@ int ForwardingProbabilityTable::getFirstDroppingLayer()
     if(table(determineRowOfFace (DROP_FACE_ID), i) > 0.0)
       return i;
   }
-  return MAX_LAYERS;
+  return MAX_LAYERS-1;
 }
 
 int ForwardingProbabilityTable::getLastDroppingLayer()
@@ -544,6 +530,6 @@ int ForwardingProbabilityTable::getLastDroppingLayer()
       return i;
   }
 
-  return MAX_LAYERS;
+  return 0;
 }
 
