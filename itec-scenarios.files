@@ -145,6 +145,7 @@ topologies/small.top
 topologies/validation_tops/fwt_content_lookup.top
 topologies/validation_tops/fwt_fairness_small.top
 scenarios/fwt_content_lookup.cc
+scenarios/fwt_content_lookup_with_link_failures.cc
 scenarios/fwt_fairness_small.cc
 topologies/validation_tops/fwt_fairness_large.top
 scenarios/fwt_fairness_large.cc
