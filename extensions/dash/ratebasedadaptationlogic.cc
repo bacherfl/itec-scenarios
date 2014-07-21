@@ -55,6 +55,11 @@ void RateBasedAdaptationLogic::segmentFailed(unsigned int segment_number, unsign
 
 }
 
+void RateBasedAdaptationLogic::segmentConsumed(unsigned int segment_number, unsigned int segment_level)
+{
+
+}
+
 void RateBasedAdaptationLogic::segmentRetrieved(Time start, Time stop,
                                                 unsigned int segment_number, unsigned int segment_level, unsigned int segment_size)
 {

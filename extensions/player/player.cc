@@ -6,7 +6,7 @@ using namespace ns3::utils;
 
 NS_LOG_COMPONENT_DEFINE ("Player");
 
-Player::Player(dash::mpd::IMPD *mpd,  ns3::dashimpl::LayeredAdaptationLogic *alogic,
+Player::Player(dash::mpd::IMPD *mpd,  ns3::dashimpl::IAdaptationLogic *alogic,
                Ptr<LayeredBuffer> buf,
                ns3::utils::DownloadManager* dwnManager, std::string nodeName)
 {
@@ -173,7 +173,7 @@ void Player::consuming ()
         SetConsumedPlayerLevel(this->currentSegmentNumber, max_level_available);
 
         // tell adaptation logic that we consumed a segment
-        this->alogic->segmentConsumed (this->currentSegmentNumber);
+        this->alogic->segmentConsumed (this->currentSegmentNumber,max_level_available);
 
 
         // increase current segment number

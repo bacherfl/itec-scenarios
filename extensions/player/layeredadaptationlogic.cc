@@ -206,7 +206,7 @@ void LayeredAdaptationLogic::segmentFailed(unsigned int segment_number, unsigned
 }
 
 
-void LayeredAdaptationLogic::segmentConsumed(unsigned int segment_number)
+void LayeredAdaptationLogic::segmentConsumed(unsigned int segment_number, unsigned int segment_level)
 {
   this->last_consumed_segment_number = segment_number;
 }

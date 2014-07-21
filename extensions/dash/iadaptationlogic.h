@@ -37,7 +37,9 @@ namespace ns3
     {
         AlwaysBest, //todo impl
         AlwaysLowest,
-        RateBased
+        RateBased,
+        LayerdSieber,
+        SimpleBuffer
     };
 
     /*!
@@ -84,6 +86,8 @@ namespace ns3
         * \param segment_level the level of the segment we failed to receive
       */
       virtual void segmentFailed(unsigned int segment_number, unsigned int segment_level) = 0;
+
+      virtual void segmentConsumed(unsigned int segment_number, unsigned int segment_level) = 0;
 
       unsigned int getNumberOfSegmentsOfCurrenPeriod();
 

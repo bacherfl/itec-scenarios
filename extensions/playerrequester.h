@@ -42,6 +42,8 @@ namespace ns3 {
     Ptr<ns3::player::Player> player;
 
     std::string cwnd_type;
+
+    int alogic_type;
   };
 }
 #endif // PLAYERREQUESTER_H

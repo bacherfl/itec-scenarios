@@ -195,6 +195,7 @@ void DownloadManager::downloadSegments()
   Ptr<Segment> seg_to_dl = *(enquedSegments.begin ());
   enquedSegments.erase (enquedSegments.begin ());
 
+  //fprintf(stderr, "Downloading Segment %s\n", seg_to_dl->getUri ().c_str ());
   dl->download (seg_to_dl);
 }
 

@@ -25,7 +25,7 @@ namespace ns3
     class Player : public ns3::SimpleRefCount<Player>, utils::Observer, PlayerLevelHistory
     {
     public:
-      Player(dash::mpd::IMPD *mpd, ns3::dashimpl::LayeredAdaptationLogic *alogic,
+      Player(dash::mpd::IMPD *mpd, dashimpl::IAdaptationLogic *alogic,
              Ptr<ns3::player::LayeredBuffer> buf,
              utils::DownloadManager* dwnManager, std::string nodeName);
 
@@ -81,7 +81,7 @@ namespace ns3
       utils::DownloadManager* dwnManager;
       dash::mpd::IMPD *mpd;
       Ptr<ns3::player::LayeredBuffer> buf;
-      ns3::dashimpl::LayeredAdaptationLogic* alogic;
+      ns3::dashimpl::IAdaptationLogic* alogic;
 
 
 
