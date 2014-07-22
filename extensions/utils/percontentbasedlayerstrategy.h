@@ -15,6 +15,8 @@
 #include "../../../ns-3/src/ndnSIM/model/fw/per-out-face-limits.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/nacks.h"
 
+#include "boost/foreach.hpp"
+
 #include <stdio.h>
 
 #include "forwardingengine.h"
@@ -48,6 +50,8 @@ public:
   virtual void DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
   virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
 
+  Ptr<Interest> prepareNack(Ptr<const Interest> interest);
+
 protected:
 
   int m_maxLevel;
@@ -55,6 +59,8 @@ protected:
 
   std::vector<Ptr<ndn::Face> > faces;
   Ptr<ForwardingEngine> fwEngine;
+
+  unsigned int prefixComponentNum;
 };
 
 template<class Parent>
@@ -66,7 +72,11 @@ TypeId PerContentBasedLayerStrategy<Parent>::GetTypeId (void)
   static TypeId tid = TypeId ((super::GetTypeId ().GetName ()+"::PerContentBasedLayerStrategy").c_str ())
       .SetGroupName ("Ndn")
       .template SetParent <super> ()
-      .template AddConstructor <PerContentBasedLayerStrategy> ();
+      .template AddConstructor <PerContentBasedLayerStrategy> ()
+      .template AddAttribute("PrefixNameComponentIndex", "The component of the name that is considered as prefix",
+                    IntegerValue(0),
+                    MakeIntegerAccessor(&PerContentBasedLayerStrategy<Parent>::prefixComponentNum),
+                             MakeIntegerChecker<int32_t>());
   return tid;
 }
 
@@ -82,7 +92,7 @@ void PerContentBasedLayerStrategy<Parent>::AddFace (Ptr<Face> face)
 {
   // add face to faces vector
   faces.push_back (face);
-  fwEngine = new ForwardingEngine(faces);
+  fwEngine = new ForwardingEngine(faces, prefixComponentNum);
   super::AddFace(face);
 }
 
@@ -101,7 +111,7 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
     }
   }
 
-  fwEngine = new ForwardingEngine(faces);
+  fwEngine = new ForwardingEngine(faces, prefixComponentNum);
   super::RemoveFace(face);
 }
 
@@ -128,14 +138,42 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
     {
       // somebody is doing something bad
       PerContentBasedLayerStrategy<Parent>::m_dropNacks (interest, inface);
-      fprintf(stderr, "Invalid NACK message\n");
+      //fprintf(stderr, "Invalid NACK message\n",);
       return;
     }
 
+    //log unstatisfied request
     fwEngine->logUnstatisfiedRequest (pitEntry);
-    //TODO something useful here....
+
+    // we dont kall super::NACK(), since we skip looking for other sources.
+
+    //forward nack
+    Ptr<Interest> nack = Create<Interest> (*interest);
+    nack->SetNack (interest->GetNack ());
+    BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
+    {
+      incoming.m_face->SendInterest (nack);
+      PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, incoming.m_face);
+    }
+
     pitEntry->ClearOutgoing ();
   }
+}
+
+template<class Parent>
+Ptr<Interest> PerContentBasedLayerStrategy<Parent>::prepareNack(Ptr<const Interest> interest)
+{
+  Ptr<Interest> nack = Create<Interest> (*interest);
+
+  //nack->SetNack (ndn::Interest::NACK_CONGESTION);
+  nack->SetNack (ndn::Interest::NACK_CONGESTION); // set this since ndn changes it anyway to this.
+
+  SVCLevelTag levelTag;
+  levelTag.Set (-1); // means packet dropped on purpose
+  nack->GetPayload ()->AddPacketTag (levelTag);
+
+  //fprintf(stderr, "NACK %s prepared at time: %f\n", interest->GetName ().toUri ().c_str (), Simulator::Now ().ToDouble (Time::S));
+  return nack;
 }
 
 template<class Parent>
@@ -146,13 +184,10 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
 
   if(fwFaceId == DROP_FACE_ID)
   {
-    Ptr<Interest> nack = Create<Interest> (*interest);
-    nack->SetNack (ndn::Interest::NACK_CONGESTION);
+    Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
     inFace->SendInterest (nack);
-
-    //fprintf(stderr, "Droping %s due to congestion\n", interest->GetName ().toUri ().c_str ());
-
     PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
+
     fwEngine->logDroppingFace(inFace, interest, pitEntry);
     return false;
   }
@@ -168,6 +203,10 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
 
         if(!success)
         {
+          Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
+          inFace->SendInterest (nack);
+          PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
+
           fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
         }
 
@@ -175,7 +214,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
       }
     }
   }
-  else
+  else //flood first interest
   {
     for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
         it !=  faces.end (); ++it)

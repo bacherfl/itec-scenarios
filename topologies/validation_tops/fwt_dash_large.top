@@ -223,7 +223,7 @@ ContentDst98	Router2	8Mbps	1	5ms	50
 ContentDst99	Router2	8Mbps	1	5ms	50
 
 
-AdaptiveNode0 Router3            30Mbps       1        5ms    100
+AdaptiveNode0 Router3            20Mbps       1        5ms    100
 
 Router3 ContentSrc0        100Mbps       1        5ms    100
 

@@ -20,7 +20,7 @@ namespace ndn
 class ForwardingEngine : public SimpleRefCount<ForwardingEngine>
 {
 public:
-  ForwardingEngine(std::vector<Ptr<ndn::Face> > faces);
+  ForwardingEngine(std::vector<Ptr<ndn::Face> > faces, unsigned int prefixComponentNumber);
 
   ~ForwardingEngine();
 
@@ -49,6 +49,8 @@ protected:
   ForwardingEntryMap fwMap;
 
   EventId updateEvent;
+
+  unsigned int prefixComponentNumber;
 
 };
 

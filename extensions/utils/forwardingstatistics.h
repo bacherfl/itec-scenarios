@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #define UPDATE_INTERVALL 0.2
-#define MAX_LAYERS 3
+#define MAX_LAYERS 6
 #define DROP_FACE_ID -1
 
 namespace ns3
@@ -37,8 +37,6 @@ public:
 
   double getGoodput(int face_id, int layer);
   double getUnstatisfiedTrafficFraction(int ilayer){return stats[ilayer].unstatisfied_traffic_fraction;}
-  //int getForwardedInterests(int ilayer){return stats[ilayer].total_forwarded_requests;}
-  //double getForwardedInterests(int face, int ilayer){return getActualForwardingProbability(face, ilayer) * getForwardedInterests (ilayer);}
 
   std::vector<int>  getReliableFaces(int layer, double threshold);
   std::vector<int>  getUnreliableFaces(int layer, double threshold);
@@ -58,8 +56,6 @@ protected:
     < int, /*face id*/
      double /*value to store*/
     > ForwardingDoubleMap;
-
-  //int getMapIndexFromFaceID(int face_id);
 
   void calculateLinkReliabilities(int layer);
   void calculateGoodput(int layer);

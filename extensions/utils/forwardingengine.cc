@@ -2,8 +2,11 @@
 
 using namespace ns3::ndn;
 
-ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces)
+NS_LOG_COMPONENT_DEFINE ("ForwardingEngine");
+
+ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces,unsigned int prefixComponentNumber)
 {
+   this->prefixComponentNumber = prefixComponentNumber;
   init(faces);
   Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
 }
@@ -52,7 +55,7 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
 std::string ForwardingEngine::extractContentPrefix(ndn::Name name)
 {
-  return name.get(0).toUri ();
+  return name.get(prefixComponentNumber).toUri ();
 }
 
 void ForwardingEngine::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
@@ -91,7 +94,8 @@ void ForwardingEngine::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> in
 
 void ForwardingEngine::update ()
 {
-  fprintf(stderr, "New FWT UPDATE at SimTime %f\n\n", Simulator::Now ().GetSeconds ());
+  NS_LOG_DEBUG("New FWT UPDATE at SimTime " << Simulator::Now ().GetSeconds () << "\n");
+
   /*experimental*/
   if(this->GetReferenceCount () == 1)
   {
@@ -102,7 +106,7 @@ void ForwardingEngine::update ()
 
   for(ForwardingEntryMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)
   {
-    fprintf(stderr, "Update for FWT for content %s\n", it->first.c_str());
+    NS_LOG_DEBUG("Update for FWT for content: " << it->first.c_str());
     it->second->update();
   }
 

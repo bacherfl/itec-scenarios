@@ -13,6 +13,10 @@
 
 #include "forwardingprobabilitytable.h"
 #include "forwardingstatistics.h"
+
+#include "../svc/svcleveltag.h"
+#include "ns3/ndn-wire.h"
+
 namespace ns3
 {
 namespace ndn

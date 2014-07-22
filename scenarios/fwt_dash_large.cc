@@ -129,7 +129,8 @@ int main(int argc, char* argv[])
   ndnHelper.Install (routers);
 
   //change strategy for adaptive NODE
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits",
+                                   "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true", "PrefixNameComponentIndex", "2");
   ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
   /*ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCLiveCountingStrategy",
                                   "EnableNACKs", "true", "LevelCount", "6");*/

@@ -49,6 +49,18 @@ void ForwardingEntry::logDroppingFace(Ptr<Face> inFace, Ptr<const Interest> inte
  */
 int ForwardingEntry::determineContentLayer(Ptr<const Interest> interest)
 {  
+
+   // extract level tag from packet
+  SVCLevelTag levelTag;
+  Ptr<Packet> packet = Wire::FromInterest (interest);
+  bool svcLevelTagExists = packet->PeekPacketTag (levelTag);
+
+  //TODO fix levels
+  if (svcLevelTagExists)
+  {
+    return levelTag.Get ();
+  }
+
   std::string layer = interest->GetName ().get(1).toUri();
   layer = layer.substr (layer.length ()-1, layer.length ());
 

@@ -20,7 +20,6 @@ void ForwardingProbabilityTable::initTable ()
   {
     for (unsigned i = 0; i < table.size1 (); ++i) /* rows */
     {
-      //fprintf(stderr, " faceIds.at (i) %d\n",faceIds.at (i));
       if(faceIds.at (i) == DROP_FACE_ID)
         table(i,j) = 0.0;
       else
@@ -28,7 +27,7 @@ void ForwardingProbabilityTable::initTable ()
     }
   }
 
-  for(int i = 0; i < MAX_LAYERS; i++)
+  for(int i = 0; i < MAX_LAYERS; i++) // set all as non-jammed
     jammed[i] = false;
 
    //std::cout << table << std::endl; /* prints matrix line by line ( (first line), (second line) )*/
@@ -36,8 +35,6 @@ void ForwardingProbabilityTable::initTable ()
 
 int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer)
 {
-  // determine layer of interest
-
   // normalize column of layer for all possible outgoing faces
   matrix<double> normalized = removeFaceFromTable(inFace);
 
@@ -128,8 +125,7 @@ boost::numeric::ublas::matrix<double> ForwardingProbabilityTable::normalizeColum
 
     if(colSum == 0) // means we have removed the only face that was able to transmitt the traffic
     {
-      //what should we do? drop all ? split the probabilities amoung all other faces??
-      //split
+      //split robabilities amoung all other faces
       for (unsigned i = 0; i < m.size1 (); ++i) /* rows */
         m(i,j) = 1.0 /((double)m.size1 ());
     }
@@ -167,27 +163,28 @@ int ForwardingProbabilityTable::chooseFaceAccordingProbability(boost::numeric::u
     return DROP_FACE_ID;
   }
 
-  //if(faceList.size () == 1 && faceList.at (0) == DROP_FACE_ID) //Todo think if we should do something about this? maybe send a nack?
-    //return DROP_FACE_ID;
-
   for(int i = 0; i < m.size1 (); i++)
   {
-    //fprintf(stderr, "row = %d\n", i);
-    //fprintf(stderr, "layer_of_interest = %d\n", layer_of_interest);
     sum += m(i, layer_of_interest);
 
     if(rvalue <= sum)
       return faceList.at (i);
   }
 
-  NS_LOG_UNCOND("Error in Face selection!");
+  NS_LOG_UNCOND("Error in Face selection, structs are:");
+  NS_LOG_UNCOND("table\n" << m);
+  NS_LOG_UNCOND("layer_of_interest " << layer_of_interest);
+  NS_LOG_UNCOND("rvalue = " << rvalue);
+
+  for(std::vector<int>::iterator it = faceList.begin (); it != faceList.end (); ++it)
+    fprintf(stderr, "facelist[it]=%d",*it);
+
   return DROP_FACE_ID;
 }
 
 void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 {
-  fprintf(stderr,"Forwarding Matrix before update:\n");
-  std::cout << table << std::endl;
+  NS_LOG_DEBUG("Forwarding Matrix before update:\n" << table);
 
   std::vector<int> r_faces;
   std::vector<int> ur_faces;
@@ -204,7 +201,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
     double utf = stats->getUnstatisfiedTrafficFraction (i);
     utf *= ALPHA;
 
-    fprintf(stderr, "Layer %d UTF =%f UTF*alpha=%f\n",stats->getUnstatisfiedTrafficFraction (i), i, utf);
+    NS_LOG_DEBUG("Layer " << i << " UTF=" << stats->getUnstatisfiedTrafficFraction (i) << " UTF*alpha=" << utf);
 
     //check if we need to shift traffic
     if(utf > 0)
@@ -247,12 +244,13 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
     {
       if(table(determineRowOfFace(DROP_FACE_ID),i) == 0.0 || r_faces.size () == 0) // dropping prob == 0 or there are no reliable faces
       {
-        for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-          table(determineRowOfFace(*it), i) = stats->getActualForwardingProbability (*it,i);
+        if(stats->getTotalForwardedInterests (i) != 0)
+          for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+            table(determineRowOfFace(*it), i) = stats->getActualForwardingProbability (*it,i);
       }
       else
       {
-        fprintf(stderr,"WE SHOULD DECREASE DROPPING TRAFFIC\n");
+        NS_LOG_DEBUG("WE SHOULD DECREASE DROPPING TRAFFIC\n");
 
         //check if we should do probing or shifting and probing
         std::vector<int> shift_faces;
@@ -278,14 +276,12 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
     }
   }
 
-  fprintf(stderr,"Forwarding Matrix after update:\n");
-  std::cout << table << std::endl;
+  NS_LOG_DEBUG("Forwarding Matrix after update:\n" << table);
 
   //finally just normalize to remove the error introduced by threashold RELIABILITY_THRESHOLD
   table = normalizeColumns(table);
 
-  fprintf(stderr,"Forwarding Matrix after normalization:\n");
-  std::cout << table << std::endl << std::endl;
+  NS_LOG_DEBUG("Forwarding Matrix after normalization:\n" << table);
 }
 
 //shift == true means shift trafic towards faces, else remove traffic from faces.
@@ -304,11 +300,6 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
 
   double sum_fwProbs = getSumOfForwardingProbabilities (faces, layer);
 
-  /*if(sum_reliabilities == 0)
-  {
-    NS_LOG_UNCOND("Error sum_reliabilities == 0.\n");
-  }*/
-
   double normalization_value = 0.0;
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each r_face
   {
@@ -322,7 +313,7 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
       normalization_value +=
         (1.0 /((double)faces.size ())) * (stats->getLinkReliability (*it,layer) / sum_reliabilities);
     }
-    else if(!shift_traffic && sum_reliabilities == 0)
+    else if(!shift_traffic && sum_fwProbs == 0)
     {
       normalization_value +=
         (1.0 /((double)faces.size ())) * ((1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities);
@@ -344,7 +335,7 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
 
     double actualFWProb = stats->getActualForwardingProbability (*it, layer);
 
-    fprintf(stderr, "actual fwProb = %f\n", actualFWProb);
+    NS_LOG_DEBUG("actual fwProb = " << actualFWProb);
 
     if(shift_traffic && sum_fwProbs > 0)
     {
@@ -353,7 +344,7 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
     }
     else if (shift_traffic && sum_fwProbs == 0) // special case
     {
-      table(determineRowOfFace(*it), layer) = actualFWProb -
+      table(determineRowOfFace(*it), layer) = actualFWProb +
           utf * (1.0 /((double)faces.size ())) * ( stats->getLinkReliability (*it,layer) / sum_reliabilities / normalization_value);
     }
     else if (!shift_traffic && sum_fwProbs == 0) // special case
@@ -371,7 +362,7 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
 
 void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, bool useActualProbability)
 {
-  fprintf(stderr, "PROBING\n");
+  NS_LOG_DEBUG("PROBING");
 
   if(faces.size () == 0)
     return;
@@ -382,9 +373,6 @@ void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,P
     probe = stats->getActualForwardingProbability (DROP_FACE_ID,layer) * PROBING_TRAFFIC;
   else
     probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;
-
-  /*if(probe < 0.01) // dropping prob is very low, probing is useless...
-    return;*/
 
   if(useActualProbability)
     table(determineRowOfFace (DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID,layer) - probe;
@@ -417,7 +405,7 @@ void ForwardingProbabilityTable::shiftDroppingTraffic(std::vector<int> faces, in
   }
 
   double utf = (interests_to_shift / (double)stats->getTotalForwardedInterests (layer));
-  fprintf(stderr, "shiftDroppingTraffic utf = %f\n", utf);
+  NS_LOG_DEBUG("shiftDroppingTraffic utf = " << utf);
 
   table(determineRowOfFace(DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID, layer) - utf;
   updateColumn (faces, layer,stats,utf,true);
@@ -446,10 +434,9 @@ double ForwardingProbabilityTable::getSumOfActualForwardingProbabilities(std::ve
 
 void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> stats)
 {
-  fprintf(stderr,"syncDroppingPolicy\n");
+  NS_LOG_DEBUG("syncDroppingPolicy");
 
-  fprintf(stderr,"Forwarding Matrix before update:\n");
-  std::cout << table << std::endl;
+  NS_LOG_DEBUG("Forwarding Matrix before update:\n" <<table);
 
   //set all layers as not jammed
   for(int i=0; i < MAX_LAYERS; i++)
@@ -459,27 +446,48 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
   int last = getLastDroppingLayer ();
 
   //jamm all layers until > last all layers
-  for(int i= MAX_LAYERS -1; i > last; i--)
-    jammed[i] = true;
+
+  if(first < last)
+  {
+    for(int i= MAX_LAYERS -1; i > last; i--)
+      jammed[i] = true;
+  }
+
+  //int iteration = 0;
 
   while(first < last)
   {
+
+    /*iteration++;
+    if(iteration > 6)
+      exit(-1);
+
     fprintf(stderr, "first = %d\n", first);
-    fprintf(stderr, "last = %d\n", last);
+    fprintf(stderr, "last = %d\n", last);*/
 
     //set last as jammed
     jammed[last] = true;
 
     // interest forwared to the dropping face of first
     double theta = table(determineRowOfFace (DROP_FACE_ID), first) * stats->getTotalForwardedInterests (first);
-    fprintf(stderr, "theta = %f\n", theta);
 
     //max traffic that can be shifted towards face(s) of last
     double chi = (1.0 - table(determineRowOfFace (DROP_FACE_ID), last)) * stats->getTotalForwardedInterests (last);
 
-    fprintf(stderr, "chi = %f\n", chi);
+    //fprintf(stderr, "theta = %f\n", theta);
+    //fprintf(stderr, "chi = %f\n", chi);
 
-    if(chi == 0) // nothing has been forwarded via the last face, set drop prob to 100%
+    if (theta == 0)
+    {
+      for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
+      {
+        if(*it == DROP_FACE_ID)
+          table(determineRowOfFace (*it), first) = 0;
+        else
+          table(determineRowOfFace (*it), first) = 1.0 / (faceIds.size ()-1);
+      }
+    }
+    else if(chi == 0) // nothing has been forwarded via the last face, set drop prob to 100%
     {
       for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
       {
@@ -523,18 +531,19 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
         table(determineRowOfFace (*it), last) -= (chi/stats->getTotalForwardedInterests (last)) * (table(determineRowOfFace (*it), last)/n_last);
       }
 
-      fprintf(stderr,"Forwarding Matrix after sync:\n");
-      std::cout << table << std::endl;
+      NS_LOG_DEBUG("Forwarding Matrix after sync:\n" << table);
 
       table = normalizeColumns(table);
 
-      fprintf(stderr,"Forwarding Matrix after normalization:\n");
-      std::cout << table << std::endl << std::endl;
+      NS_LOG_DEBUG("Forwarding Matrix after normalization:\n" << table);
     }
 
     first = getFirstDroppingLayer ();
     last = getLastDroppingLayer ();
   }
+
+  for(int i = 0; i < jammed.size (); i++)
+    NS_LOG_DEBUG("jammed[" << i << "%d]="<< jammed[i]);
 }
 
 int ForwardingProbabilityTable::getFirstDroppingLayer()

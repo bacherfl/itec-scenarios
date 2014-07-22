@@ -151,9 +151,11 @@ topologies/validation_tops/fwt_fairness_large.top
 scenarios/fwt_fairness_large.cc
 scenarios/fwt_per_content_fairness.cc
 topologies/validation_tops/fwt_per_content_fairness.top
-scenarios/fwt_dash_simple.cc
+scenarios/simple.cc
 topologies/validation_tops/fwt_dash_simple.top
 scenarios/tcp.cc
 extensions/player/simplebufferlogic.h
 extensions/player/simplebufferlogic.cc
 topologies/validation_tops/fwt_dash_large.top
+scenarios/fwt_dash_simple.cc
+scenarios/fwt_dash_large.cc
