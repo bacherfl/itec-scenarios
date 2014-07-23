@@ -159,3 +159,7 @@ extensions/player/simplebufferlogic.cc
 topologies/validation_tops/fwt_dash_large.top
 scenarios/fwt_dash_simple.cc
 scenarios/fwt_dash_large.cc
+extensions/utils/tokenbucket.h
+extensions/utils/tokenbucket.cc
+extensions/utils/facebucketmanager.h
+extensions/utils/facebucketmanager.cc

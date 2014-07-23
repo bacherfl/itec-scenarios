@@ -13,7 +13,7 @@ link
 # srcNode    dstNode    bandwidth   metric    delay  queue
 Router0     Router1      4Mbps         1       2ms    50
 
-Router1     ContentDst0  100Mbps      1        2ms    50
-Router1     ContentDst1  100Mbps      1        2ms    50
+Router1     ContentDst0  10Mbps      1        2ms    50
+Router1     ContentDst1  10Mbps      1        2ms    50
 
-Router0     ContentSrc0  100Mbps      1        2ms    50
+Router0     ContentSrc0  10Mbps      1        2ms    50

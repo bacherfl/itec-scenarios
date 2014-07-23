@@ -13,6 +13,7 @@
 #include "../../../ns-3/src/ndnSIM/model/fw/flooding.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/smart-flooding.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/per-out-face-limits.h"
+#include "../../../ns-3/src/ndnSIM/model/fw/per-fib-limits.h"
 #include "../../../ns-3/src/ndnSIM/model/fw/nacks.h"
 
 #include "boost/foreach.hpp"
@@ -49,6 +50,7 @@ public:
   virtual void WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
   virtual void DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
   virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
+  virtual bool TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
 
   Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 
@@ -58,7 +60,7 @@ protected:
   static LogComponent g_log;
 
   std::vector<Ptr<ndn::Face> > faces;
-  Ptr<ForwardingEngine> fwEngine;
+  Ptr<utils::ForwardingEngine> fwEngine;
 
   unsigned int prefixComponentNum;
 };
@@ -92,7 +94,7 @@ void PerContentBasedLayerStrategy<Parent>::AddFace (Ptr<Face> face)
 {
   // add face to faces vector
   faces.push_back (face);
-  fwEngine = new ForwardingEngine(faces, prefixComponentNum);
+  fwEngine = new utils::ForwardingEngine(faces, prefixComponentNum);
   super::AddFace(face);
 }
 
@@ -111,7 +113,7 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
     }
   }
 
-  fwEngine = new ForwardingEngine(faces, prefixComponentNum);
+  fwEngine = new utils::ForwardingEngine(faces, prefixComponentNum);
   super::RemoveFace(face);
 }
 
@@ -199,7 +201,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     {
       if (fwFaceId == (*it)->GetId())
       {
-        bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
+        bool success = PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(inFace, *it, interest, pitEntry);
 
         if(!success)
         {
@@ -221,7 +223,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     {
       if (inFace->GetId () != (*it)->GetId())
       {
-        bool success = super::TrySendOutInterest(inFace, *it, interest, pitEntry);
+        bool success = PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(inFace, *it, interest, pitEntry);
 
         if(!success)
         {
@@ -264,6 +266,15 @@ void PerContentBasedLayerStrategy<Parent>::DidReceiveValidNack (Ptr<Face> inFace
 {
   fwEngine->logUnstatisfiedRequest (pitEntry);
   super::DidExhaustForwardingOptions (inFace, nack, pitEntry);
+}
+
+template<class Parent>
+bool PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
+{
+  if(!fwEngine->tryForwardInterest (outFace, interest))
+    return false;
+
+  return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
 }
 
 }

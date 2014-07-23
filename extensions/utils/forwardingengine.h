@@ -11,10 +11,13 @@
 #include "stdio.h"
 
 #include "forwardingentry.h"
+#include "facebucketmanager.h"
 
 namespace ns3
 {
 namespace ndn
+{
+namespace utils
 {
 
 class ForwardingEngine : public SimpleRefCount<ForwardingEngine>
@@ -23,6 +26,8 @@ public:
   ForwardingEngine(std::vector<Ptr<ndn::Face> > faces, unsigned int prefixComponentNumber);
 
   ~ForwardingEngine();
+
+  bool tryForwardInterest(Ptr< Face > outFace, Ptr< const Interest > interest);
 
   int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, bool &content_seen);
   void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry);
@@ -40,7 +45,7 @@ protected:
 
   std::vector<int> faceIds;
 
-  /* map for storing stats for all faces */
+  /* map for storing forwarding stats for all faces */
   typedef std::map
     < std::string, /*content-prefix*/
       Ptr<ForwardingEntry> /*forwarding prob. table*/
@@ -48,12 +53,21 @@ protected:
 
   ForwardingEntryMap fwMap;
 
+  /* map for storing forwarding stats for all faces */
+  typedef std::map
+    < int, /*face ID*/
+      Ptr<FaceBucketManager> /*face bucket manager*/
+    > FaceBucketMap;
+
+  FaceBucketMap fbMap;
+
   EventId updateEvent;
 
   unsigned int prefixComponentNumber;
 
 };
 
+}
 }
 }
 #endif // FORWARDINGENGINE_H

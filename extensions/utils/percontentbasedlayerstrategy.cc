@@ -25,8 +25,8 @@ typedef PerContentBasedLayerStrategy<Flooding> PerContentBasedLayerStrategyFlood
 NS_OBJECT_ENSURE_REGISTERED(PerContentBasedLayerStrategyFlooding);
 */
 
-typedef PerOutFaceLimits< PerContentBasedLayerStrategy<Nacks> > PerOutFaceLimitsPerContentBasedLayerStrategyNacks;
-NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategyNacks);
+/*typedef PerOutFaceLimits< PerContentBasedLayerStrategy<Nacks> > PerOutFaceLimitsPerContentBasedLayerStrategyNacks;
+NS_OBJECT_ENSURE_REGISTERED(PerOutFaceLimitsPerContentBasedLayerStrategyNacks);*/
 
 typedef PerContentBasedLayerStrategy<Nacks> PerContentBasedLayerStrategyNacks;
 NS_OBJECT_ENSURE_REGISTERED(PerContentBasedLayerStrategyNacks);
