@@ -24,9 +24,10 @@
 #include "libdash/IMPD.h"
 
 #include "../utils/idownloader.h"
-//#include "../utils/buffer.h"
+#include "../dash/iadaptationlogic.h"
 #include "../utils/downloadmanager.h"
 #include "layeredbuffer.h"
+#include "simplebufferlogic.h"
 
 namespace ns3
 {
@@ -37,7 +38,7 @@ namespace ns3
     {
     public:
 
-      Ptr<Player> createPlayer(std::string mpd_path,  utils::DownloaderType dwnType,  std::string& cwnd_type, Ptr<ns3::Node> node);
+      Ptr<Player> createPlayer(std::string mpd_path,  utils::DownloaderType dwnType,  std::string& cwnd_type, dashimpl::AdaptationLogicType atype, Ptr<ns3::Node> node);
 
       static PlayerFactory* getInstance();
 
@@ -48,6 +49,7 @@ namespace ns3
       //IAdaptationLogic* resolveAdaptation(AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, utils::Buffer *buf);
 
       dash::mpd::IMPD* resolveMPD(std::string mpd_path) ;
+      dashimpl::IAdaptationLogic* resolveAdaptation(dashimpl::AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, Ptr<LayeredBuffer> buffer);
       std::string getPWD();
 
       static PlayerFactory* instance;

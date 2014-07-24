@@ -21,6 +21,11 @@ void AlwaysLowestAdaptationLogic::segmentFailed(unsigned int segment_number, uns
 
 }
 
+void AlwaysLowestAdaptationLogic::segmentConsumed(unsigned int segment_number, unsigned int segment_level)
+{
+
+}
+
 dash::mpd::IRepresentation* AlwaysLowestAdaptationLogic::getOptimalRepresentation (dash::mpd::IPeriod *period)
 {
   return getLowestRepresentation(period);

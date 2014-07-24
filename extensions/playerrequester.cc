@@ -24,7 +24,12 @@ TypeId PlayerRequester::GetTypeId ()
                     "Defines the CWND Type (either tcp or static)",
                     StringValue ("tcp"),
                     MakeStringAccessor (&PlayerRequester::cwnd_type),
-                    MakeStringChecker () );
+                    MakeStringChecker ())
+      .AddAttribute("AlogicType",
+                    "Defines the Adaptation Logic Type (LayerdSieber or SimpleBuffer)",
+                    IntegerValue (-1),
+                    MakeIntegerAccessor (&PlayerRequester::alogic_type),
+                    MakeIntegerChecker<int32_t> () );
   /* AddAttribute("LevelCount", "The amount of levels as a positive integer > 0",
                     IntegerValue(DEFAULT_AMOUNT_LEVELS),
                     MakeIntegerAccessor(&SVCCountingStrategy<Parent>::m_levelCount),
@@ -39,9 +44,11 @@ void PlayerRequester::StartApplication ()
   ndn::App::StartApplication ();
   if (enableAdaptation == 0)
   {
-    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::WindowNDN, cwnd_type, this->GetNode ());
+    player = player::PlayerFactory::getInstance()->createPlayer(
+          mpd_path, utils::WindowNDN, cwnd_type, static_cast<dashimpl::AdaptationLogicType> (alogic_type), this->GetNode ());
   } else {
-    player = player::PlayerFactory::getInstance()->createPlayer(mpd_path, utils::SVCWindowNDN, cwnd_type, this->GetNode ());
+    player = player::PlayerFactory::getInstance()->createPlayer(
+          mpd_path, utils::NACKCountingSVC, cwnd_type, static_cast<dashimpl::AdaptationLogicType>(alogic_type), this->GetNode ());
   }
   player->play();
 }

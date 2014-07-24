@@ -5,6 +5,7 @@
 
 #include "simplendndownloader.h"
 #include "windowndndownloader.h"
+#include "../player/nackcountingsvcdownloader.h"
 #include "../svc/svcwindowndndownloader.h"
 
 #include "observable.h"

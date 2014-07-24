@@ -9,7 +9,7 @@
 using namespace std;
 
 
-typedef map <unsigned int, vector<unsigned int> > LayerSegmentMap;
+typedef map <unsigned int/*level*/, vector<unsigned int> /*seg_number*/ > LayerSegmentMap;
 
 namespace ns3
 {

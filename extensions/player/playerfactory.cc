@@ -13,7 +13,7 @@ PlayerFactory::PlayerFactory()
   manager = CreateDashManager();
 }
 
-Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwnType,  std::string& cwnd_type, Ptr<Node> node)
+Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwnType, std::string& cwnd_type, dashimpl::AdaptationLogicType atype, Ptr<Node> node)
 {
   dash::mpd::IMPD* mpd = resolveMPD(mpd_path);
   if(mpd == NULL)
@@ -26,12 +26,23 @@ Ptr<Player> PlayerFactory::createPlayer(std::string mpd_path, DownloaderType dwn
   dataset_path = dataset_path.substr (0, dataset_path.find_last_of ('/')+1);
 
   DownloadManager *dwnManager = new DownloadManager(dwnType, cwnd_type, node);
-
   Ptr<LayeredBuffer> buffer = Create<LayeredBuffer>();
-  ns3::dashimpl::LayeredAdaptationLogic *alogic = new ns3::dashimpl::LayeredAdaptationLogic(mpd, dataset_path, buffer);
-
+  dashimpl::IAdaptationLogic* alogic = resolveAdaptation (atype, mpd, dataset_path,buffer);
 
   return Create<Player>(mpd, alogic, buffer, dwnManager, Names::FindName (node));
+}
+
+dashimpl::IAdaptationLogic* PlayerFactory::resolveAdaptation(dashimpl::AdaptationLogicType alogic, dash::mpd::IMPD* mpd, std::string dataset_path, Ptr<LayeredBuffer> buffer)
+{
+  switch(alogic)
+  {
+    case dashimpl::LayerdSieber:
+      return new ns3::dashimpl::LayeredAdaptationLogic(mpd, dataset_path, buffer);
+    case dashimpl::SimpleBuffer:
+      return new ns3::player::SimpleBufferLogic(mpd, dataset_path, buffer);
+    default:
+      return new ns3::dashimpl::LayeredAdaptationLogic(mpd, dataset_path, buffer);
+  }
 }
 
 dash::mpd::IMPD* PlayerFactory::resolveMPD(std::string mpd_path)

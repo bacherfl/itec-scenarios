@@ -116,16 +116,18 @@ def computeStats(curdir):
 		max_unsmooth_seconds = 0.0
 		avg_quality_switches_per_client = 0.0
 		min_level = 99999
+		cur_level = 0.0
 
 		for f in groupedVideos[key]:
-			avg_level += getAVGLevel(f)
+			cur_level = getAVGLevel(f)
+			avg_level += cur_level
 			avg_quality_switches_per_client += getQualitySwitches(f)
 			unsmooth_sec = getAVGUnsmoothSeconds(f)
 			avg_unsmooth_seconds += unsmooth_sec
 			if unsmooth_sec > max_unsmooth_seconds:
 				max_unsmooth_seconds = unsmooth_sec
-			if avg_level < min_level:
-				min_level = avg_level
+			if cur_level < min_level:
+				min_level = cur_level
 			avg_buffer += getAVGBuffer(f)
 			avg_goodput += getAVGGoodput(f)
 

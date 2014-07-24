@@ -195,6 +195,7 @@ void DownloadManager::downloadSegments()
   Ptr<Segment> seg_to_dl = *(enquedSegments.begin ());
   enquedSegments.erase (enquedSegments.begin ());
 
+  //fprintf(stderr, "Downloading Segment %s\n", seg_to_dl->getUri ().c_str ());
   dl->download (seg_to_dl);
 }
 
@@ -304,6 +305,11 @@ IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, std::
     case SVCWindowNDN:
     {
       d = new SVCWindowNDNDownloader(cwnd_type);
+      break;
+    }
+    case NACKCountingSVC:
+    {
+      d = new player::NackCountingSVCDownloader(cwnd_type);
       break;
     }
     default:

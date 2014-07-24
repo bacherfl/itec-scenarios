@@ -3,7 +3,7 @@
 
 #include "levelstatistics.h"
 
-#define SMOOTH_ALPHA_DEFAULT 0.2
+#define SMOOTH_ALPHA_DEFAULT 0.1
 #define SMOOTH_ALPHA_MIN 0.0
 #define SMOOTH_ALPHA_MAX 1.0
 

@@ -21,7 +21,8 @@ namespace ns3
     {
       SimpleNDN,
       WindowNDN,
-      SVCWindowNDN
+      SVCWindowNDN,
+      NACKCountingSVC
     };
 
     class IDownloader : public utils::Observable

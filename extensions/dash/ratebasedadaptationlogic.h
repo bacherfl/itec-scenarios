@@ -20,6 +20,7 @@ namespace ns3
                                     unsigned int segment_number, unsigned int segment_level, unsigned int segment_size);
 
       virtual void segmentFailed(unsigned int segment_number, unsigned int segment_level);
+      virtual void segmentConsumed(unsigned int segment_number, unsigned int segment_level);
 
     protected:
       dash::mpd::IRepresentation* getOptimalRepresentation(dash::mpd::IPeriod *period);

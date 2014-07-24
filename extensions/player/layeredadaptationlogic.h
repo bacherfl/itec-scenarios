@@ -22,7 +22,7 @@ namespace ns3
 
         virtual void segmentFailed(unsigned int segment_number, unsigned int segment_level);
 
-        virtual void segmentConsumed(unsigned int segment_number);
+        virtual void segmentConsumed(unsigned int segment_number, unsigned int segment_level);
 
         void setMaxLevelAllowed(unsigned int segment_level);
 
