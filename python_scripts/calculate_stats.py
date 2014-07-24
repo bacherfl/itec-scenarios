@@ -107,7 +107,7 @@ def computeStats(curdir):
 	for key in groupedVideos:
 		#output_file.write("Video: " + key[:len(key)-1] + " has been downloaded " + str(len(groupedVideos[key])) + " times:\n") 
 
-		avg_level = 0.0
+		avg_level = 0.0 
 		avg_unsmooth_seconds= 0.0
 		avg_buffer = 0.0
 		avg_goodput = 0.0

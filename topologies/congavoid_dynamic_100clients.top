@@ -1,0 +1,233 @@
+router
+
+# node       comment   yPos    xPos
+
+ContentDst0	NA	100	0
+ContentDst1	NA	99	0
+ContentDst2	NA	98	0
+ContentDst3	NA	97	0
+ContentDst4	NA	96	0
+ContentDst5	NA	95	0
+ContentDst6	NA	94	0
+ContentDst7	NA	93	0
+ContentDst8	NA	92	0
+ContentDst9	NA	91	0
+ContentDst10	NA	90	0
+ContentDst11	NA	89	0
+ContentDst12	NA	88	0
+ContentDst13	NA	87	0
+ContentDst14	NA	86	0
+ContentDst15	NA	85	0
+ContentDst16	NA	84	0
+ContentDst17	NA	83	0
+ContentDst18	NA	82	0
+ContentDst19	NA	81	0
+ContentDst20	NA	80	0
+ContentDst21	NA	79	0
+ContentDst22	NA	78	0
+ContentDst23	NA	77	0
+ContentDst24	NA	76	0
+ContentDst25	NA	75	0
+ContentDst26	NA	74	0
+ContentDst27	NA	73	0
+ContentDst28	NA	72	0
+ContentDst29	NA	71	0
+ContentDst30	NA	70	0
+ContentDst31	NA	69	0
+ContentDst32	NA	68	0
+ContentDst33	NA	67	0
+ContentDst34	NA	66	0
+ContentDst35	NA	65	0
+ContentDst36	NA	64	0
+ContentDst37	NA	63	0
+ContentDst38	NA	62	0
+ContentDst39	NA	61	0
+ContentDst40	NA	60	0
+ContentDst41	NA	59	0
+ContentDst42	NA	58	0
+ContentDst43	NA	57	0
+ContentDst44	NA	56	0
+ContentDst45	NA	55	0
+ContentDst46	NA	54	0
+ContentDst47	NA	53	0
+ContentDst48	NA	52	0
+ContentDst49	NA	51	0
+ContentDst50	NA	50	0
+ContentDst51	NA	49	0
+ContentDst52	NA	48	0
+ContentDst53	NA	47	0
+ContentDst54	NA	46	0
+ContentDst55	NA	45	0
+ContentDst56	NA	44	0
+ContentDst57	NA	43	0
+ContentDst58	NA	42	0
+ContentDst59	NA	41	0
+ContentDst60	NA	40	0
+ContentDst61	NA	39	0
+ContentDst62	NA	38	0
+ContentDst63	NA	37	0
+ContentDst64	NA	36	0
+ContentDst65	NA	35	0
+ContentDst66	NA	34	0
+ContentDst67	NA	33	0
+ContentDst68	NA	32	0
+ContentDst69	NA	31	0
+ContentDst70	NA	30	0
+ContentDst71	NA	29	0
+ContentDst72	NA	28	0
+ContentDst73	NA	27	0
+ContentDst74	NA	26	0
+ContentDst75	NA	25	0
+ContentDst76	NA	24	0
+ContentDst77	NA	23	0
+ContentDst78	NA	22	0
+ContentDst79	NA	21	0
+ContentDst80	NA	20	0
+ContentDst81	NA	19	0
+ContentDst82	NA	18	0
+ContentDst83	NA	17	0
+ContentDst84	NA	16	0
+ContentDst85	NA	15	0
+ContentDst86	NA	14	0
+ContentDst87	NA	13	0
+ContentDst88	NA	12	0
+ContentDst89	NA	11	0
+ContentDst90	NA	10	0
+ContentDst91	NA	9	0
+ContentDst92	NA	8	0
+ContentDst93	NA	7	0
+ContentDst94	NA	6	0
+ContentDst95	NA	5	0
+ContentDst96	NA	4	0
+ContentDst97	NA	3	0
+ContentDst98	NA	2	0
+ContentDst99	NA	1	0
+
+
+
+AS0       NA       50       5
+AS1       NA       55       10
+AS2       NA       45       10
+
+
+ContentProvider0   NA       55      15
+ContentProvider1   NA       45      15
+
+link
+
+# srcNode     dstNode          bandwidth   metric    delay  queue
+ContentDst0	AS0	8Mbps	1	5ms	50
+ContentDst1	AS0	8Mbps	1	5ms	50
+ContentDst2	AS0	8Mbps	1	5ms	50
+ContentDst3	AS0	8Mbps	1	5ms	50
+ContentDst4	AS0	8Mbps	1	5ms	50
+ContentDst5	AS0	8Mbps	1	5ms	50
+ContentDst6	AS0	8Mbps	1	5ms	50
+ContentDst7	AS0	8Mbps	1	5ms	50
+ContentDst8	AS0	8Mbps	1	5ms	50
+ContentDst9	AS0	8Mbps	1	5ms	50
+ContentDst10	AS0	8Mbps	1	5ms	50
+ContentDst11	AS0	8Mbps	1	5ms	50
+ContentDst12	AS0	8Mbps	1	5ms	50
+ContentDst13	AS0	8Mbps	1	5ms	50
+ContentDst14	AS0	8Mbps	1	5ms	50
+ContentDst15	AS0	8Mbps	1	5ms	50
+ContentDst16	AS0	8Mbps	1	5ms	50
+ContentDst17	AS0	8Mbps	1	5ms	50
+ContentDst18	AS0	8Mbps	1	5ms	50
+ContentDst19	AS0	8Mbps	1	5ms	50
+ContentDst20	AS0	8Mbps	1	5ms	50
+ContentDst21	AS0	8Mbps	1	5ms	50
+ContentDst22	AS0	8Mbps	1	5ms	50
+ContentDst23	AS0	8Mbps	1	5ms	50
+ContentDst24	AS0	8Mbps	1	5ms	50
+ContentDst25	AS0	8Mbps	1	5ms	50
+ContentDst26	AS0	8Mbps	1	5ms	50
+ContentDst27	AS0	8Mbps	1	5ms	50
+ContentDst28	AS0	8Mbps	1	5ms	50
+ContentDst29	AS0	8Mbps	1	5ms	50
+ContentDst30	AS0	8Mbps	1	5ms	50
+ContentDst31	AS0	8Mbps	1	5ms	50
+ContentDst32	AS0	8Mbps	1	5ms	50
+ContentDst33	AS0	8Mbps	1	5ms	50
+
+
+ContentDst34	AS0	8Mbps	1	5ms	50
+ContentDst35	AS0	8Mbps	1	5ms	50
+ContentDst36	AS0	8Mbps	1	5ms	50
+ContentDst37	AS0	8Mbps	1	5ms	50
+ContentDst38	AS0	8Mbps	1	5ms	50
+ContentDst39	AS0	8Mbps	1	5ms	50
+ContentDst40	AS0	8Mbps	1	5ms	50
+ContentDst41	AS0	8Mbps	1	5ms	50
+ContentDst42	AS0	8Mbps	1	5ms	50
+ContentDst43	AS0	8Mbps	1	5ms	50
+ContentDst44	AS0	8Mbps	1	5ms	50
+ContentDst45	AS0	8Mbps	1	5ms	50
+ContentDst46	AS0	8Mbps	1	5ms	50
+ContentDst47	AS0	8Mbps	1	5ms	50
+ContentDst48	AS0	8Mbps	1	5ms	50
+ContentDst49	AS0	8Mbps	1	5ms	50
+ContentDst50	AS0	8Mbps	1	5ms	50
+ContentDst51	AS0	8Mbps	1	5ms	50
+ContentDst52	AS0	8Mbps	1	5ms	50
+ContentDst53	AS0	8Mbps	1	5ms	50
+ContentDst54	AS0	8Mbps	1	5ms	50
+ContentDst55	AS0	8Mbps	1	5ms	50
+ContentDst56	AS0	8Mbps	1	5ms	50
+ContentDst57	AS0	8Mbps	1	5ms	50
+ContentDst58	AS0	8Mbps	1	5ms	50
+ContentDst59	AS0	8Mbps	1	5ms	50
+ContentDst60	AS0	8Mbps	1	5ms	50
+ContentDst61	AS0	8Mbps	1	5ms	50
+ContentDst62	AS0	8Mbps	1	5ms	50
+ContentDst63	AS0	8Mbps	1	5ms	50
+ContentDst64	AS0	8Mbps	1	5ms	50
+ContentDst65	AS0	8Mbps	1	5ms	50
+ContentDst66	AS0	8Mbps	1	5ms	50
+
+
+ContentDst67	AS0	8Mbps	1	5ms	50
+ContentDst68	AS0	8Mbps	1	5ms	50
+ContentDst69	AS0	8Mbps	1	5ms	50
+ContentDst70	AS0	8Mbps	1	5ms	50
+ContentDst71	AS0	8Mbps	1	5ms	50
+ContentDst72	AS0	8Mbps	1	5ms	50
+ContentDst73	AS0	8Mbps	1	5ms	50
+ContentDst74	AS0	8Mbps	1	5ms	50
+ContentDst75	AS0	8Mbps	1	5ms	50
+ContentDst76	AS0	8Mbps	1	5ms	50
+ContentDst77	AS0	8Mbps	1	5ms	50
+ContentDst78	AS0	8Mbps	1	5ms	50
+ContentDst79	AS0	8Mbps	1	5ms	50
+ContentDst80	AS0	8Mbps	1	5ms	50
+ContentDst81	AS0	8Mbps	1	5ms	50
+ContentDst82	AS0	8Mbps	1	5ms	50
+ContentDst83	AS0	8Mbps	1	5ms	50
+ContentDst84	AS0	8Mbps	1	5ms	50
+ContentDst85	AS0	8Mbps	1	5ms	50
+ContentDst86	AS0	8Mbps	1	5ms	50
+ContentDst87	AS0	8Mbps	1	5ms	50
+ContentDst88	AS0	8Mbps	1	5ms	50
+ContentDst89	AS0	8Mbps	1	5ms	50
+ContentDst90	AS0	8Mbps	1	5ms	50
+ContentDst91	AS0	8Mbps	1	5ms	50
+ContentDst92	AS0	8Mbps	1	5ms	50
+ContentDst93	AS0	8Mbps	1	5ms	50
+ContentDst94	AS0	8Mbps	1	5ms	50
+ContentDst95	AS0	8Mbps	1	5ms	50
+ContentDst96	AS0	8Mbps	1	5ms	50
+ContentDst97	AS0	8Mbps	1	5ms	50
+ContentDst98	AS0	8Mbps	1	5ms	50
+ContentDst99	AS0	8Mbps	1	5ms	50
+
+
+AS1 ContentProvider0              100Mbps       1        5ms    100
+AS2 ContentProvider1              100Mbps       1        5ms    100
+
+
+
+AS0 AS1            100Mbps       1        5ms    100
+AS0 AS2            1Mbps       1        5ms    100
+AS1 AS2            100Mbps       1        5ms    100
+
