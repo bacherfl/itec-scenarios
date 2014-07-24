@@ -1,0 +1,35 @@
+router
+
+Router0       NA       17.5       15
+Router1       NA       17.5       8
+
+ContentSrc0   NA       20       20
+ContentSrc1   NA       15       20
+ContentSrc2   NA       17.5     20
+
+ContentDst0   NA       31       0
+ContentDst1   NA       28       0
+ContentDst2   NA       25       0
+
+ContentDst3   NA       12       0
+
+ContentDst4   NA       20       0
+ContentDst5   NA       17       0
+
+link
+
+# srcNode    dstNode    bandwidth   metric    delay  queue
+Router0     Router1     6Mbps        1       2ms    50
+
+Router1     ContentDst0  100Mbps      1       2ms    50
+Router1     ContentDst1  100Mbps      1       2ms    50
+Router1     ContentDst2  100Mbps      1       2ms    50
+
+Router1     ContentDst3  100Mbps      1       2ms    50
+
+Router1     ContentDst4  100Mbps      1       2ms    50
+Router1     ContentDst5  100Mbps      1       2ms    50
+
+Router0     ContentSrc0  100Mbps      1       2ms    50
+Router0     ContentSrc1  100Mbps      1       2ms    50
+Router0     ContentSrc2  100Mbps      1       2ms    50

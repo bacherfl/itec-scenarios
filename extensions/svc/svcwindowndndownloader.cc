@@ -100,8 +100,6 @@ bool SVCWindowNDNDownloader::download(Ptr<Segment> s)
   // set avgBitrate
   curSegmentStatus.avgBitrate = s->getAvgLvlBitrate ();
 
-
-
   return WindowNDNDownloader::download(s);
 }
 

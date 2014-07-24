@@ -51,7 +51,7 @@ void Player::play ()
   // start to stream the video now
   scheduleNextStreaming(0.0);
   // start to at least trying to consume video in CONSUME_DELAY seconds
-  scheduleNextConsumeEvent(CONSUME_DELAY);
+  scheduleNextConsumeEvent(STARTUP_DELAY);
 }
 
 void Player::scheduleNextStreaming (double seconds)

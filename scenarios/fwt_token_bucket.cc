@@ -22,7 +22,7 @@ void parseParameters(int argc, char* argv[])
   bool v0 = false, v1 = false, v2 = false;
   bool vN = false;
 
-  std::string top_path = "validation_tops/fwt_per_content_fairness.top";
+  std::string top_path = "validation_tops/fwt_token_bucket.top";
 
   CommandLine cmd;
   cmd.AddValue ("v0", "Prints all log messages >= LOG_DEBUG. (OPTIONAL)", v0);
@@ -61,7 +61,7 @@ void parseParameters(int argc, char* argv[])
 
 int main(int argc, char* argv[])
 {
-  NS_LOG_COMPONENT_DEFINE ("CongAvoidScenario");
+  NS_LOG_COMPONENT_DEFINE ("TokenBucket");
 
   parseParameters(argc, argv);
 
@@ -112,7 +112,6 @@ int main(int argc, char* argv[])
   ndnHelper.Install (streamers);
 
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "64000"); // all entities can store up to 25k chunks in cache (about 100MB)
-  //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
   ndnHelper.Install (routers);
 
   Ptr<Node> Router1 = Names::Find<Node>("Router1");
@@ -129,18 +128,18 @@ int main(int argc, char* argv[])
   //consumerHelper.Install (streamers);
 
   Ptr<Node> ContentDst0 = Names::Find<Node>("ContentDst0");
-  consumerHelper.SetPrefix (prefix+"c0/layer0");
+  consumerHelper.SetPrefix (prefix+"c0/layer0/subset0");
   consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
   consumerHelper.Install (ContentDst0);
 
   Ptr<Node> ContentDst1 = Names::Find<Node>("ContentDst1");
-  consumerHelper.SetPrefix (prefix +"c0/layer1");
+  consumerHelper.SetPrefix (prefix +"c0/layer0/subset1");
   consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
   consumerHelper.Install (ContentDst1);
 
   Ptr<Node> ContentDst2 = Names::Find<Node>("ContentDst2");
-  consumerHelper.SetPrefix (prefix +"c0/layer2");
+  consumerHelper.SetPrefix (prefix +"c0/layer0/subset2");
   consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
   consumerHelper.Install (ContentDst2);
 
@@ -151,15 +150,15 @@ int main(int argc, char* argv[])
   consumerHelper.Install (ContentDst3);
 
   Ptr<Node> ContentDst4 = Names::Find<Node>("ContentDst4");
-  consumerHelper.SetPrefix (prefix +"c1/layer1");
+  consumerHelper.SetPrefix (prefix +"c2/layer0/subset0");
   consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
   consumerHelper.Install (ContentDst4);
 
   Ptr<Node> ContentDst5 = Names::Find<Node>("ContentDst5");
-  consumerHelper.SetPrefix (prefix +"c1/layer2");
+  consumerHelper.SetPrefix (prefix+"c2/layer0/subset1");
   consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second
+  consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
   consumerHelper.Install (ContentDst5);
-
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
   producerHelper.SetPrefix (prefix);
@@ -174,6 +173,10 @@ int main(int argc, char* argv[])
   producerHelper.SetPrefix (prefix +"c1");
   producerHelper.Install (ContentSrc1);
 
+  Ptr<Node> ContentSrc2 = Names::Find<Node>("ContentSrc2");
+  producerHelper.SetPrefix (prefix +"c2");
+  producerHelper.Install (ContentSrc2);
+
   // Installing global routing interface on all nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.InstallAll ();
@@ -181,6 +184,7 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.AddOrigins(prefix, providers);
   ndnGlobalRoutingHelper.AddOrigins(prefix+"c0", providers);
   ndnGlobalRoutingHelper.AddOrigins(prefix+"c1", providers);
+   ndnGlobalRoutingHelper.AddOrigins(prefix+"c2", providers);
 
   // Calculate and install FIBs
   //this is needed because otherwise On::Interest()-->createPITEntry will fail. Has no negative effect on the algorithm

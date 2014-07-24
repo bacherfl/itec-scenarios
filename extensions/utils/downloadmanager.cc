@@ -307,6 +307,11 @@ IDownloader* DownloadManager::resolveDownloader(DownloaderType downloader, std::
       d = new SVCWindowNDNDownloader(cwnd_type);
       break;
     }
+    case NACKCountingSVC:
+    {
+      d = new player::NackCountingSVCDownloader(cwnd_type);
+      break;
+    }
     default:
       NS_LOG_WARN("DownloadManager::resolveDownloader() Could not resolve Downloader, using default Downloader!");
       d = new WindowNDNDownloader(cwnd_type);

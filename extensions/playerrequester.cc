@@ -48,7 +48,7 @@ void PlayerRequester::StartApplication ()
           mpd_path, utils::WindowNDN, cwnd_type, static_cast<dashimpl::AdaptationLogicType> (alogic_type), this->GetNode ());
   } else {
     player = player::PlayerFactory::getInstance()->createPlayer(
-          mpd_path, utils::SVCWindowNDN, cwnd_type, static_cast<dashimpl::AdaptationLogicType>(alogic_type), this->GetNode ());
+          mpd_path, utils::NACKCountingSVC, cwnd_type, static_cast<dashimpl::AdaptationLogicType>(alogic_type), this->GetNode ());
   }
   player->play();
 }

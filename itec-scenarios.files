@@ -163,3 +163,7 @@ extensions/utils/tokenbucket.h
 extensions/utils/tokenbucket.cc
 extensions/utils/facebucketmanager.h
 extensions/utils/facebucketmanager.cc
+extensions/player/nackcountingsvcdownloader.h
+extensions/player/nackcountingsvcdownloader.cc
+topologies/validation_tops/fwt_token_bucket.top
+scenarios/fwt_token_bucket.cc

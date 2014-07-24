@@ -114,9 +114,13 @@ int main(int argc, char* argv[])
 
   Ptr<Node> Router1 = Names::Find<Node>("Router1");
   //ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCLiveCountingStrategy","EnableNACKs", "true", "LevelCount", "6");
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits",
+
+  /*ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits",
                                    "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true", "PrefixNameComponentIndex", "2");
-  ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
+  ndnHelper.EnableLimits (true, Seconds(0.1), 4200, 50);*/
+
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy",
+                                   "EnableNACKs", "true", "PrefixNameComponentIndex", "2");
   ndnHelper.Install (Router1);
 
   // Install NDN applications

@@ -1,5 +1,6 @@
 router
 
+# node       comment   yPos    xPos
 Router0       NA       30       15
 Router1       NA       30       8
 

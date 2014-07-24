@@ -29,6 +29,7 @@ void parseParameters(int argc, char* argv[])
   cmd.AddValue ("v1", "Prints all log messages >= LOG_INFO. (OPTIONAL)", v1);
   cmd.AddValue ("v2", "Prints all log messages. (OPTIONAL)", v2);
   cmd.AddValue ("vN", "Disable all internal logging parameters, use NS_LOG instead", vN);
+  cmd.AddValue ("top", "Path to the topology file. (OPTIONAL)", top_path);
   cmd.Parse (argc, argv);
 
   if (vN == false)
@@ -129,9 +130,11 @@ int main(int argc, char* argv[])
   ndnHelper.Install (routers);
 
   //change strategy for adaptive NODE
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits",
-                                   "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true", "PrefixNameComponentIndex", "2");
-  ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
+
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy",
+                                   "EnableNACKs", "true", "PrefixNameComponentIndex", "2");
+
+  //ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
   /*ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCLiveCountingStrategy",
                                   "EnableNACKs", "true", "LevelCount", "6");*/
   ndnHelper.Install (adaptiveNodes);
@@ -141,11 +144,11 @@ int main(int argc, char* argv[])
   ndnGlobalRoutingHelper.InstallAll ();
 
    //consumer
-  //ndn::AppHelper dashRequesterHelper ("ns3::ndn::DashRequester");
   ndn::AppHelper dashRequesterHelper ("ns3::ndn::PlayerRequester");
   dashRequesterHelper.SetAttribute("EnableAdaptation", StringValue("1")); // uses SVCWindowsDownloaded
   dashRequesterHelper.SetAttribute("CongestionWindowType", StringValue("tcp")); // uses tcp like AIMD
-  dashRequesterHelper.SetAttribute("AlogicType", IntegerValue(dashimpl::SimpleBuffer)); // uses buffer based alogic
+  //dashRequesterHelper.SetAttribute("AlogicType", IntegerValue(dashimpl::SimpleBuffer)); // uses buffer based alogic
+  dashRequesterHelper.SetAttribute("AlogicType", IntegerValue(dashimpl::LayerdSieber));
 
   ApplicationContainer apps;
   // Spreading 10 Videos to 100 clients:
@@ -214,7 +217,19 @@ int main(int argc, char* argv[])
   cProviderHelper.SetAttribute("ContentPath", StringValue("/data"));
   cProviderHelper.SetAttribute("Prefix", StringValue("/itec/bbb"));
   ApplicationContainer contentProvider = cProviderHelper.Install (providers);
-  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb", providers);
+
+  //ndnGlobalRoutingHelper.AddOrigins("/itec/bbb", providers);
+
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set0", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set1", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set2", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set3", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set4", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set5", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set6", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set7", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set8", providers);
+  ndnGlobalRoutingHelper.AddOrigins("/itec/bbb/bunny_svc_snr_2s_6l_set9", providers);
 
   contentProvider.Start (Seconds(0.0));
 
@@ -222,7 +237,7 @@ int main(int argc, char* argv[])
   ns3::ExponentialVariable exp(12,30);
   Time stopTime = Seconds (1800.0);
 
-  fprintf(stderr, "StartTime=");
+  //fprintf(stderr, "StartTime=");
 
   for (ApplicationContainer::Iterator i = apps.Begin (); i != apps.End (); ++i)
   {
@@ -235,9 +250,9 @@ int main(int argc, char* argv[])
     ( *i)->SetStartTime(Time::FromDouble(startTime, Time::S));
     ( *i)->SetStopTime(stopTime);
 
-    fprintf(stderr, "%f,", startTime);
+    //fprintf(stderr, "%f,", startTime);
   }
-  fprintf(stderr, "\n");
+  //fprintf(stderr, "\n");
 
   // Calculate and install FIBs
   ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();

@@ -5,7 +5,7 @@
 #include "layeredbuffer.h"
 
 #define DESIRED_BUFFER_SIZE_IN_SEGMENTS 15
-#define OFFSET 3
+#define OFFSET (DESIRED_BUFFER_SIZE_IN_SEGMENTS / 3)
 
 namespace ns3
 {

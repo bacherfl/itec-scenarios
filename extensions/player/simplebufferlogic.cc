@@ -59,7 +59,8 @@ unsigned int SimpleBufferLogic::getNextNeededSegmentNumber(int level)
       // request last consumed + offset
       return this->last_consumed_segment_number + OFFSET;
     }
-  } else {
+  }
+  else {
     // get last segment number for level and add +1
     return this->buf->LastSegmentNumber(level) + 1;
   }

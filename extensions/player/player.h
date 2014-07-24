@@ -16,6 +16,7 @@
 
 #define CONSUME_INTERVALL 1.0
 #define CONSUME_DELAY     0.5
+#define STARTUP_DELAY     2.0
 
 
 namespace ns3
