@@ -62,7 +62,7 @@ def computeStats(curdir):
 	#print "Curring working dir = " + curdir + "\n"
 
 	files = glob.glob(curdir + "/Content*.txt" );
-	output_file = open(curdir+"/STATS.txt", "w")
+	output_file = open(curdir+"/STATS.csv", "w")
 
 	###statistic over all clients
 
@@ -139,11 +139,11 @@ def computeStats(curdir):
 			+ "," + str(max_unsmooth_seconds) + "," + str(avg_buffer) + "," + str(avg_goodput) + "\n")
 
 	
-if sys.argv[0] == 'calculate_stats.py':
+if 'calculate_stats.py' in sys.argv[0]:
 	if sys.argv.__len__() >= 2:
 		for arg in sys.argv:
 			if 'calculate_stats.py' not in arg:
-				print "Calculating Average via commandline for folder " + arg + ", writeing results to " + arg + "/STATS.txt:"
+				print "Calculating Average via commandline for folder " + arg + ", writeing results to " + arg + "/STATS.csv:"
 				computeStats(arg)		
 	else:
 		print "Not enough parameters ..."		
