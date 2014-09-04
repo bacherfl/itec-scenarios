@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdio.h>
 
+#define INITIAL_TOKENS 0.25
+
 namespace ns3
 {
 namespace ndn

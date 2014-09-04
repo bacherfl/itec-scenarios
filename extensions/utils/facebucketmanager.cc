@@ -6,6 +6,9 @@ NS_LOG_COMPONENT_DEFINE ("FaceBucketManager");
 
 FaceBucketManager::FaceBucketManager(Ptr<Face> face)
 {
+
+  fprintf(stderr, "FaceBucketManager::FaceBucketManager()\n");
+
   this->face = face;
 
   //fprintf(stderr, "faceBitrate = %d", getPhysicalBitrate (face));
@@ -73,11 +76,13 @@ std::vector<std::string> FaceBucketManager::getAllNonFullBuckets()
 uint64_t FaceBucketManager::getPhysicalBitrate(Ptr<Face> face)
 {
   // Get Device Bitrate of that face (make sure to call face->Getid()
-  Ptr<PointToPointNetDevice> nd1 =
-      face->GetNode()->GetDevice(face->GetId())->GetObject<PointToPointNetDevice>();
+  //fprintf(stderr, "FaceID = %d\n", face->GetId());
+  //fprintf(stderr, "NodeID = %d\n", face->GetNode ()->GetId ());
+  Ptr<PointToPointNetDevice> nd1 = face->GetNode()->GetDevice(face->GetId())->GetObject<PointToPointNetDevice>();
   DataRateValue dv;
   nd1->GetAttribute("DataRate", dv);
   DataRate d = dv.Get();
+  //fprintf(stderr, "bitrate on face = %llu\n", d.GetBitRate());
   return d.GetBitRate();
 }
 

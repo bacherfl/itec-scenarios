@@ -277,6 +277,14 @@ bool SVCLiveCountingStrategy<Parent>::HasEnoughResourcesToSend
   if (svcLevelTagExists)
   {
     level = levelTag.Get ();
+
+    //todo just for spaital bunny_2s content.
+
+    if(level == 10)
+      level = 1;
+    else if(level == 20)
+      level = 2;
+
   }
 
   // increase level counter for that face

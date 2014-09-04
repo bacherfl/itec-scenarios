@@ -154,7 +154,7 @@ int main(int argc, char* argv[])
 
   //change strategy for adaptive NODE
   ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCLiveCountingStrategy",
-                                  "EnableNACKs", "true", "LevelCount", "6");
+                                  "EnableNACKs", "true", "LevelCount", "3");
   /*ndnHelper.SetForwardingStrategy("ns3::ndn::fw::BestRoute::SVCStaticStrategy",
                                   "EnableNACKs", "true", "MaxLevelAllowed", "6"); */
   ndnHelper.EnableLimits (false);
@@ -217,53 +217,43 @@ int main(int argc, char* argv[])
 
       if(i < distribution[0])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set0/bbb-svc.264_set0.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set0/bbb-svc.264_set0.mpd"));
-      }
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set0/bunny-spatial-set0.mpd"));
+     }
       else if(i < distribution[1])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set1/bbb-svc.264_set1.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set1/bbb-svc.264_set1.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set1/bunny-spatial-set1.mpd"));
       }
       else if(i < distribution[2])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set2/bbb-svc.264_set2.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set2/bbb-svc.264_set2.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set2/bunny-spatial-set2.mpd"));
       }
       else if(i < distribution[3])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set3/bbb-svc.264_set3.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set3/bbb-svc.264_set3.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set3/bunny-spatial-set3.mpd"));
       }
       else if(i < distribution[4])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set4/bbb-svc.264_set4.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set4/bbb-svc.264_set4.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set4/bunny-spatial-set4.mpd"));
       }
       else if(i < distribution[5])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set5/bbb-svc.264_set5.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set5/bbb-svc.264_set5.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set5/bunny-spatial-set5.mpd"));
       }
       else if(i < distribution[6])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set6/bbb-svc.264_set6.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set6/bbb-svc.264_set6.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set6/bunny-spatial-set6.mpd"));
       }
       else if(i < distribution[7])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set7/bbb-svc.264_set7.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set7/bbb-svc.264_set7.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set7/bunny-spatial-set7.mpd"));
       }
       else if(i < distribution[8])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set8/bbb-svc.264_set8.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set8/bbb-svc.264_set8.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set8/bunny-spatial-set8.mpd"));
       }
       else if(i < distribution[9])
       {
-        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set9/bbb-svc.264_set9.mpd"));
-        //svcRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_svc_snr_2s_6l_set9/bbb-svc.264_set9.mpd"));
+        dashRequesterHelper.SetAttribute ("MPD",StringValue("/data/bunny_spatial_2s_set9/bunny-spatial-set9.mpd"));
       }
 
       /*if(mode.compare ("adaptation") == 0)

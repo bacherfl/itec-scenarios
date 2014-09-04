@@ -31,7 +31,7 @@ def copyResults(src,dst):
 
 SIMULATION_DIR=os.getcwd()
 
-SIMULATION_RUNS = 10
+SIMULATION_RUNS = 30
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 
 
@@ -40,23 +40,36 @@ adapStr="--mode=adaptation"
 
 SCENARIOS = {
 # DASH
-	"CongAvoid_DASH_20M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=tcp"] },
-	"CongAvoid_DASH_20M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=static"] },
-	"CongAvoid_DASH_30M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=tcp"] },
-	"CongAvoid_DASH_30M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=static"] },
-	"CongAvoid_DASH_40M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=tcp"] },
-	"CongAvoid_DASH_40M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=static"] },
-	"CongAvoid_DASH_50M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck50.top", "--cwnd=tcp"] },
-	"CongAvoid_DASH_50M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck50.top", "--cwnd=static"] },
+#"CongAvoid_DASH_6M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck6.top", "--cwnd=tcp"] },
+#"CongAvoid_DASH_9M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck9.top", "--cwnd=tcp"] },
+#"CongAvoid_DASH_12M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--#top=congavoid_100clients_bottleneck12.top", "--cwnd=tcp"] },
+#"CongAvoid_DASH_15M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck15.top", "--cwnd=tcp"] },
+#"CongAvoid_DASH_18M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck18.top", "--cwnd=tcp"] },
+#	"CongAvoid_DASH_20M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=tcp"] },
+#	"CongAvoid_DASH_20M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=static"] },
+#	"CongAvoid_DASH_25M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck25.top", "--cwnd=tcp"] },
+#	"CongAvoid_DASH_25M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck25.top", "--cwnd=static"] },
+#	"CongAvoid_DASH_30M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=tcp"] },
+#	"CongAvoid_DASH_30M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=static"] },
+#	"CongAvoid_DASH_35M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck35.top", "--cwnd=tcp"] },
+#	"CongAvoid_DASH_35M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck35.top", "--cwnd=static"] },
+#	"CongAvoid_DASH_40M_CWND":    { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=tcp"] },
+#	"CongAvoid_DASH_40M_STATIC":  { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [dashStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=static"] },
 # INA
-	"CongAvoid_INA_20M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=tcp"] },
-	"CongAvoid_INA_20M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=static"] },
-	"CongAvoid_INA_30M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=tcp"] },
-	"CongAvoid_INA_30M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=static"] },
-	"CongAvoid_INA_40M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck40.top", "--cwnd=tcp"] },
-	"CongAvoid_INA_40M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck40.top","--cwnd=static"] },
-	"CongAvoid_INA_50M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck50.top","--cwnd=tcp"] },
-	"CongAvoid_INA_50M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck50.top","--cwnd=static"] },
+"CongAvoid_INA_6M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck6.top", "--cwnd=tcp"] },
+"CongAvoid_INA_9M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck9.top", "--cwnd=tcp"] },
+"CongAvoid_INA_12M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck12.top", "--cwnd=tcp"] },
+"CongAvoid_INA_15M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck15.top", "--cwnd=tcp"] },
+	"CongAvoid_INA_18M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck18.top", "--cwnd=tcp"] },
+#	"CongAvoid_INA_20M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck20.top", "--cwnd=static"] },
+#	"CongAvoid_INA_25M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck25.top", "--cwnd=tcp"] },
+#	"CongAvoid_INA_25M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck25.top", "--cwnd=static"] },
+#	"CongAvoid_INA_30M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=tcp"] },
+#	"CongAvoid_INA_30M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck30.top", "--cwnd=static"] },
+#	"CongAvoid_INA_35M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck35.top", "--cwnd=tcp"] },
+#	"CongAvoid_INA_35M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck35.top","--cwnd=static"] },
+#	"CongAvoid_INA_40M_CWND":     { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck40.top","--cwnd=tcp"] },
+#	"CongAvoid_INA_40M_STATIC":   { "executeable": "congavoid", "numRuns": SIMULATION_RUNS, "params": [adapStr, "--top=congavoid_100clients_bottleneck40.top","--cwnd=static"] },
 }
 
 

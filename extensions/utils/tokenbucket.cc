@@ -5,9 +5,10 @@ using namespace ns3::ndn::utils;
 TokenBucket::TokenBucket(double maxTokens)
 {
   this->maxTokens = maxTokens;
+  tokens = 0.0;
 
   // put some tokens into the bucket at beginning.
-  this->tokens = maxTokens / 5;
+  addTokens(maxTokens * INITIAL_TOKENS);
 }
 
 double TokenBucket::addTokens(double tokens)

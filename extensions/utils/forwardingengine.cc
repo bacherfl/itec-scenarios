@@ -18,6 +18,7 @@ ForwardingEngine::~ForwardingEngine ()
 void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
 {
 
+  fprintf(stderr, "init\n");
   faceIds.clear ();
   fbMap.clear ();
 
@@ -25,8 +26,14 @@ void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
 
   for(std::vector<Ptr<ndn::Face> >::iterator it = faces.begin (); it != faces.end (); ++it)
   {
+    fprintf(stderr,"adding face %d\n", (*it)->GetId());
+
     faceIds.push_back ((*it)->GetId());
-    fbMap[(*it)->GetId()] = Create<FaceBucketManager>(*it);
+
+    if(ndn::Face::APPLICATION & (*it)->GetFlags() == 0) // app face(s) dont get a buckt
+    {
+      fbMap[(*it)->GetId()] = Create<FaceBucketManager>(*it);
+    }
   }
 
   std::sort(faceIds.begin(), faceIds.end()); // order faces strictly by ID
@@ -136,5 +143,9 @@ bool ForwardingEngine::tryForwardInterest(Ptr< Face > outFace, Ptr< const Intere
 {
   std::string prefix = extractContentPrefix(interest->GetName());
 
+  if(ndn::Face::APPLICATION & outFace->GetFlags() != 0) // app face(s) are not limited...
+  {
+    return true;
+  }
   return fbMap[outFace->GetId ()]->tryForwardInterest(prefix);
 }

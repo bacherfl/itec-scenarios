@@ -97,8 +97,8 @@ int main(int argc, char* argv[])
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
-  ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
+  //ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 1k chunks in cache (about 4MB)
   ndnHelper.Install (providers);
   ndnHelper.Install (streamers);
@@ -112,7 +112,7 @@ int main(int argc, char* argv[])
   ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
   consumerHelper.SetPrefix (prefix);
   consumerHelper.SetAttribute ("Frequency", StringValue ("1000")); // X interests a second
-    consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
+  consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
   consumerHelper.Install (streamers);
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");

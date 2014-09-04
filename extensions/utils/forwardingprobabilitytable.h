@@ -17,7 +17,7 @@
 
 #define RELIABILITY_THRESHOLD 0.95
 
-#define ALPHA 0.25
+#define ALPHA 0.2
 
 #define PROBING_TRAFFIC 0.20
 #define SHIFT_THRESHOLD 0.01
