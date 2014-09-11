@@ -19,7 +19,7 @@
 
 #define ALPHA 0.25
 
-#define PROBING_TRAFFIC 0.20
+#define PROBING_TRAFFIC 0.15
 #define SHIFT_THRESHOLD 0.01
 #define SHIFT_TRAFFIC 0.20
 
@@ -56,7 +56,7 @@ protected:
   boost::numeric::ublas::matrix<double> normalizeColumns(boost::numeric::ublas::matrix<double> m);
   int chooseFaceAccordingProbability(boost::numeric::ublas::matrix<double> m, int layer_of_interest, std::vector<int> faceList);
 
-  double getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer);
+  double getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer, Ptr<ForwardingStatistics> stats);
   double getSumOfActualForwardingProbabilities(std::vector<int> set_of_faces, int layer, Ptr<ForwardingStatistics> stats);
 
   void updateColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, double utf, bool shift_traffic);
@@ -65,6 +65,8 @@ protected:
 
   int determineRowOfFace(Ptr<ndn::Face> face);
   int determineRowOfFace(int face_uid, bool printError = true);
+
+  double calcWeightedUtilization(int faceId, int layer, Ptr<ForwardingStatistics> stats);
 
   int getFirstDroppingLayer();
   int getLastDroppingLayer();

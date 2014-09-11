@@ -27,13 +27,11 @@ double TokenBucket::addTokens(double tokens)
 
 bool TokenBucket::tryConsumeToken()
 {
-
   if(tokens >= 1)
   {
     tokens-=1;
     return true;
   }
-
   return false;
 }
 

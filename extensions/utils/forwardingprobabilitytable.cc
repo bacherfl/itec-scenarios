@@ -263,16 +263,16 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
     /*debug information*/
     NS_LOG_DEBUG("Layer " << layer << " UTF=" << stats->getUnstatisfiedTrafficFraction (layer) << " UTF*alpha=" << utf);
     for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it) // for each r_face
-      NS_LOG_DEBUG("actual fwProb Face(" << *it << ")= " << stats->getActualForwardingProbability (*it, layer));
+      NS_LOG_DEBUG("a(F_" << *it << ")= " << stats->getActualForwardingProbability (*it, layer) <<
+                   "\t u(F_" << *it << ")= " << calcWeightedUtilization(*it,layer,stats));
 
     //check if we need to shift traffic
     if(utf > 0)
     {
-
       if (ur_faces.size () == 0) //  there are no faces classified as unreliable...
       {
         for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-          table(determineRowOfFace(*it), layer) = stats->getActualForwardingProbability (*it,layer);
+          table(determineRowOfFace(*it), layer) = calcWeightedUtilization(*it,layer,stats);
       }
       else // there are unrelaible faces : ur_faces.size () > 0
       {
@@ -287,7 +287,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         //if we have no relible faces, or no interests can be forwarded to reliable faces
         if(r_faces.size () == 0 || r_faces_actual_fowarding_prob == 0.0) // we drop everything in this case
         {
-          table(determineRowOfFace(DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID,layer)+ utf;
+          table(determineRowOfFace(DROP_FACE_ID), layer) = calcWeightedUtilization(DROP_FACE_ID,layer,stats)+ utf;
           updateColumn (ur_faces, layer, stats, utf, false);
 
           if(!jammed[layer])  // only probe if not jammed
@@ -308,7 +308,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       {
         if(stats->getTotalForwardedInterests (layer) != 0)
           for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
-            table(determineRowOfFace(*it), layer) = stats->getActualForwardingProbability (*it,layer);
+            table(determineRowOfFace(*it), layer) = calcWeightedUtilization(*it,layer,stats);
       }
       else
       {
@@ -360,7 +360,7 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
   else
     sum_reliabilities = stats->getSumOfUnreliabilies (faces, layer);
 
-  double sum_fwProbs = getSumOfForwardingProbabilities (faces, layer);
+  double sum_fwProbs = getSumOfForwardingProbabilities (faces, layer,stats);
 
   double normalization_value = 0.0;
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each r_face
@@ -368,7 +368,7 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
     if(shift_traffic && sum_fwProbs > 0)
     {
       normalization_value +=
-        (table(determineRowOfFace (*it), layer) / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities);
+        (calcWeightedUtilization(*it,layer,stats) / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities);
     }
     else if(shift_traffic && sum_fwProbs == 0)  // special case when forwarding probabilities are all 0 for all non relialbe faces. e.g. (0, 0, 1) where f3() = 1 is the incoming face of the interests
     {
@@ -383,7 +383,7 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
     else
     {
       normalization_value +=
-        (table(determineRowOfFace (*it), layer) / sum_fwProbs) * ((1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities);
+        (calcWeightedUtilization(*it,layer,stats) / sum_fwProbs) * ((1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities);
     }
   }
 
@@ -395,32 +395,32 @@ void ForwardingProbabilityTable::updateColumn(std::vector<int> faces, int layer,
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each r_face
   {
 
-    double actualFWProb = stats->getActualForwardingProbability (*it, layer);
+    double weightedUtil = calcWeightedUtilization(*it,layer,stats);
 
     if(shift_traffic && sum_fwProbs > 0)
     {
-      table(determineRowOfFace(*it), layer) = actualFWProb +
-        utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities) / normalization_value;
+      table(determineRowOfFace(*it), layer) = weightedUtil +
+        utf * (weightedUtil / sum_fwProbs) * (stats->getLinkReliability (*it,layer) / sum_reliabilities) / normalization_value;
     }
     else if (shift_traffic && sum_fwProbs == 0) // special case
     {
-      table(determineRowOfFace(*it), layer) = actualFWProb +
+      table(determineRowOfFace(*it), layer) = weightedUtil +
           utf * (1.0 /((double)faces.size ())) * ( stats->getLinkReliability (*it,layer) / sum_reliabilities / normalization_value);
     }
     else if (!shift_traffic && sum_fwProbs == 0) // special case
     {
-      table(determineRowOfFace(*it), layer) = actualFWProb -
+      table(determineRowOfFace(*it), layer) = weightedUtil -
           utf * (1.0 /((double)faces.size ())) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
     }
     else
     {
-      table(determineRowOfFace(*it), layer) = actualFWProb -
-          utf * (table(determineRowOfFace (*it), layer) / sum_fwProbs) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
+      table(determineRowOfFace(*it), layer) = weightedUtil -
+          utf * (weightedUtil / sum_fwProbs) * ( (1 - stats->getLinkReliability (*it,layer)) / sum_reliabilities / normalization_value);
     }
   }
 }
 
-void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats, bool useActualProbability)
+void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, bool useActualProbability)
 {
   NS_LOG_DEBUG("PROBING");
 
@@ -430,19 +430,19 @@ void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer,P
    double probe = 0.0;
 
   if(useActualProbability)
-    probe = stats->getActualForwardingProbability (DROP_FACE_ID,layer) * PROBING_TRAFFIC;
+    probe = calcWeightedUtilization(DROP_FACE_ID,layer,stats) * PROBING_TRAFFIC;
   else
     probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;
 
   if(useActualProbability)
-    table(determineRowOfFace (DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID,layer) - probe;
+    table(determineRowOfFace (DROP_FACE_ID), layer) = calcWeightedUtilization(DROP_FACE_ID,layer,stats) - probe;
   else
     table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
 
   //split the probe (forwarding percents)....
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each ur_face
   {
-    table(determineRowOfFace (*it), layer) = stats->getActualForwardingProbability (*it, layer) + (probe / ((double)faces.size ()));
+    table(determineRowOfFace (*it), layer) = calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ()));
   }
 }
 
@@ -467,17 +467,18 @@ void ForwardingProbabilityTable::shiftDroppingTraffic(std::vector<int> faces, in
   double utf = (interests_to_shift / (double)stats->getTotalForwardedInterests (layer));
   NS_LOG_DEBUG("shiftDroppingTraffic utf = " << utf);
 
-  table(determineRowOfFace(DROP_FACE_ID), layer) = stats->getActualForwardingProbability (DROP_FACE_ID, layer) - utf;
+  table(determineRowOfFace(DROP_FACE_ID), layer) = calcWeightedUtilization(DROP_FACE_ID,layer,stats) - utf;
   updateColumn (faces, layer,stats,utf,true);
 
 }
 
-double ForwardingProbabilityTable::getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer)
+double ForwardingProbabilityTable::getSumOfForwardingProbabilities(std::vector<int> set_of_faces, int layer, Ptr<ForwardingStatistics> stats)
 {
   double sum = 0.0;
   for(std::vector<int>::iterator it = set_of_faces.begin(); it != set_of_faces.end(); ++it)
   {
-    sum += table(determineRowOfFace (*it), layer);
+    //sum += table(determineRowOfFace (*it), layer);
+    sum += sum += calcWeightedUtilization(*it,layer,stats);
   }
   return sum;
 }
@@ -649,5 +650,13 @@ void ForwardingProbabilityTable::removeFace (int faceId)
       break;
     }
   }
+}
+
+double ForwardingProbabilityTable::calcWeightedUtilization(int faceId, int layer, Ptr<ForwardingStatistics> stats)
+{
+  double actual = stats->getActualForwardingProbability (faceId,layer);
+  double old = table(determineRowOfFace (faceId), layer);
+
+  return old + ( (actual - old) * ALPHA );
 }
 

@@ -46,7 +46,6 @@ void ForwardingStatistics::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry
 //here we log all events were we said forward on face x but e.g. per-out-face-limits revises our decision.
 void ForwardingStatistics::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace, int ilayer)
 {
-  //fprintf(stderr, "EXHAUSTED\n");
   stats[ilayer].unstatisfied_requests[targetedOutFace->GetId ()] += 1;
 }
 
