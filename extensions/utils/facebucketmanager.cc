@@ -7,7 +7,7 @@ NS_LOG_COMPONENT_DEFINE ("FaceBucketManager");
 FaceBucketManager::FaceBucketManager(Ptr<Face> face)
 {
 
-  fprintf(stderr, "FaceBucketManager::FaceBucketManager()\n");
+  //fprintf(stderr, "FaceBucketManager::FaceBucketManager()\n");
 
   this->face = face;
 

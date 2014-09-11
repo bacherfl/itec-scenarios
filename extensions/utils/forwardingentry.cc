@@ -13,7 +13,6 @@ void ForwardingEntry::update()
   fwStats->resetStatistics ();
 
   // todo fwTable Update
-
   fwTable->updateColumns(fwStats);
   fwTable->syncDroppingPolicy(fwStats);
 

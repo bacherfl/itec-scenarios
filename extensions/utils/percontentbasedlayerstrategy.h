@@ -40,6 +40,8 @@ public:
   PerContentBasedLayerStrategy () : super()
   {
     fprintf(stderr, "PerContentBasedLayerStrategy activated...\n");
+
+    fwEngine = new utils::ForwardingEngine(faces, prefixComponentNum);
   }
 
   virtual void AddFace(Ptr< Face> face);
@@ -182,7 +184,7 @@ template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
   bool content_seen = false;
-  int fwFaceId = fwEngine->determineRoute(inFace, interest, content_seen);
+  int fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry, content_seen);
 
   if(fwFaceId == DROP_FACE_ID)
   {
@@ -194,7 +196,27 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     return false;
   }
 
-  if(content_seen)
+  for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+      it !=  faces.end (); ++it)
+  {
+    if (fwFaceId == (*it)->GetId())
+    {
+      bool success = PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(inFace, *it, interest, pitEntry);
+
+      if(!success)
+      {
+        Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
+        inFace->SendInterest (nack);
+        PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
+
+        fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //means PerOutFaceLimits blocked it
+      }
+
+      return success; //maybe some more sophisticated handling here.
+    }
+  }
+
+  /*if(content_seen)
   {
     for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
         it !=  faces.end (); ++it)
@@ -209,10 +231,10 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
           inFace->SendInterest (nack);
           PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
 
-          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
+          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //means PerOutFaceLimits blocked it
         }
 
-        return success; /*maybe some more sophisticated handling here...*/
+        return success; //maybe some more sophisticated handling here.
       }
     }
   }
@@ -227,12 +249,12 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
 
         if(!success)
         {
-          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); /*means PerOutFaceLimits blocked it*/
+          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //*means PerOutFaceLimits blocked it
         }
       }
     }
     return true;
-  }
+  }*/
 
   NS_LOG_UNCOND("Unhandeld Forwarding case!");
   return false;

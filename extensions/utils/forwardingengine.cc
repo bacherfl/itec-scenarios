@@ -8,7 +8,7 @@ ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces,unsigned i
 {
    this->prefixComponentNumber = prefixComponentNumber;
   init(faces);
-  updateEvent = Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
+  updateEventFWT = Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
 }
 
 ForwardingEngine::~ForwardingEngine ()
@@ -26,7 +26,7 @@ void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
 
   for(std::vector<Ptr<ndn::Face> >::iterator it = faces.begin (); it != faces.end (); ++it)
   {
-    fprintf(stderr,"adding face %d\n", (*it)->GetId());
+    //fprintf(stderr,"adding face %d\n", (*it)->GetId());
 
     faceIds.push_back ((*it)->GetId());
 
@@ -39,7 +39,7 @@ void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
   std::sort(faceIds.begin(), faceIds.end()); // order faces strictly by ID
 }
 
-int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, bool &content_seen)
+int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, bool &content_seen)
 {
 
   content_seen = true;
@@ -49,6 +49,20 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
   if(fwMap.find(prefix) == fwMap.end ())
   {
+    //todo determine faces
+
+    /*std::vector<int> faces;
+    for (ndn::fib::FaceMetricContainer::type::index<ndn::fib::i_face>::type::iterator metric =
+           pit_entry->GetFibEntry()->m_faces.get<ndn::fib::i_face> ().begin ();
+         metric != pit_entry->GetFibEntry()->m_faces.get<ndn::fib::i_face> ().end ();
+         metric++)
+    {
+        faces.push_back (metric->GetFace()->GetId());
+        fprintf(stderr, "Pushedback faceId %d\n", metric->GetFace()->GetId());
+    }
+
+    fwMap[prefix] = Create<ForwardingEntry>(faces);*/
+
     fwMap[prefix] = Create<ForwardingEntry>(faceIds);
     content_seen = false;
 
@@ -110,21 +124,21 @@ void ForwardingEngine::update ()
 {
   NS_LOG_DEBUG("New FWT UPDATE at SimTime " << Simulator::Now ().GetSeconds () << "\n");
 
-  /*experimental*/ //somthing is increasing the ref count from 1 to 2. i have no idee who...
+  /*experimental*/ //somthing is increasing the ref count from 1 to 2. i have no idea who...
   if(this->GetReferenceCount () == 1)
   {
-      Simulator::Cancel (this->updateEvent);
+      Simulator::Cancel (this->updateEventFWT);
       this->Unref ();
       return;
   }
 
   for(ForwardingEntryMap::iterator it = fwMap.begin (); it != fwMap.end (); ++it)
   {
-    NS_LOG_DEBUG("Update for FWT for content: " << it->first.c_str());
+    NS_LOG_DEBUG("Update for FWT for content: " << it->first.c_str() << "\n");
     it->second->update();
   }
 
-  updateEvent = Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
+  updateEventFWT = Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
 }
 
 void ForwardingEngine::logDroppingFace (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)

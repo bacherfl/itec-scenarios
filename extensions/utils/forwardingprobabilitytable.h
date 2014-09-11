@@ -17,12 +17,13 @@
 
 #define RELIABILITY_THRESHOLD 0.95
 
-#define ALPHA 0.2
+#define ALPHA 0.25
 
 #define PROBING_TRAFFIC 0.20
 #define SHIFT_THRESHOLD 0.01
 #define SHIFT_TRAFFIC 0.20
 
+#define FACE_NOT_FOUND -1
 namespace ns3
 {
 namespace ndn
@@ -38,6 +39,9 @@ public:
 
   void syncDroppingPolicy(Ptr<ForwardingStatistics> stats);
 
+  void addFace(int faceId);
+  void removeFace(int faceId);
+
 protected:
 
   boost::numeric::ublas::matrix<double> table;
@@ -47,6 +51,8 @@ protected:
   void initTable();
   boost::numeric::ublas::matrix<double> removeFaceFromTable(Ptr<ndn::Face> face);
   boost::numeric::ublas::matrix<double> removeFaceFromTable (int faceId);
+  boost::numeric::ublas::matrix<double> addFaceToTable (Ptr<ndn::Face> face);
+  boost::numeric::ublas::matrix<double> addFaceToTable (int faceId);
   boost::numeric::ublas::matrix<double> normalizeColumns(boost::numeric::ublas::matrix<double> m);
   int chooseFaceAccordingProbability(boost::numeric::ublas::matrix<double> m, int layer_of_interest, std::vector<int> faceList);
 
@@ -58,7 +64,7 @@ protected:
   void shiftDroppingTraffic(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats);
 
   int determineRowOfFace(Ptr<ndn::Face> face);
-  int determineRowOfFace(int face_uid);
+  int determineRowOfFace(int face_uid, bool printError = true);
 
   int getFirstDroppingLayer();
   int getLastDroppingLayer();

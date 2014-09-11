@@ -29,7 +29,7 @@ public:
 
   bool tryForwardInterest(Ptr< Face > outFace, Ptr< const Interest > interest);
 
-  int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, bool &content_seen);
+  int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, bool &content_seen);
   void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry);
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
   void logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace);
@@ -41,6 +41,7 @@ protected:
 
   void init(std::vector<Ptr<ndn::Face> > faces);
   std::string extractContentPrefix(Name name);
+
   //void clearForwardingPropabilityMap();
 
   std::vector<int> faceIds;
@@ -61,7 +62,7 @@ protected:
 
   FaceBucketMap fbMap;
 
-  EventId updateEvent;
+  EventId updateEventFWT;
 
   unsigned int prefixComponentNumber;
 
