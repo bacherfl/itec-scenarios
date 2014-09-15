@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #define UPDATE_INTERVALL 0.2
-#define MAX_LAYERS 6
+#define MAX_LAYERS 1
 #define DROP_FACE_ID -1
 
 namespace ns3

@@ -17,8 +17,6 @@ ForwardingEngine::~ForwardingEngine ()
 
 void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
 {
-
-  fprintf(stderr, "init\n");
   faceIds.clear ();
   fbMap.clear ();
 
