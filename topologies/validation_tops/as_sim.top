@@ -1,0 +1,39 @@
+router
+
+# node       comment   yPos    xPos
+
+ASRouter0       NA       40       20
+ASRouter1       NA       30       10
+ASRouter2       NA       30       25
+ASRouter3       NA       20       20
+ASRouter4       NA       20       35
+ASRouter5       NA       10       30
+ASRouter6       NA       30       40
+ASRouter7       NA       40       50
+ASRouter8       NA       20       50
+ASRouter9       NA       10       50
+
+Proivder0........NA      0         1
+Proivder1........NA      0         2
+Proivder2........NA      0         3
+Proivder3........NA      0         4
+Proivder4........NA      0         5
+Proivder5........NA      0         6
+
+link
+
+# srcNode    dstNode    bandwidth   metric    delay  queue
+ASRouter0     ASRouter1      25Mbps       1        2ms    50
+ASRouter0     ASRouter2      20Mbps       1        4ms    50
+ASRouter0     ASRouter7      15Mbps       1        10ms   50
+ASRouter1     ASRouter3      25Mbps       1        5ms    50
+ASRouter2     ASRouter6      20Mbps       1        8ms    50
+ASRouter2     ASRouter4      25Mbps       1        10ms   50
+ASRouter2     ASRouter3      15Mbps       1        3ms    50
+ASRouter3     ASRouter5      20Mbps       1        5ms    50
+ASRouter4     ASRouter5      30Mbps       1        6ms    50
+ASRouter4     ASRouter9      15Mbps       1        4ms    50
+ASRouter5     ASRouter9      25Mbps       1        2ms    50
+ASRouter6     ASRouter7      20Mbps       1        5ms    50
+ASRouter7     ASRouter8      30Mbps       1        8ms    50
+ASRouter8     ASRouter9      30Mbps       1        3ms    50

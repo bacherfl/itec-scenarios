@@ -10,8 +10,10 @@
 #include <stdio.h>
 
 #define UPDATE_INTERVALL 0.2
-#define MAX_LAYERS 1
+#define MAX_LAYERS 3
 #define DROP_FACE_ID -1
+
+#define RELIABILITY_THRESHOLD 0.95
 
 namespace ns3
 {
@@ -37,6 +39,7 @@ public:
 
   double getGoodput(int face_id, int layer);
   double getUnstatisfiedTrafficFraction(int ilayer){return stats[ilayer].unstatisfied_traffic_fraction;}
+  double getUnstatisfiedTrafficFractionOfUnreliableFaces(int ilayer){return stats[ilayer].unstatisfied_traffic_fraction_unreliable_faces;}
 
   std::vector<int>  getReliableFaces(int layer, double threshold);
   std::vector<int>  getUnreliableFaces(int layer, double threshold);
@@ -60,12 +63,16 @@ protected:
   void calculateLinkReliabilities(int layer);
   void calculateGoodput(int layer);
   void calculateUnstatisfiedTrafficFraction(int layer);
+  double calculateUnstatisfiedTrafficFractionOfReliableFaces(int layer);
+  double calculateUnstatisfiedTrafficFractionOfUnreliableFaces(int layer);
   void calculateActualForwardingProbabilities (int layer);
   void calculatTotalForwardedRequests(int layer);
 
   struct ForwardingLayerStats
   {
     double unstatisfied_traffic_fraction;
+    double unstatisfied_traffic_fraction_reliable_faces;
+    double unstatisfied_traffic_fraction_unreliable_faces;
     int total_forwarded_requests;
 
     ForwardingDoubleMap last_goodput;
@@ -85,6 +92,8 @@ protected:
     ForwardingLayerStats(const ForwardingLayerStats& other)
     {
       unstatisfied_traffic_fraction = other.unstatisfied_traffic_fraction;
+      unstatisfied_traffic_fraction_reliable_faces = other.unstatisfied_traffic_fraction_reliable_faces;
+      unstatisfied_traffic_fraction_unreliable_faces = other.unstatisfied_traffic_fraction_unreliable_faces;
       last_goodput = other.last_goodput;
       last_reliability = other.last_reliability;
       last_actual_forwarding_probs = other.last_actual_forwarding_probs;

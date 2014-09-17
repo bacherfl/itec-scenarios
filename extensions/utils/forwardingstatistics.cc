@@ -61,12 +61,16 @@ void ForwardingStatistics::resetStatistics ()
     stats[i].last_goodput.clear ();
     stats[i].last_reliability.clear();
     stats[i].unstatisfied_traffic_fraction = 0;
+    stats[i].unstatisfied_traffic_fraction_reliable_faces = 0;
+    stats[i].unstatisfied_traffic_fraction_unreliable_faces = 0;
     stats[i].last_actual_forwarding_probs.clear();
 
     calculatTotalForwardedRequests(i);
     calculateLinkReliabilities (i);
     calculateGoodput(i);
     calculateUnstatisfiedTrafficFraction (i);
+    calculateUnstatisfiedTrafficFractionOfReliableFaces (i);
+    calculateUnstatisfiedTrafficFractionOfUnreliableFaces (i);
     calculateActualForwardingProbabilities (i);
 
     stats[i].unstatisfied_requests.clear ();
@@ -235,3 +239,52 @@ double ForwardingStatistics::getForwardedInterests(int face_id, int layer)
 {
   return getActualForwardingProbability (face_id,layer) * getTotalForwardedInterests (layer);
 }
+
+double ForwardingStatistics::calculateUnstatisfiedTrafficFractionOfUnreliableFaces(int layer)
+{
+  if(stats[layer].total_forwarded_requests == 0)
+    return 0;
+
+  std::vector<int> r_faces = getReliableFaces(layer, RELIABILITY_THRESHOLD);
+  r_faces.push_back (DROP_FACE_ID);
+  std::vector<int> u_faces = getUnreliableFaces(layer,RELIABILITY_THRESHOLD);
+  double utf = 1.0;
+
+  for(std::vector<int>::iterator it = u_faces.begin(); it != u_faces.end(); ++it)
+  {
+    utf -= ( (double) (stats[layer].statisfied_requests[*it])) / getTotalForwardedInterests(layer);
+  }
+
+  for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it)
+  {
+    utf -= ( (double) (stats[layer].statisfied_requests[*it] + stats[layer].unstatisfied_requests[*it]) ) / getTotalForwardedInterests(layer);
+  }
+
+  stats[layer].unstatisfied_traffic_fraction_unreliable_faces = utf;
+}
+
+double ForwardingStatistics::calculateUnstatisfiedTrafficFractionOfReliableFaces(int layer)
+{
+  if(stats[layer].total_forwarded_requests == 0)
+    return 0;
+
+  std::vector<int> r_faces = getReliableFaces(layer, RELIABILITY_THRESHOLD);
+  r_faces.push_back (DROP_FACE_ID);
+
+  std::vector<int> u_faces = getUnreliableFaces(layer,RELIABILITY_THRESHOLD);
+  double utf = 1.0;
+
+  for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it)
+  {
+    utf -= ( (double) (stats[layer].statisfied_requests[*it])) / getTotalForwardedInterests(layer);
+  }
+
+  for(std::vector<int>::iterator it = u_faces.begin(); it != u_faces.end(); ++it)
+  {
+    utf -= ( (double) (stats[layer].statisfied_requests[*it] + stats[layer].unstatisfied_requests[*it]) ) / getTotalForwardedInterests(layer);
+  }
+
+  stats[layer].unstatisfied_traffic_fraction_reliable_faces = utf;
+}
+
+
