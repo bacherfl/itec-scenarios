@@ -91,18 +91,25 @@ int main(int argc, char* argv[])
   Ptr<Node> router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   while(router != NULL)
   {
-    routers.Add (router);
+    if(nodeIndex == 2)
+      routers.Add (router);
+    else
+      streamers.Add (router);
+
     router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   }
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
-  //ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
+  //ndnHelper.EnableLimits (true, Seconds(0.1), 4200, 50);
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 1k chunks in cache (about 4MB)
+
   ndnHelper.Install (providers);
   ndnHelper.Install (streamers);
 
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
+  //ndnHelper.EnableLimits (false);
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "64000"); // all entities can store up to 25k chunks in cache (about 100MB)
   ndnHelper.Install (routers);
 
@@ -114,7 +121,7 @@ int main(int argc, char* argv[])
   consumerHelper.SetAttribute ("Frequency", StringValue ("150")); // ca. 5Mbit/s per streamer
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
 
-  for(int i=0; i < streamers.size (); i++)
+  for(int i=0; i < 1; i++)
   {
     consumerHelper.SetPrefix (prefix + "_c" + boost::lexical_cast<std::string>(i) + "/layer0");
     consumerHelper.Install (streamers.Get (i));
@@ -144,7 +151,7 @@ int main(int argc, char* argv[])
 
   NS_LOG_UNCOND("Simulation will be started!");
 
-  Simulator::Stop (Seconds(300)); //runs for 5 min.
+  Simulator::Stop (Seconds(30)); //runs for 5 min.
   Simulator::Run ();
   Simulator::Destroy ();
 

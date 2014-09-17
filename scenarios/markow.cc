@@ -92,20 +92,12 @@ int main(int argc, char* argv[])
   Ptr<Node> router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   while(router != NULL)
   {
-
-    if(nodeIndex == 1)
-    {
-      nodeIndex++;
-      continue;
-    }
-
     routers.Add (router);
     router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   }
 
   // Install NDN stack on all nodes
   ndn::StackHelper ndnHelper;
-  //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
   ndnHelper.EnableLimits (true, Seconds(0.1), 4020, 50);
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 1k chunks in cache (about 4MB)
@@ -113,20 +105,21 @@ int main(int argc, char* argv[])
   ndnHelper.Install (streamers);
 
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "64000"); // all entities can store up to 25k chunks in cache (about 100MB)
-  //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
+  ndnHelper.EnableLimits (false);
   ndnHelper.Install (routers);
 
-  Ptr<Node> Router1 = Names::Find<Node>("Router1");
+  /*Ptr<Node> Router1 = Names::Find<Node>("Router1");
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
-  ndnHelper.Install (Router1);
+  ndnHelper.Install (Router1);*/
 
   // Install NDN applications
   std::string prefix = "/data";
 
   ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
-  consumerHelper.SetPrefix (prefix + "/layer0");
+  /*consumerHelper.SetPrefix (prefix + "/layer0");
   consumerHelper.SetAttribute ("Frequency", StringValue ("100")); // X interests a second
-  //consumerHelper.Install (streamers);
+  consumerHelper.Install (streamers);*/
 
   Ptr<Node> ContentDst0 = Names::Find<Node>("ContentDst0");
   consumerHelper.SetPrefix (prefix+"c0/layer0");
