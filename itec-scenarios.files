@@ -172,3 +172,5 @@ topologies/validation_tops/as_sim.top
 scenarios/evaldash2.cc
 topologies/abilene.top
 scenarios/abilene.cc
+extensions/utils/statisticsconsumer.h
+extensions/utils/statisticsconsumer.cc

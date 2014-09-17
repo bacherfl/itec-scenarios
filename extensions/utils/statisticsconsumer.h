@@ -7,6 +7,8 @@
 #include "ns3/ndnSIM/apps/ndn-consumer-cbr.h"
 #include "ns3/ndn-app.h"
 
+#include <stdio.h>
+
 namespace ns3 {
 namespace ndn {
 
@@ -24,7 +26,10 @@ namespace ndn {
         OnTimeout (uint32_t sequenceNumber);
 
         virtual void
-        OnNack (const Ptr<const Interest> &interest);
+        OnNack (const Ptr<const Interest> interest);
+
+        virtual void
+        OnInterest (const Ptr<const Interest> interest);
 
         virtual void
         OnData (Ptr<const Data> contentObject);

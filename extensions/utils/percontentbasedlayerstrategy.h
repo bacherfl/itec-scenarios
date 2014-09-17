@@ -124,7 +124,7 @@ template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
 {
   //TODO
-  interest->SetInterestLifetime (Time::FromDouble (0.5,Time::S));
+  interest->SetInterestLifetime (Time::FromDouble (1,Time::S));
 
   //fprintf(stderr, "OnInterest %s \n", interest->GetName ().toUri ().c_str ());
 
@@ -142,7 +142,7 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
     {
       // somebody is doing something bad
       PerContentBasedLayerStrategy<Parent>::m_dropNacks (interest, inface);
-      //fprintf(stderr, "Invalid NACK message\n",);
+      //fprintf(stderr, "Invalid NACK message\n");
       return;
     }
 
@@ -160,6 +160,7 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
       PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, incoming.m_face);
     }
 
+    pitEntry->RemoveIncoming (inface);
     pitEntry->ClearOutgoing ();
   }
 }
@@ -293,6 +294,7 @@ void PerContentBasedLayerStrategy<Parent>::DidReceiveValidNack (Ptr<Face> inFace
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
+  // turn of token bucket --> return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
   if(!fwEngine->tryForwardInterest (outFace, interest))
     return false;
 

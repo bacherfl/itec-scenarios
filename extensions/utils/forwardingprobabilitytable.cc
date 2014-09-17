@@ -279,7 +279,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       //if we have no relible faces, or no interests can be forwarded to reliable faces
       if(r_faces.size () == 0 || r_faces_actual_fowarding_prob == 0.0) // we drop everything in this case
       {
-        fprintf(stderr, "CASE 1\n");
+        //fprintf(stderr, "CASE 1\n");
         table(determineRowOfFace(DROP_FACE_ID), layer) = calcWeightedUtilization(DROP_FACE_ID,layer,stats)+ utf;
         updateColumn (ur_faces, layer, stats, utf, false);
 
@@ -288,7 +288,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       }
       else
       {
-        fprintf(stderr, "CASE 2\n");
+        //fprintf(stderr, "CASE 2\n");
         //add traffic to relialbe faces
         updateColumn (r_faces, layer, stats, utf, true);
         //remove traffic from unreliable faces
@@ -306,7 +306,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       }
       else*/ if(table(determineRowOfFace(DROP_FACE_ID),layer) == 0.0 || r_faces.size () == 0) // dropping prob == 0 or there are no reliable faces
       {
-        fprintf(stderr, "CASE 3\n");
+        //fprintf(stderr, "CASE 3\n");
         if(stats->getTotalForwardedInterests (layer) != 0)
           for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
             table(determineRowOfFace(*it), layer) = calcWeightedUtilization(*it,layer,stats);
@@ -331,12 +331,12 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         {
           //needs normalization if, no interests have been transmitted at all.
           // however this might be good, as it lowers, dropping probability, and distributes forwarding prob at all other faces...
-          fprintf(stderr, "CASE 4\n");
+          //fprintf(stderr, "CASE 4\n");
           probeColumn(probe_faces, layer, stats, false); // do only probing
         }
         else
         {
-          fprintf(stderr, "CASE 5\n");
+          //fprintf(stderr, "CASE 5\n");
           shiftDroppingTraffic(shift_faces, layer, stats); //shift traffic
           probeColumn(probe_faces, layer, stats, true); // and probe then
         }
@@ -346,7 +346,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 
   NS_LOG_DEBUG("Forwarding Matrix after update:\n" << table);
 
-  std::stringstream ss1;
+  /*std::stringstream ss1;
   ss1 << table;
   std::string s1 = ss1.str();
 
@@ -360,7 +360,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
   {
     fprintf(stderr, "s1 = %s\n", s1.c_str ());
     fprintf(stderr, "s2 = %s\n\n", s2.c_str ());
-  }
+  }*/
 
   NS_LOG_DEBUG("Forwarding Matrix after normalization:\n" << table);
 }
