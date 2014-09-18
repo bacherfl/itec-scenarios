@@ -37,6 +37,8 @@ public:
 
   void syncDroppingPolicy(Ptr<ForwardingStatistics> stats);
 
+  double getForwardingProbability(int faceId, int layer){return table(determineRowOfFace(faceId), layer);}
+
   void addFace(int faceId);
   void removeFace(int faceId);
 

@@ -287,4 +287,19 @@ double ForwardingStatistics::calculateUnstatisfiedTrafficFractionOfReliableFaces
   stats[layer].unstatisfied_traffic_fraction_reliable_faces = utf;
 }
 
+void ForwardingStatistics::removeFace(int faceId)
+{
+  //remove from vector...
+  for(std::vector<int>::iterator it = faceIds.begin (); it != faceIds.end (); ++it)
+  {
+    if(*it == faceId)
+    {
+      faceIds.erase (it);
+    std::sort(this->faceIds.begin(), this->faceIds.end());//order
+    return;
+    }
+  }
+  NS_LOG_UNCOND("Could not erase from statistics vector: " << faceId);
+}
+
 

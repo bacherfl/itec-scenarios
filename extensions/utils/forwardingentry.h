@@ -17,6 +17,9 @@
 #include "../svc/svcleveltag.h"
 #include "ns3/ndn-wire.h"
 
+#define FACE_REMOVE_THRESHOLD 0.01
+#define FACE_REMOVE_CYCLES 50
+
 namespace ns3
 {
 namespace ndn
@@ -39,6 +42,18 @@ public:
 private:
   Ptr<ForwardingProbabilityTable> fwTable;
   Ptr<ForwardingStatistics> fwStats;
+  std::vector<int> faceIds;
+
+  typedef std::map
+    < int, /*face-id*/
+      int /*number of cycles face forwarding prob below FACE_REMOVE_THRESHOLD*/
+    > ThresholdCycleMap;
+
+  ThresholdCycleMap tMap;
+
+  void checkFaces();
+
+  void removeFace(int faceId);
 
   int determineContentLayer(Ptr<const Interest> interest);
 };

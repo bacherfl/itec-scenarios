@@ -674,12 +674,14 @@ void ForwardingProbabilityTable::removeFace (int faceId)
   //remove from vector...
   for(std::vector<int>::iterator it = faceIds.begin (); it != faceIds.end (); ++it)
   {
-    if(*it = faceId)
+    if(*it == faceId)
     {
       faceIds.erase (it);
-      break;
+      std::sort(this->faceIds.begin(), this->faceIds.end());
+      return;
     }
   }
+  NS_LOG_UNCOND("Could not erase from vector: " << faceId);
 }
 
 double ForwardingProbabilityTable::calcWeightedUtilization(int faceId, int layer, Ptr<ForwardingStatistics> stats)
