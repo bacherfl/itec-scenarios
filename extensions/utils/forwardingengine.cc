@@ -50,6 +50,10 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
     //todo determine faces
 
     /*std::vector<int> faces;
+
+    //pushd dropping face
+    faces.push_back (DROP_FACE_ID);
+
     for (ndn::fib::FaceMetricContainer::type::index<ndn::fib::i_face>::type::iterator metric =
            pit_entry->GetFibEntry()->m_faces.get<ndn::fib::i_face> ().begin ();
          metric != pit_entry->GetFibEntry()->m_faces.get<ndn::fib::i_face> ().end ();

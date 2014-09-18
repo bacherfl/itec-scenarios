@@ -40,7 +40,7 @@ int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr
   // normalize column of layer for all possible outgoing faces
 
   //check if we have to remove the incomming face before choosing the face to forward
-  if(determineRowOfFace (inFace) != FACE_NOT_FOUND)
+  if(determineRowOfFace (inFace, false) != FACE_NOT_FOUND)
   {
     matrix<double> normalized = removeFaceFromTable(inFace);
 
@@ -59,9 +59,9 @@ int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr
   }
 }
 
-int ForwardingProbabilityTable::determineRowOfFace(Ptr<ndn::Face> face)
+int ForwardingProbabilityTable::determineRowOfFace(Ptr<ndn::Face> face, bool printError)
 {
-  return determineRowOfFace (face->GetId ());
+  return determineRowOfFace (face->GetId (), printError);
 }
 
 int ForwardingProbabilityTable::determineRowOfFace(int face_id, bool printError)
@@ -235,7 +235,7 @@ int ForwardingProbabilityTable::chooseFaceAccordingProbability(boost::numeric::u
   NS_LOG_UNCOND("rvalue = " << rvalue);
 
   for(std::vector<int>::iterator it = faceList.begin (); it != faceList.end (); ++it)
-    fprintf(stderr, "facelist[it]=%d",*it);
+    fprintf(stderr, "facelist[it]=%d\n",*it);
 
   return DROP_FACE_ID;
 }
@@ -297,16 +297,26 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         table(determineRowOfFace(DROP_FACE_ID), layer) = calcWeightedUtilization(DROP_FACE_ID,layer,stats);
        }
     }
-    else if (!jammed[layer]) // utf == 0 and layer has not been jammed last time
+    else if (/*delta == 0* &&*/ !jammed[layer]) // utf == 0 and layer has not been jammed last time
     {
 
-      /*if(stats->getTotalForwardedInterests (layer) == 0)
-      {
-        //do nothing
-      }
-      else*/ if(table(determineRowOfFace(DROP_FACE_ID),layer) == 0.0 || r_faces.size () == 0) // dropping prob == 0 or there are no reliable faces
+      if(stats->getTotalForwardedInterests (layer) == 0)
       {
         //fprintf(stderr, "CASE 3\n");
+
+        if(r_faces.size () == 0 || table(determineRowOfFace (DROP_FACE_ID), layer) == 0.0)
+          return;
+
+         double probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;
+         table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
+
+        //distribute the traffic
+        for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each ur_face
+          table(determineRowOfFace (*it), layer) += (probe / ((double)r_faces.size ()));
+      }
+      else if(table(determineRowOfFace(DROP_FACE_ID),layer) == 0.0 || r_faces.size () == 0) // dropping prob == 0 or there are no reliable faces
+      {
+        //fprintf(stderr, "CASE 4\n");
         if(stats->getTotalForwardedInterests (layer) != 0)
           for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
             table(determineRowOfFace(*it), layer) = calcWeightedUtilization(*it,layer,stats);
@@ -331,12 +341,12 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         {
           //needs normalization if, no interests have been transmitted at all.
           // however this might be good, as it lowers, dropping probability, and distributes forwarding prob at all other faces...
-          //fprintf(stderr, "CASE 4\n");
+          //fprintf(stderr, "CASE 5\n");
           probeColumn(probe_faces, layer, stats, false); // do only probing
         }
         else
         {
-          //fprintf(stderr, "CASE 5\n");
+          //fprintf(stderr, "CASE 6\n");
           shiftDroppingTraffic(shift_faces, layer, stats); //shift traffic
           probeColumn(probe_faces, layer, stats, true); // and probe then
         }
@@ -346,7 +356,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 
   NS_LOG_DEBUG("Forwarding Matrix after update:\n" << table);
 
-  /*std::stringstream ss1;
+  std::stringstream ss1;
   ss1 << table;
   std::string s1 = ss1.str();
 
@@ -360,7 +370,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
   {
     fprintf(stderr, "s1 = %s\n", s1.c_str ());
     fprintf(stderr, "s2 = %s\n\n", s2.c_str ());
-  }*/
+  }
 
   NS_LOG_DEBUG("Forwarding Matrix after normalization:\n" << table);
 }

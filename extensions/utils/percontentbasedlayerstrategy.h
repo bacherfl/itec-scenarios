@@ -210,7 +210,8 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
         inFace->SendInterest (nack);
         PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
 
-        fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //means PerOutFaceLimits blocked it
+        // In this case the current node is the bottleneck. therefore it should not log this, as others will react on it
+        //fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //means PerOutFaceLimits blocked it
       }
 
       return success; //maybe some more sophisticated handling here.
@@ -294,7 +295,7 @@ void PerContentBasedLayerStrategy<Parent>::DidReceiveValidNack (Ptr<Face> inFace
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
-  // turn of token bucket --> return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
+  // to turn token bucket off --> return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
   if(!fwEngine->tryForwardInterest (outFace, interest))
     return false;
 
