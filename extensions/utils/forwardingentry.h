@@ -28,7 +28,7 @@ namespace ndn
 class ForwardingEntry : public SimpleRefCount<ForwardingEntry>
 {
 public:
-  ForwardingEntry(std::vector<int> faceIds);
+  ForwardingEntry(std::vector<int> faceIds, Ptr<fib::Entry> fibEntry);
 
   int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest);
 
@@ -42,7 +42,10 @@ public:
 private:
   Ptr<ForwardingProbabilityTable> fwTable;
   Ptr<ForwardingStatistics> fwStats;
-  std::vector<int> faceIds;
+  std::vector<int> faceIds_active;
+  std::vector<int> faceIds_standby;
+
+  Ptr<fib::Entry> fibEntry;
 
   typedef std::map
     < int, /*face-id*/
@@ -51,13 +54,20 @@ private:
 
   ThresholdCycleMap tMap;
 
-  void checkFaces();
+  void checkForRemoveFaces();
+  void checkForAddFaces();
 
-  void removeFace(int faceId);
+  bool faceInRoutingInformation(int faceId);
+
+  void removeFace(std::vector<int> &from, int faceId);
+  void addFace(std::vector<int> &to, int faceId);
 
   int determineContentLayer(Ptr<const Interest> interest);
+
+  void initFaceIds(std::vector<int> faceIds);
 };
 
 }
 }
 #endif // FORWARDINGENTRY_H
+

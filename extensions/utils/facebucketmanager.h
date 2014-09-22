@@ -12,7 +12,7 @@
 #include <string>
 #include "ns3/ndn-face.h"
 
-#define DATA_PACKET_SIZE 4200
+#define DATA_PACKET_SIZE 4096
 #define INTEREST_PACKET_SIZE 50
 #define TOKEN_FILL_INTERVALL 10 //ms
 #define BUCKET_SIZE 25.0

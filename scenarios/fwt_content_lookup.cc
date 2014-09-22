@@ -116,8 +116,7 @@ int main(int argc, char* argv[])
   ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
   consumerHelper.SetPrefix (prefix);
   consumerHelper.SetAttribute ("Frequency", StringValue ("1000")); // X interests a second
-    consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
-  consumerHelper.Install (streamers);
+  consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
   producerHelper.SetPrefix (prefix);

@@ -21,7 +21,7 @@ namespace utils
 class ForwardingEngine : public SimpleRefCount<ForwardingEngine>
 {
 public:
-  ForwardingEngine(std::vector<Ptr<ndn::Face> > faces, unsigned int prefixComponentNumber);
+  ForwardingEngine(std::vector<Ptr<ndn::Face> > faces, Ptr<ndn::Fib> fib, unsigned int prefixComponentNumber);
 
   ~ForwardingEngine();
 
@@ -43,6 +43,7 @@ protected:
   //void clearForwardingPropabilityMap();
 
   std::vector<int> faceIds;
+  Ptr<ndn::Fib> fib;
 
   /* map for storing forwarding stats for all faces */
   typedef std::map

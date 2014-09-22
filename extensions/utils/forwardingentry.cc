@@ -4,11 +4,40 @@ using namespace ns3::ndn;
 
 NS_LOG_COMPONENT_DEFINE ("ForwardingEntry");
 
-ForwardingEntry::ForwardingEntry(std::vector<int> faceIds)
+ForwardingEntry::ForwardingEntry(std::vector<int> faceIds, Ptr<fib::Entry> fibEntry)
 {
-  this->faceIds = faceIds;
-  this->fwTable = Create<ForwardingProbabilityTable>(faceIds);
-  this->fwStats = Create<ForwardingStatistics>(faceIds);
+  this->fibEntry = fibEntry;
+
+  initFaceIds(faceIds);
+
+  faceIds_active = faceIds;
+
+  this->fwTable = Create<ForwardingProbabilityTable>(faceIds_active);
+  this->fwStats = Create<ForwardingStatistics>(faceIds_active);
+}
+
+void ForwardingEntry::initFaceIds(std::vector<int> faceIds)
+{
+  if(fibEntry == NULL)
+  {
+    NS_LOG_DEBUG("Fib Entry is NULL adding all faces to FWT as Route is unknown!\n");
+    faceIds_active = faceIds;
+    return;
+  }
+
+  for(std::vector<int>::iterator it = faceIds.begin (); it != faceIds.end (); it++)
+  {
+    if(faceInRoutingInformation (*it))
+    {
+        faceIds_active.push_back (*it);
+        NS_LOG_DEBUG("Pushed Face(" << *it << ") to ACTIVE Faces");
+    }
+    else
+    {
+      faceIds_standby.push_back (*it);
+      NS_LOG_DEBUG("Pushed Face(" << *it << ") to STANDBY Faces");
+    }
+  }
 }
 
 void ForwardingEntry::update()
@@ -20,15 +49,25 @@ void ForwardingEntry::update()
   fwTable->syncDroppingPolicy(fwStats);
 
   //now check if we should remove / add faces
-  //checkFaces();
+
+  checkForAddFaces();
+  checkForRemoveFaces();
 
 }
 
-void ForwardingEntry::checkFaces()
+void ForwardingEntry::checkForAddFaces()
+{
+  if(faceIds_standby.empty ())
+    return;
+
+  //todo
+}
+
+void ForwardingEntry::checkForRemoveFaces()
 {
   //first update map
   std::vector<int> faces_to_remove;
-  for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it) // for each ur_face
+  for(std::vector<int>::iterator it = faceIds_active.begin(); it != faceIds_active.end(); ++it) // for each ur_face
   {
     if(*it == DROP_FACE_ID)
       continue;
@@ -47,7 +86,7 @@ void ForwardingEntry::checkFaces()
     else if(tMap[*it] > 0)
       tMap[*it]--;
 
-    if(tMap[*it] > FACE_REMOVE_CYCLES)
+    if( (tMap[*it] > FACE_REMOVE_CYCLES && !faceInRoutingInformation (*it)) )
     {
       //remove face
       faces_to_remove.push_back (*it);
@@ -59,9 +98,23 @@ void ForwardingEntry::checkFaces()
   {
     fwTable->removeFace (*it); /*from table*/
     fwStats->removeFace (*it); /*from stats*/
-    this->removeFace (*it); /*from entry*/ //TODO later shift this to standby faces...
+    this->removeFace (faceIds_active,*it); /*from entry*/
+    this->addFace (faceIds_standby,*it); /*from entry*/
   }
 
+}
+
+bool ForwardingEntry::faceInRoutingInformation(int faceId)
+{
+  for (ndn::fib::FaceMetricContainer::type::index<ndn::fib::i_face>::type::iterator metric = fibEntry->m_faces.get<ndn::fib::i_face> ().begin ();
+       metric != fibEntry->m_faces.get<ndn::fib::i_face> ().end (); metric++)
+  {
+    if(faceId == metric->GetFace()->GetId() || faceId == DROP_FACE_ID)
+    {
+      return true;
+    }
+  }
+  return false;
 }
 
 int ForwardingEntry::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest)
@@ -112,17 +165,23 @@ int ForwardingEntry::determineContentLayer(Ptr<const Interest> interest)
   return boost::lexical_cast<int>( layer.c_str() );
 }
 
-void ForwardingEntry::removeFace(int faceId)
+void ForwardingEntry::removeFace(std::vector<int> &from, int faceId)
 {
   //remove from vector...
-  for(std::vector<int>::iterator it = faceIds.begin (); it != faceIds.end (); ++it)
+  for(std::vector<int>::iterator it = from.begin (); it != from.end (); ++it)
   {
     if(*it == faceId)
     {
-      faceIds.erase (it);
-    std::sort(this->faceIds.begin(), this->faceIds.end());//order
+      from.erase (it);
+    std::sort(from.begin(), from.end());//order
     return;
     }
   }
   NS_LOG_UNCOND("Could not erase from ForwardingEntry vector: " << faceId);
+}
+
+void ForwardingEntry::addFace(std::vector<int> &to, int faceId)
+{
+  to.push_back (faceId);
+  std::sort(to.begin(), to.end());//order
 }

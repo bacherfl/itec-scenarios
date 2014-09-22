@@ -110,11 +110,12 @@ int main(int argc, char* argv[])
   // Install NDN applications
   std::string prefix = "/data/layer0";
 
-  ndn::AppHelper consumerHelper ("ns3::ndn::ConsumerCbr");
+  ndn::AppHelper consumerHelper ("ns3::ndn::StatisticsConsumer");
   consumerHelper.SetPrefix (prefix);
   consumerHelper.SetAttribute ("Frequency", StringValue ("1000")); // X interests a second
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
-  consumerHelper.Install (streamers);
+  ApplicationContainer app1 = consumerHelper.Install (streamers);
+  app1.Get (0)->SetStopTime(Seconds(180));
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
   producerHelper.SetPrefix (prefix);
@@ -128,7 +129,8 @@ int main(int argc, char* argv[])
 
   // Calculate and install FIBs
   //this is needed because otherwise On::Interest()-->createPITEntry will fail. Has no negative effect on the algorithm
-  ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
+  //ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
+  ndn::GlobalRoutingHelper::CalculateRoutes ();
 
   Simulator::Schedule (Seconds (20.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
   Simulator::Schedule (Seconds (30.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
@@ -147,7 +149,7 @@ int main(int argc, char* argv[])
 
   NS_LOG_UNCOND("Simulation will be started!");
 
-  Simulator::Stop (Seconds(180)); //runs for 3 min.
+  Simulator::Stop (Seconds(180.1)); //runs for 3 min.
   Simulator::Run ();
   Simulator::Destroy ();
 

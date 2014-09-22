@@ -41,7 +41,7 @@ public:
   {
     fprintf(stderr, "PerContentBasedLayerStrategy activated...\n");
 
-    fwEngine = new utils::ForwardingEngine(faces, prefixComponentNum);
+    fwEngine = new utils::ForwardingEngine(faces, PerContentBasedLayerStrategy<Parent>::m_fib, prefixComponentNum);
   }
 
   virtual void AddFace(Ptr< Face> face);
@@ -96,7 +96,7 @@ void PerContentBasedLayerStrategy<Parent>::AddFace (Ptr<Face> face)
 {
   // add face to faces vector
   faces.push_back (face);
-  fwEngine = new utils::ForwardingEngine(faces, prefixComponentNum);
+  fwEngine = new utils::ForwardingEngine(faces, PerContentBasedLayerStrategy<Parent>::m_fib, prefixComponentNum);
   super::AddFace(face);
 }
 
@@ -115,7 +115,7 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
     }
   }
 
-  fwEngine = new utils::ForwardingEngine(faces, prefixComponentNum);
+  fwEngine = new utils::ForwardingEngine(faces, PerContentBasedLayerStrategy<Parent>::m_fib, prefixComponentNum);
   super::RemoveFace(face);
 }
 
@@ -217,46 +217,6 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
       return success; //maybe some more sophisticated handling here.
     }
   }
-
-  /*if(content_seen)
-  {
-    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
-        it !=  faces.end (); ++it)
-    {
-      if (fwFaceId == (*it)->GetId())
-      {
-        bool success = PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(inFace, *it, interest, pitEntry);
-
-        if(!success)
-        {
-          Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
-          inFace->SendInterest (nack);
-          PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
-
-          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //means PerOutFaceLimits blocked it
-        }
-
-        return success; //maybe some more sophisticated handling here.
-      }
-    }
-  }
-  else //flood first interest
-  {
-    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
-        it !=  faces.end (); ++it)
-    {
-      if (inFace->GetId () != (*it)->GetId())
-      {
-        bool success = PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(inFace, *it, interest, pitEntry);
-
-        if(!success)
-        {
-          fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //*means PerOutFaceLimits blocked it
-        }
-      }
-    }
-    return true;
-  }*/
 
   NS_LOG_UNCOND("Unhandeld Forwarding case!");
   return false;

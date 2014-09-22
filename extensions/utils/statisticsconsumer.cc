@@ -47,35 +47,35 @@ StatisticsConsumer::GetTypeId()
 void StatisticsConsumer::WillSendOutInterest(uint32_t sequenceNumber)
 {
     nrSentInterests++;
-    NS_LOG_DEBUG ("Sending out interest " << sequenceNumber);
+    //NS_LOG_DEBUG ("Sending out interest " << sequenceNumber);
     ndn::ConsumerCbr::WillSendOutInterest(sequenceNumber);
 }
 
 void StatisticsConsumer::OnNack (const Ptr<const Interest> interest)
 {
     nrNacks++;
-    NS_LOG_DEBUG ("Received NACK for Interest " << interest->GetName());
+    //NS_LOG_DEBUG ("Received NACK for Interest " << interest->GetName());
     ndn::ConsumerCbr::OnNack(interest);
 }
 
 
 void StatisticsConsumer::OnInterest (const Ptr<const Interest> interest)
 {
-    NS_LOG_DEBUG ("Received Interest " << interest->GetName());
+    //NS_LOG_DEBUG ("Received Interest " << interest->GetName());
     ndn::ConsumerCbr::OnInterest(interest);
 }
 
 void StatisticsConsumer::OnTimeout(uint32_t sequenceNumber)
 {
     nrTimeouts++;
-    NS_LOG_DEBUG ("Timeout for " << sequenceNumber);
+    //NS_LOG_DEBUG ("Timeout for " << sequenceNumber);
     ndn::ConsumerCbr::OnTimeout (sequenceNumber);
 }
 
 void StatisticsConsumer::OnData(Ptr<const Data> contentObject)
 {
     nrSatisfiedInterests++;
-    NS_LOG_DEBUG ("Received data for " << contentObject->GetName());
+    //NS_LOG_DEBUG ("Received data for " << contentObject->GetName());
     ndn::ConsumerCbr::OnData (contentObject);
 }
 

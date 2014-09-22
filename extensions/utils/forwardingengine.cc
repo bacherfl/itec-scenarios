@@ -4,9 +4,10 @@ using namespace ns3::ndn::utils;
 
 NS_LOG_COMPONENT_DEFINE ("ForwardingEngine");
 
-ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces,unsigned int prefixComponentNumber)
+ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces, Ptr<ndn::Fib> fib, unsigned int prefixComponentNumber)
 {
-   this->prefixComponentNumber = prefixComponentNumber;
+  this->prefixComponentNumber = prefixComponentNumber;
+  this->fib = fib;
   init(faces);
   updateEventFWT = Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
 }
@@ -47,25 +48,10 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
   if(fwMap.find(prefix) == fwMap.end ())
   {
-    //todo determine faces
+    //fprintf(stderr, "prefix = %s\n", prefix.c_str ());
+    //fwMap[prefix] = Create<ForwardingEntry>(faceIds, fib->Find(ndn::Name(prefix)));
+    fwMap[prefix] = Create<ForwardingEntry>(faceIds, fib->LongestPrefixMatch (interest.operator * ()));
 
-    /*std::vector<int> faces;
-
-    //pushd dropping face
-    faces.push_back (DROP_FACE_ID);
-
-    for (ndn::fib::FaceMetricContainer::type::index<ndn::fib::i_face>::type::iterator metric =
-           pit_entry->GetFibEntry()->m_faces.get<ndn::fib::i_face> ().begin ();
-         metric != pit_entry->GetFibEntry()->m_faces.get<ndn::fib::i_face> ().end ();
-         metric++)
-    {
-        faces.push_back (metric->GetFace()->GetId());
-        fprintf(stderr, "Pushedback faceId %d\n", metric->GetFace()->GetId());
-    }
-
-    fwMap[prefix] = Create<ForwardingEntry>(faces);*/
-
-    fwMap[prefix] = Create<ForwardingEntry>(faceIds);
     content_seen = false;
 
     // add buckets for all faces
@@ -85,7 +71,14 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
 std::string ForwardingEngine::extractContentPrefix(ndn::Name name)
 {
-  return name.get(prefixComponentNumber).toUri ();
+  std::string prefix ="";
+  //fprintf(stderr, "number =%d\n", prefixComponentNumber);
+  for(int i=0; i <= prefixComponentNumber; i++)
+  {
+    prefix.append ("/");
+    prefix.append (name.get (i).toUri ());
+  }
+  return prefix;
 }
 
 void ForwardingEngine::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
