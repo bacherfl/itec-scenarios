@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 #define UPDATE_INTERVALL 0.2
-#define MAX_LAYERS 3
+#define MAX_LAYERS 1
 #define DROP_FACE_ID -1
 
 #define RELIABILITY_THRESHOLD 0.95
@@ -45,6 +45,8 @@ public:
   std::vector<int>  getUnreliableFaces(int layer, double threshold);
 
   void resetStatistics();
+
+  void removeFace(int faceId);
 
 protected:
 

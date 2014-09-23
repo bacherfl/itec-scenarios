@@ -5,8 +5,6 @@
 #include "ns3/ndn-face.h"
 #include "ns3/ndn-interest.h"
 
-#include "boost/unordered_map.hpp"
-
 #include "vector"
 #include "stdio.h"
 

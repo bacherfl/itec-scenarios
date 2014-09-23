@@ -37,6 +37,8 @@ public:
 
   void syncDroppingPolicy(Ptr<ForwardingStatistics> stats);
 
+  double getForwardingProbability(int faceId, int layer){return table(determineRowOfFace(faceId), layer);}
+
   void addFace(int faceId);
   void removeFace(int faceId);
 
@@ -61,7 +63,7 @@ protected:
   void probeColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, bool useDroppingProbabilityFromFWT);
   void shiftDroppingTraffic(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats);
 
-  int determineRowOfFace(Ptr<ndn::Face> face);
+  int determineRowOfFace(Ptr<ndn::Face> face, bool printError = true);
   int determineRowOfFace(int face_uid, bool printError = true);
 
   double calcWeightedUtilization(int faceId, int layer, Ptr<ForwardingStatistics> stats);
