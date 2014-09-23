@@ -174,3 +174,7 @@ topologies/abilene.top
 scenarios/abilene.cc
 extensions/utils/statisticsconsumer.h
 extensions/utils/statisticsconsumer.cc
+scenarios/ndn-simple-with-statisticsconsumer.cc
+extensions/utils/customstrategy.h
+extensions/utils/customstrategy.cc
+topologies/topo-11-node-two-bottlenecks.top
