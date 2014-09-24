@@ -178,3 +178,17 @@ scenarios/ndn-simple-with-statisticsconsumer.cc
 extensions/utils/customstrategy.h
 extensions/utils/customstrategy.cc
 topologies/topo-11-node-two-bottlenecks.top
+extensions/sdn/sdncontroller.h
+extensions/sdn/sdncontroller.cc
+extensions/sdn/sdninteresthandler.h
+extensions/sdn/sdninteresthandler.cc
+extensions/utils/json/json-forwards.h
+extensions/utils/json/json.h
+extensions/utils/jsoncpp.cpp
+scenarios/sdn-controller-simple.cc
+extensions/sdn/sdnrouter.h
+extensions/sdn/sdnrouter.cc
+extensions/sdn/sdnforwardingstrategy.h
+extensions/sdn/sdnforwardingstrategy.cc
+extensions/sdn/sdnrouterapp.h
+extensions/sdn/sdnrouterapp.cc
