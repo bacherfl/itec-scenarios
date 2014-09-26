@@ -6,13 +6,15 @@
 #include "ns3/ndn-data.h"
 #include "ns3/core-module.h"
 #include <stdio.h>
-#include<jsoncpp/json/json.h>
+#include <jsoncpp/json/json.h>
+#include "sdn-ndn.h"
 
 namespace ns3 {
 namespace ndn {
 namespace fw {
 
 using namespace std;
+using namespace ns3::ndn::sdn;
 
 NS_OBJECT_ENSURE_REGISTERED (SDNForwardingStrategy);
 
@@ -26,11 +28,11 @@ bool SDNForwardingStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
     std::string prefix = interest->GetName().getPrefix(1, 0).toUri();
     Ptr<Node> node = this->GetObject<Node>();
 
-    if (prefix.compare("/controller") == 0)
+    if (prefix.compare(SdnNdn::CONTROLLER_PREFIX) == 0)
     {
         return DiscoverController(inFace, interest, pitEntry);
     }
-    else if (prefix.compare("/neighbours") == 0)
+    else if (prefix.compare(SdnNdn::NEIGHBOURS_PREFIX) == 0)
     {
         //if the interest comes from the app face, forward it to all neighbours
         if (ndn::Face::APPLICATION & inFace->GetFlags() != 0)
@@ -59,9 +61,10 @@ void SDNForwardingStrategy::OnData(Ptr<Face> face, Ptr<Data> data)
     //check for special controller prefix
     std::string prefix = data->GetName().getPrefix(1, 0).toUri();
 
-    if (prefix.compare("/controller") == 0)
+    if (prefix.compare(SdnNdn::CONTROLLER_PREFIX) == 0)
     {
         //received controller response
+        /*
         uint8_t *buf = (uint8_t*)(malloc (sizeof(uint8_t) * data->GetPayload()->GetSize()));
         data->GetPayload()->CopyData(buf, data->GetPayload()->GetSize());
         std::string jsonString(reinterpret_cast<char const*>(buf));
@@ -74,6 +77,8 @@ void SDNForwardingStrategy::OnData(Ptr<Face> face, Ptr<Data> data)
             std::cout << "Error while parsing controller response";
             return;
         }
+        */
+        Json::Value root = SdnNdn::GetContentObjectJson(data);
 
         const std::string controllerId = root.get("id", "unknown").asString();
         int seqNr = root.get("seq", 0).asInt();
@@ -84,7 +89,7 @@ void SDNForwardingStrategy::OnData(Ptr<Face> face, Ptr<Data> data)
 
         AddControllerLocation(controllerId, face);
     }
-    else if (prefix.compare("/neighbours") == 0)
+    else if (prefix.compare(SdnNdn::NEIGHBOURS_PREFIX) == 0)
     {
         //don't add the app face as a neighbour
         AddNeighbour(face, data);
@@ -97,7 +102,7 @@ void SDNForwardingStrategy::WillEraseTimedOutPendingInterest(Ptr<pit::Entry> pit
 {
     std::string prefix = pitEntry->GetInterest()->GetName().getPrefix(1,0).toUri();
     //pitEntry->GetOutgoing()
-    if (prefix.compare("/controller") == 0)
+    if (prefix.compare(SdnNdn::CONTROLLER_PREFIX) == 0)
     {
         //std::cout << "Controller not reachable \n";
         //RemoveControllerEntry();
@@ -115,13 +120,14 @@ void SDNForwardingStrategy::AddControllerLocation(std::string controllerId, Ptr<
     }
 
     controllerMap[controllerId][face] = rtt;
-    //PrintControllerMap();
+    PrintControllerMap();
 }
 
 void SDNForwardingStrategy::AddNeighbour(Ptr<Face> inFace, Ptr<Data> data)
 {
     if (Face::APPLICATION & inFace->GetFlags() == 0)
     {
+        /*
         uint8_t *buf = (uint8_t*)(malloc (sizeof(uint8_t) * data->GetPayload()->GetSize()));
         data->GetPayload()->CopyData(buf, data->GetPayload()->GetSize());
         std::string jsonString(reinterpret_cast<char const*>(buf));
@@ -134,6 +140,8 @@ void SDNForwardingStrategy::AddNeighbour(Ptr<Face> inFace, Ptr<Data> data)
             std::cout << "Error while parsing controller response";
             return;
         }
+        */
+        Json::Value root = SdnNdn::GetContentObjectJson(data);
 
         int64_t rtt = Simulator::Now().GetMilliSeconds() - neighbourDiscoveryStartTime;
         int neighbourId = root.get("id", 0).asInt();

@@ -14,8 +14,9 @@ class SDNInterestHandler : public SimpleRefCount<SDNInterestHandler>
 public:
     SDNInterestHandler(Ptr<App> owner);
 
-    Ptr<Data> SendControllerDiscoveryResponse(Ptr<const Interest> interest);
+    Ptr<Data> CreateControllerDiscoveryResponse(Ptr<const Interest> interest);
     Ptr<Data> ProcessInterest(Ptr<const ns3::ndn::Interest> interest);
+    Ptr<Data> CreateRouterRegistrationAck(Ptr<const Interest> interest);
 
 protected:
     int sequenceNumber;

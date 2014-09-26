@@ -1,6 +1,7 @@
 #include "sdnrouterapp.h"
 
 #include "ns3/random-variable.h"
+#include "sdn-ndn.h"
 
 namespace ns3 {
 namespace ndn {
@@ -30,21 +31,30 @@ void SDNRouterApp::OnData(Ptr<const Data> contentObject)
     std::string prefix = contentObject->GetName().getPrefix(1, 0).toUri();
 
     //neighbour response
-    if (prefix.compare("/neighbours"))
+    if (prefix.compare(SdnNdn::NEIGHBOURS_PREFIX))
     {
         lastNeighbourUpdate = Simulator::Now().GetMilliSeconds();
     }
-    else if (prefix.compare("/controller"))
+    else if (prefix.compare(SdnNdn::CONTROLLER_PREFIX))
     {
         lastControllerResponse = Simulator::Now().GetMilliSeconds();
+        AddController(contentObject);
     }
+}
+
+void SDNRouterApp::AddController(Ptr<const Data> contentObject)
+{
+    uint8_t *buf = (uint8_t*) malloc(sizeof(uint8_t) * contentObject->GetPayload()->GetSize());
+    contentObject->GetPayload()->CopyData(buf, contentObject->GetPayload()->GetSize());
+
+    std::string responseStr = reinterpret_cast<char const*>(buf);
 }
 
 void SDNRouterApp::OnInterest(Ptr<const Interest> interest)
 {
     std::string prefix = interest->GetName().getPrefix(1, 0).toUri();
 
-    if (prefix.compare("/neighbours") == 0)
+    if (prefix.compare(SdnNdn::NEIGHBOURS_PREFIX) == 0)
     {
         Ptr<Node> node = GetNode();
 
@@ -58,6 +68,7 @@ void SDNRouterApp::OnInterest(Ptr<const Interest> interest)
         Ptr<Data> response = Create<Data> (Create<Packet> (writer.write(responseContent)));
         response->SetName(interest->GetName());
         response->SetTimestamp(Simulator::Now());
+        //response->SetFreshness(Create<Time>(0));
         //response->GetPayload()->CopyData()
         uint8_t *buffer = (uint8_t*)(malloc (sizeof(uint8_t) * response->GetPayload()->GetSize()));
 
@@ -91,11 +102,9 @@ void SDNRouterApp::DiscoverNeighbours()
 
     UniformVariable rand (0,std::numeric_limits<uint32_t>::max ());
 
-    prefixStream << "/neighbours";
-    prefixStream << "/" << rand.GetValue();
+    prefixStream << SdnNdn::NEIGHBOURS_PREFIX;
+    prefixStream << "/" << rand.GetValue(); //avoid caching; TODO: find better way to avoid caching of certain interests
     prefixStream << "/" << node->GetId();
-
-    //std::string prefix = "/neighbours";
 
     Ptr<ndn::Interest> interest = Create<ndn::Interest> ();
     interest->SetName(Create<Name>(prefixStream.str()));
@@ -111,7 +120,8 @@ void SDNRouterApp::DiscoverNeighbours()
 
     m_face->ReceiveInterest (interest);
 
-    Simulator::Schedule(Seconds(2.0), &SDNRouterApp::DiscoverNeighbours, this);
+    //needs to be done only once => only the controller has to know about all connections
+    //Simulator::Schedule(Seconds(2.0), &SDNRouterApp::DiscoverNeighbours, this);
 }
 
 void SDNRouterApp::DiscoverController()
@@ -119,7 +129,7 @@ void SDNRouterApp::DiscoverController()
     Ptr<Node> node = GetNode();
     std::stringstream prefixStream;
 
-    prefixStream << "/controller";
+    prefixStream << SdnNdn::CONTROLLER_PREFIX;
     UniformVariable rand1 (0, std::numeric_limits<uint32_t>::max ());
     prefixStream << "/" << node->GetId();
     // Create and configure ndn::Interest
@@ -128,8 +138,6 @@ void SDNRouterApp::DiscoverController()
     UniformVariable rand (0,std::numeric_limits<uint32_t>::max ());
     interest->SetNonce            (rand.GetValue ());
     interest->SetInterestLifetime (Seconds (1.0));
-
-    //NS_LOG_DEBUG ("Sending Interest packet for " << prefixStream.str());
 
     // Call trace (for logging purposes)
     m_transmittedInterests (interest, this, m_face);
@@ -142,13 +150,14 @@ void SDNRouterApp::DiscoverController()
 
 void SDNRouterApp::RegisterAtController()
 {
-    /*
+
     //only register if there is at least one new known neighbour
     if (lastNeighbourUpdate > lastControllerRegistrationSent)
     {
         Ptr<Node> node = GetNode();
         std::stringstream prefixStream;
-        prefixStream << "/controller/register/" << node->GetId();
+        prefixStream << SdnNdn::CONTROLLER_REGISTER
+                     << "/" << node->GetId();
 
         Ptr<Interest> interest = Create<Interest>();
         interest->SetName(prefixStream.str());
@@ -163,7 +172,7 @@ void SDNRouterApp::RegisterAtController()
         //no need to reschedule here since scheduling is done in DiscoverController
         lastControllerRegistrationSent = Simulator::Now().GetMilliSeconds();
     }
-    */
+
 }
 
 } // namespace sdn

@@ -41,10 +41,14 @@ class SDNRouterApp : public ndn::App
         void DiscoverNeighbours();
 
         void RegisterAtController();
+        void AddController(Ptr<const Data> contenObject);
 private:
         int64_t lastNeighbourUpdate;
         int64_t lastControllerResponse;
         int64_t lastControllerRegistrationSent;
+
+        // controllerId -> {active | inactive}
+        std::map<std::string, bool> controllers;
 
 
 };

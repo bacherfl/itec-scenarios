@@ -1,5 +1,6 @@
 #include "sdncontroller.h"
 #include <stdio.h>
+#include "sdn-ndn.h"
 
 namespace ns3 {
 namespace ndn {
