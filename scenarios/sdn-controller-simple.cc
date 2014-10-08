@@ -58,6 +58,7 @@ main (int argc, char *argv[])
   for (int i = 0; i < 4; i++)
   {
       ndnGlobalRoutingHelper.AddOrigin("/neighbours", allNodes[i]);
+      ndnGlobalRoutingHelper.AddOrigin("/router", allNodes[i]);
   }
 
   ndnGlobalRoutingHelper.AddOrigin("/controller", node1);
@@ -65,7 +66,7 @@ main (int argc, char *argv[])
 
   ndn::GlobalRoutingHelper::CalculateRoutes();
 
-  Simulator::Stop (Seconds (10.0));
+  Simulator::Stop (Seconds (15.0));
 
   Simulator::Run ();
   Simulator::Destroy ();
