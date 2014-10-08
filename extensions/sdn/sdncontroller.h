@@ -37,7 +37,8 @@ class SDNController : public ndn::App
         virtual void
         OnData(Ptr<const Data> contentObject);
 
-    private:
+        void SendNeighbourRequestToRouter(std::string routerId);
+private:
         Ptr<SDNInterestHandler> sdnInterestHandler;
 };
 

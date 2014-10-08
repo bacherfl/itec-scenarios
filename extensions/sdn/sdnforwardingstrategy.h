@@ -2,6 +2,7 @@
 #define SDNFORWARDINGSTRATEGY_H
 
 #include <ns3-dev/ns3/ndn-forwarding-strategy.h>
+#include <ns3-dev/ns3/ndn-name.h>
 #include <vector>
 #include <map>
 
@@ -20,6 +21,7 @@ public:
 
     SDNForwardingStrategy();
 
+    void PrintForwardingBase();
 protected:
     virtual bool
     DoPropagateInterest(Ptr<Face> inFace,
@@ -35,16 +37,26 @@ protected:
     void init();
     bool DiscoverController(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
     bool DiscoverNeighbours(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
+
     void AddControllerLocation(std::string controllerId, Ptr<Face> face);
-    void PrintControllerMap();
-    bool FloodInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
-    bool ForwardNeighbourDiscoveryInterestToApp(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
     void AddNeighbour(Ptr<Face> inFace, Ptr<Data> data);
+
+    //TODO move printing stuff to some logging class
+    void PrintControllerMap();
     void PrintNeighbours();
+
+
+    //TODO move forwarding stuff to forwarding engine class
+    bool            FloodInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
+    bool            ForwardInterestToApp(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
+    void            ForwardControllerRegistration(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
+    Ptr<Face>       SelectControllerFace();
+    virtual void    AddFibEntry(std::string prefix, int faceId);
 
 private:
 
     std::vector<Ptr<ndn::Face> > facesList;
+    //TODO use a heap structure for the controller faces;
     typedef std::map<Ptr<Face>, int64_t > ControllerFaceEntry; //controller face -> RTT
     typedef std::map<std::string, ControllerFaceEntry > ControllerMap;
     ControllerMap controllerMap;
@@ -59,6 +71,9 @@ private:
 
     int64_t controllerDiscoveryStartTime;
     int64_t neighbourDiscoveryStartTime ;
+
+    //TODO use more sophisticated forwarding strategies such as proposed by daniel
+    std::map<std::string, std::vector<Ptr<Face> > > forwardingBase;
 };
 
 }

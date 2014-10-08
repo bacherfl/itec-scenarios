@@ -31,30 +31,51 @@ void SDNRouterApp::OnData(Ptr<const Data> contentObject)
     std::string prefix = contentObject->GetName().getPrefix(1, 0).toUri();
 
     //neighbour response
-    if (prefix.compare(SdnNdn::NEIGHBOURS_PREFIX))
+    if (prefix.compare(SdnNdn::NEIGHBOURS_PREFIX) == 0)
     {
         lastNeighbourUpdate = Simulator::Now().GetMilliSeconds();
+        AddNeighbour(contentObject);
     }
-    else if (prefix.compare(SdnNdn::CONTROLLER_PREFIX))
+    else if (prefix.compare(SdnNdn::CONTROLLER_PREFIX) == 0)
     {
         lastControllerResponse = Simulator::Now().GetMilliSeconds();
         AddController(contentObject);
     }
 }
 
+void SDNRouterApp::AddNeighbour(Ptr<const Data> contentObject)
+{
+    Json::Value root = SdnNdn::GetContentObjectJson(contentObject);
+
+    if (!root.isNull())
+    {
+        int rtt = Simulator::Now().GetMilliSeconds() - lastNeighbourUpdate;
+        int neighbourId = root.get("id", 0).asInt();
+
+        std::cout << "Adding neighbour " << neighbourId << "\n";
+
+        std::stringstream neighbourIdStr;
+        neighbourIdStr << neighbourId;
+        neighbours[neighbourIdStr.str()] = rtt;
+    }
+}
+
 void SDNRouterApp::AddController(Ptr<const Data> contentObject)
 {
-    uint8_t *buf = (uint8_t*) malloc(sizeof(uint8_t) * contentObject->GetPayload()->GetSize());
-    contentObject->GetPayload()->CopyData(buf, contentObject->GetPayload()->GetSize());
-
-    std::string responseStr = reinterpret_cast<char const*>(buf);
+    // TODO
 }
 
 void SDNRouterApp::OnInterest(Ptr<const Interest> interest)
 {
-    std::string prefix = interest->GetName().getPrefix(1, 0).toUri();
+    std::string prefix = interest->GetName().toUri();
 
-    if (prefix.compare(SdnNdn::NEIGHBOURS_PREFIX) == 0)
+    if (prefix.find(SdnNdn::CONTROLLER_NEIGHBOUR_REQUEST) != std::string::npos)
+    {
+        std::cout << "received neighbour request from controller \n";
+        //TODO send JSON object containing all neighbours of this router back to the requester
+        SendMyNeighbours(interest);
+    }
+    else if (prefix.find(SdnNdn::NEIGHBOURS_PREFIX) != std::string::npos)
     {
         Ptr<Node> node = GetNode();
 
@@ -63,24 +84,41 @@ void SDNRouterApp::OnInterest(Ptr<const Interest> interest)
         responseContent["id"] = node->GetId();
         //responseContent["seq"] = sequenceNumber++;
 
-        Json::FastWriter writer;
-
-        Ptr<Data> response = Create<Data> (Create<Packet> (writer.write(responseContent)));
-        response->SetName(interest->GetName());
-        response->SetTimestamp(Simulator::Now());
-        //response->SetFreshness(Create<Time>(0));
-        //response->GetPayload()->CopyData()
-        uint8_t *buffer = (uint8_t*)(malloc (sizeof(uint8_t) * response->GetPayload()->GetSize()));
-
-        response->GetPayload()->CopyData(buffer, response->GetPayload()->GetSize());
-
-        std::string s (reinterpret_cast<char const*>(buffer));
-
-        //std::cout << "Packet payload = " << s << "\n";
-
-        m_face->ReceiveData(response);
-        m_transmittedDatas(response, this, m_face);
+        SendResponse(interest, responseContent);
     }
+    else if (prefix.find(SdnNdn::CONTROLLER_NEIGHBOUR_REQUEST) != std::string::npos)
+    {
+        std::cout << "Received neighbour request from controller \n";
+
+    }
+}
+
+void SDNRouterApp::SendMyNeighbours(Ptr<const Interest> interest)
+{
+    Json::Value neighbourArray = Json::Value(Json::arrayValue);
+    for (std::map<std::string, int>::iterator it = neighbours.begin(); it != neighbours.end(); it++)
+    {
+        Json::Value neighbour = Json::Value(Json::objectValue);
+        neighbour["id"] = it->first;
+        neighbour["rtt"] = it->second;
+        neighbourArray.append(neighbour);
+    }
+
+    Json::Value responseContent = Json::Value(Json::objectValue);
+    responseContent["neighbours"] = neighbourArray;
+
+    SendResponse(interest, responseContent);
+}
+
+void SDNRouterApp::SendResponse(Ptr<const Interest> interest, Json::Value jsonObject)
+{
+    Json::FastWriter writer;
+
+    Ptr<Data> response = Create<Data> (Create<Packet> (writer.write(jsonObject)));
+    response->SetName(interest->GetName());
+    response->SetTimestamp(Simulator::Now());
+    m_face->ReceiveData(response);
+    m_transmittedDatas(response, this, m_face);
 }
 
 void SDNRouterApp::StopApplication()
@@ -152,6 +190,7 @@ void SDNRouterApp::RegisterAtController()
 {
 
     //only register if there is at least one new known neighbour
+    // TODO: there also has to be a known controller, otherwise the simulation will crash at the forwarding plane
     if (lastNeighbourUpdate > lastControllerRegistrationSent)
     {
         Ptr<Node> node = GetNode();

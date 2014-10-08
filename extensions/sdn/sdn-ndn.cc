@@ -4,10 +4,11 @@ namespace ns3 {
 namespace ndn {
 namespace sdn {
 
-const std::string SdnNdn::CONTROLLER_PREFIX     = "/controller";
-const std::string SdnNdn::NEIGHBOURS_PREFIX     = "/neighbours";
-const std::string SdnNdn::REGISTER_PREFIX       = "/register";
-const std::string SdnNdn::CONTROLLER_REGISTER   = "/controller/register";
+const std::string SdnNdn::CONTROLLER_PREFIX             = "/controller";
+const std::string SdnNdn::NEIGHBOURS_PREFIX             = "/neighbours";
+const std::string SdnNdn::REGISTER_PREFIX               = "/register";
+const std::string SdnNdn::CONTROLLER_REGISTER           = "/controller/register";
+const std::string SdnNdn::CONTROLLER_NEIGHBOUR_REQUEST  = "/router/neighbours/all";
 
 std::string SdnNdn::GetContentObjectString(Ptr<const Data> contentObject)
 {
@@ -27,8 +28,7 @@ Json::Value SdnNdn::GetContentObjectJson(Ptr<const Data> contentObject)
 
     if (!reader.parse(responseString, root))
     {
-        std::cout << "Error while parsing controller response";
-        return NULL;
+        std::cout << "Error while parsing json string \n";
     }
 
     return root;

@@ -16,16 +16,17 @@ SDNInterestHandler::SDNInterestHandler(Ptr<App> owner):
 
 Ptr<Data> SDNInterestHandler::ProcessInterest(Ptr<const ns3::ndn::Interest> interest)
 {
-    std::string prefix = interest->GetName().getPrefix(1, 0).toUri();
     string interestName = interest->GetName().toUri();
 
     if ((interestName.find(SdnNdn::CONTROLLER_PREFIX) != string::npos) &&
             (interestName.find(SdnNdn::REGISTER_PREFIX) != string::npos))
-    {
+    {        
         return CreateRouterRegistrationAck(interest);
     }
     else if (interestName.find(SdnNdn::CONTROLLER_PREFIX) != string::npos)
     {
+        //TODO check sequence numbers
+
         return CreateControllerDiscoveryResponse(interest);
     }
 
@@ -34,8 +35,8 @@ Ptr<Data> SDNInterestHandler::ProcessInterest(Ptr<const ns3::ndn::Interest> inte
 
 Ptr<Data> SDNInterestHandler::CreateRouterRegistrationAck(Ptr<const Interest> interest)
 {
-    Ptr<Data> response = Create<Data();
-    response->SetName(interest->GetName);
+    Ptr<Data> response = Create<Data>(Create<Packet>());
+    response->SetName(interest->GetName());
     response->SetTimestamp(Simulator::Now());
 
     return response;
