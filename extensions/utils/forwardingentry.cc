@@ -8,12 +8,15 @@ ForwardingEntry::ForwardingEntry(std::vector<int> faceIds, Ptr<fib::Entry> fibEn
 {
   this->fibEntry = fibEntry;
 
-  initFaceIds(faceIds);
-
-  faceIds_active = faceIds;
-
+  //to this to enable/disable dnymaic face adding/removing
+  /*initFaceIds(faceIds);
   this->fwTable = Create<ForwardingProbabilityTable>(faceIds_active);
-  this->fwStats = Create<ForwardingStatistics>(faceIds_active);
+  this->fwStats = Create<ForwardingStatistics>(faceIds_active);*/
+
+
+  initFaceIds(faceIds);
+  this->fwTable = Create<ForwardingProbabilityTable>(faceIds, faceIds_active);
+  this->fwStats = Create<ForwardingStatistics>(faceIds);
 }
 
 void ForwardingEntry::initFaceIds(std::vector<int> faceIds)
@@ -49,9 +52,8 @@ void ForwardingEntry::update()
   fwTable->syncDroppingPolicy(fwStats);
 
   //now check if we should remove / add faces
-
-  checkForAddFaces();
-  checkForRemoveFaces();
+  //checkForAddFaces();
+  //checkForRemoveFaces();
 
 }
 
@@ -60,7 +62,7 @@ void ForwardingEntry::checkForAddFaces()
   if(faceIds_standby.empty ())
     return;
 
-  //todo
+  //
 }
 
 void ForwardingEntry::checkForRemoveFaces()

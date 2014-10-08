@@ -5,13 +5,13 @@ using namespace boost::numeric::ublas;
 
 NS_LOG_COMPONENT_DEFINE ("ForwardingProbabilityTable");
 
-ForwardingProbabilityTable::ForwardingProbabilityTable(std::vector<int> faceIds)
+ForwardingProbabilityTable::ForwardingProbabilityTable(std::vector<int> faceIds, std::vector<int> preferedFacesIds)
 {
   this->faceIds = faceIds;
-  initTable ();
+  initTable (preferedFacesIds);
 }
 
-void ForwardingProbabilityTable::initTable ()
+void ForwardingProbabilityTable::initTable (std::vector<int> preferedFacesIds)
 {
   std::sort(this->faceIds.begin(), this->faceIds.end());//order
 
@@ -24,8 +24,21 @@ void ForwardingProbabilityTable::initTable ()
     {
       if(faceIds.at (i) == DROP_FACE_ID)
         table(i,j) = 0.0;
-      else
+      else if(preferedFacesIds.size () == 0)
+      {
         table(i,j) = (1.0 / ((double)faceIds.size () - 1.0)); /*set default value to 1 / (d - 1) */
+      }
+      else
+      {
+        if(std::find(preferedFacesIds.begin (), preferedFacesIds.end (), faceIds.at (i)) != preferedFacesIds.end ())
+        {
+          table(i,j) = (1.0 / ((double)preferedFacesIds.size () - 1.0)); /*set default value to 1 / (d - 1) */
+        }
+        else
+        {
+          table(i,j) = 0; /*set default value to 1 / (d - 1) */
+        }
+      }
     }
   }
 
@@ -304,7 +317,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       {
         //fprintf(stderr, "CASE 3\n");
 
-        if(r_faces.size () == 0 || table(determineRowOfFace (DROP_FACE_ID), layer) == 0.0)
+        if(r_faces.size () == 0 || table(determineRowOfFace (DROP_FACE_ID), layer) < X_DROPPING) //then use the old values
           return;
 
          double probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;

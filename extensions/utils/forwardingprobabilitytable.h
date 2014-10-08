@@ -17,6 +17,8 @@
 
 #define ALPHA 0.25
 
+#define X_DROPPING 0.4
+
 #define PROBING_TRAFFIC 0.15
 #define SHIFT_THRESHOLD 0.01
 #define SHIFT_TRAFFIC 0.20
@@ -29,7 +31,7 @@ namespace ndn
 class ForwardingProbabilityTable : public SimpleRefCount<ForwardingProbabilityTable>
 {
 public:
-  ForwardingProbabilityTable(std::vector<int> faceIds);
+  ForwardingProbabilityTable(std::vector<int> faceIds, std::vector<int> preferedFacesIds = std::vector<int>());
 
   int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer);
 
@@ -48,7 +50,7 @@ protected:
   std::vector<int> faceIds;
   std::map<int /*layer*/, bool /*punished*/> jammed;
 
-  void initTable();
+  void initTable(std::vector<int> preferedFacesIds);
   boost::numeric::ublas::matrix<double> removeFaceFromTable(Ptr<ndn::Face> face);
   boost::numeric::ublas::matrix<double> removeFaceFromTable (int faceId);
   boost::numeric::ublas::matrix<double> addFaceToTable (Ptr<ndn::Face> face);
