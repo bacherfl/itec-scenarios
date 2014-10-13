@@ -8,6 +8,7 @@ Install Guide (testet on Ubuntu 12.04 64bit)
     * Boost C++
 		* libcurl
 		* cmake
+		+ BRITE
 
 # Building:
 
@@ -18,9 +19,15 @@ Install Guide (testet on Ubuntu 12.04 64bit)
     * git clone git://github.com/cawka/pybindgen.git pybindgen
     * git clone git://github.com/NDN-Routing/ndnSIM.git ns-3/src/ndnSIM
 
+		# Building Brite
+		* hg clone http://code.nsnam.org/BRITE
+		* cd BRITE
+		* make
+		* cd ..
+
     # Build and install NS-3 and ndnSIM
     * cd ns-3
-    * ./waf configure -d optimized
+    * ./waf configure -d optimized --with-brite=../BRITE
     * ./waf
     * sudo ./waf install
     * cd ..
