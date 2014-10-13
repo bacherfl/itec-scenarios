@@ -41,6 +41,7 @@ def configure(conf):
 
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
     conf.check(lib='brite', uselib="BRITE", define_name='HAVE_BRITE')
+    #conf.check(lib='ns3-dev-brite-optimized', uselib="BRITE", define_name='HAVE_NS3_BRITE')
     conf.env.append_value('/usr/local/include/libdash/', ['include'])
 
     conf.check_boost(lib='system iostreams')
@@ -108,7 +109,7 @@ def build (bld):
             target = name,
             features = ['cxx'],
             source = [scenario],        #added by dposch
-            use = deps + " extensions DASH",
+            use = deps + " extensions DASH BRITE",
             includes = " extensions"
             )
 
