@@ -23,13 +23,20 @@ Install Guide (testet on Ubuntu 12.04 64bit)
 		* hg clone http://code.nsnam.org/BRITE
 		* cd BRITE
 		* make
-		* cd ..
+		* sudo cp *.h /usr/local/include/ns3-dev/ns3
+		* sudo cp libbrite.so /usr/lib/
+		* sudo mkdir /usr/local/include/ns3-dev/ns3/Models
+		* cd Models/
+		* sudo cp *.h /usr/local/include/ns3-dev/ns3/Models
+		* cd ../..
 
     # Build and install NS-3 and ndnSIM
     * cd ns-3
     * ./waf configure -d optimized --with-brite=../BRITE
     * ./waf
     * sudo ./waf install
+		* cd ./build
+		* sudo cp ./libns3-dev-brite-optimized.so /usr/local/lib/
     * cd ..
 
     # Build itec-scenarios

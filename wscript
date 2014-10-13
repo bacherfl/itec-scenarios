@@ -40,6 +40,7 @@ def configure(conf):
     #conf.env.append_value('LIBPATH', conf.env['LIBPATH_LIBDAI'])
 
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
+    conf.check(lib='brite', uselib="BRITE", define_name='HAVE_BRITE')
     conf.env.append_value('/usr/local/include/libdash/', ['include'])
 
     conf.check_boost(lib='system iostreams')

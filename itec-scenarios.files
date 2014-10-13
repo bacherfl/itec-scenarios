@@ -174,3 +174,4 @@ topologies/abilene.top
 scenarios/abilene.cc
 extensions/utils/statisticsconsumer.h
 extensions/utils/statisticsconsumer.cc
+scenarios/brite_example.cc
