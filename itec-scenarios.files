@@ -175,3 +175,5 @@ scenarios/abilene.cc
 extensions/utils/statisticsconsumer.h
 extensions/utils/statisticsconsumer.cc
 scenarios/brite_example.cc
+extensions/utils/ndnbritehelper.h
+extensions/utils/ndnbritehelper.cc
