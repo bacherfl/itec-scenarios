@@ -122,10 +122,11 @@ int main(int argc, char* argv[])
 
   ndn::AppHelper consumerHelper ("ns3::ndn::StatisticsConsumer");
   consumerHelper.SetPrefix (prefix);
+  //consumerHelper.SetAttribute ("LifeTime", StringValue("2.0s"));
   consumerHelper.SetAttribute ("Frequency", StringValue ("1000")); // X interests a second
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
   ApplicationContainer app1 = consumerHelper.Install (streamers);
-  app1.Get (0)->SetStopTime(Seconds(180));
+  app1.Stop (Seconds(180));
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
   producerHelper.SetPrefix (prefix);
@@ -139,8 +140,8 @@ int main(int argc, char* argv[])
 
   // Calculate and install FIBs
   //this is needed because otherwise On::Interest()-->createPITEntry will fail. Has no negative effect on the algorithm
-  //ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
-  ndn::GlobalRoutingHelper::CalculateRoutes ();
+  ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes ();
+  //ndn::GlobalRoutingHelper::CalculateRoutes ();
 
   Simulator::Schedule (Seconds (20.0), ndn::LinkControlHelper::FailLink, Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
   Simulator::Schedule (Seconds (30.0), ndn::LinkControlHelper::UpLink,   Names::Find<Node>("Router0"), Names::Find<Node>("Router7"));
@@ -159,7 +160,11 @@ int main(int argc, char* argv[])
 
   NS_LOG_UNCOND("Simulation will be started!");
 
-  Simulator::Stop (Seconds(180.1)); //runs for 3 min.
+  ndn::L3AggregateTracer::Install (Names::Find<Node>("ContentDst0"),"aggregate-trace.txt", Seconds (180.0));
+  L2RateTracer::InstallAll("drop-trace.txt", Seconds (180.0));
+  ndn::AppDelayTracer::InstallAll("app-delays-trace.txt");
+
+  Simulator::Stop (Seconds(180.001)); //runs for 3 min.
   Simulator::Run ();
   Simulator::Destroy ();
 
