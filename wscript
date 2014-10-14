@@ -39,6 +39,8 @@ def configure(conf):
     #conf.env.append_value('CPPPATH', conf.env['CPPPATH_LIBDAI'])
     #conf.env.append_value('LIBPATH', conf.env['LIBPATH_LIBDAI'])
 
+    conf.env['jsoncpp'] = conf.check(mandatory=True, lib='jsoncpp', uselib_store='JSONCPP')
+
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
     conf.env.append_value('/usr/local/include/libdash/', ['include'])
 
@@ -89,7 +91,7 @@ def build (bld):
         source = bld.path.ant_glob(['extensions/**/*.cc']),
         use = deps,
         cxxflags = [bld.env.CXX11_CMD],
-        includes = ' libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/'
+        includes = ' libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/ /usr/local/include/jsoncpp'
         )
 
     #framework = bld.objects (
@@ -107,7 +109,7 @@ def build (bld):
             target = name,
             features = ['cxx'],
             source = [scenario],        #added by dposch
-            use = deps + " extensions DASH",
+            use = deps + " extensions DASH JSONCPP",
             includes = " extensions"
             )
 
