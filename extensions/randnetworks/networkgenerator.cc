@@ -45,7 +45,7 @@ void NetworkGenerator::randomlyPlaceNodes (int nodeCount, std::string setIdentif
     }
   }
 
-  fprintf(stderr, "container.size = %d\n", container.size ());
+  //fprintf(stderr, "container.size = %d\n", container.size ());
 
   if(container.size () == 0)
   {
@@ -65,6 +65,35 @@ void NetworkGenerator::randomlyPlaceNodes (int nodeCount, std::string setIdentif
   }
 
   nodeContainerMap[setIdentifier] = customNodes;
+}
+
+void NetworkGenerator::randomlyAddConnectionsBetweenAllAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms)
+{
+  PointToPointHelper p2p;
+
+  for(int i = 0; i<getNumberOfAS (); i++)
+  {
+    int j = i+1;
+    while(j < getNumberOfAS ())
+    {
+      for(int c = 0; c < numberOfConnectionsPerAsPair; c++)
+      {
+        std::string delay(boost::lexical_cast<std::string>(rvariable->GetValue (minDelay_ms,maxDelay_ms)));
+        delay.append ("ms");
+
+        std::string bw(boost::lexical_cast<std::string>(rvariable->GetValue (minBW_kbits,maxBw_kbits)));
+        bw.append ("Kbps");
+
+        p2p.SetDeviceAttribute ("DataRate", ns3::StringValue (bw));
+        p2p.SetChannelAttribute ("Delay", ns3::StringValue (delay));
+
+        int rand_node_i = rvariable->GetInteger (0,getAllASNodesFromAS (i).size ()-1);
+        int rand_node_j = rvariable->GetInteger (0,getAllASNodesFromAS (j).size ()-1);
+        p2p.Install (getAllASNodesFromAS (i).Get (rand_node_i), getAllASNodesFromAS (j).Get (rand_node_j));
+      }
+      j++;
+    }
+  }
 }
 
 int NetworkGenerator::getNumberOfAS ()

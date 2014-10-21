@@ -369,21 +369,21 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 
   NS_LOG_DEBUG("Forwarding Matrix after update:\n" << table);
 
-  std::stringstream ss1;
+  /*std::stringstream ss1;
   ss1 << table;
-  std::string s1 = ss1.str();
+  std::string s1 = ss1.str();*/
 
   //finally just normalize to remove the error introduced by threashold RELIABILITY_THRESHOLD
   table = normalizeColumns(table);
 
-  std::stringstream ss2;
+  /*std::stringstream ss2;
   ss2 << table;
   std::string s2 = ss2.str();
   if(s2.compare (s1) != 0)
   {
     fprintf(stderr, "s1 = %s\n", s1.c_str ());
     fprintf(stderr, "s2 = %s\n\n", s2.c_str ());
-  }
+  }*/
 
   NS_LOG_DEBUG("Forwarding Matrix after normalization:\n" << table);
 }

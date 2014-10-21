@@ -7,6 +7,8 @@
 #include "ns3/ndnSIM/apps/ndn-consumer-cbr.h"
 #include "ns3/ndn-app.h"
 
+#include <map>
+
 #include <stdio.h>
 
 namespace ns3 {
@@ -45,6 +47,14 @@ namespace ndn {
         long nrSatisfiedInterests;
         long nrTimeouts;
         long nrNacks;
+
+        typedef std::map<
+        int /*prefix seq_nr*/,
+        int /*requested*/
+        > RequestMap;
+
+        RequestMap rmap;
+
     };
 }
 }

@@ -48,6 +48,7 @@ void StatisticsConsumer::WillSendOutInterest(uint32_t sequenceNumber)
 {
     nrSentInterests++;
     //NS_LOG_DEBUG ("Sending out interest " << sequenceNumber);
+    rmap[sequenceNumber] = rmap[sequenceNumber] + 1;
     ndn::ConsumerCbr::WillSendOutInterest(sequenceNumber);
 }
 
@@ -82,7 +83,20 @@ void StatisticsConsumer::OnData(Ptr<const Data> contentObject)
 void StatisticsConsumer::StopApplication()
 {
     //NS_LOG_DEBUG ("Sent interests: " << nrSentInterests << ", timeouts: " << nrTimeouts << ", NACKS: " << nrNacks);
-    fprintf(stderr, "Sent = %d ; Statisfied = %d ; Nacks = %d ; Timeouts = %d\n", nrSentInterests, nrSatisfiedInterests, nrNacks, nrTimeouts);
+    fprintf(stderr, "Sent = %lu ; Statisfied = %lu ; Nacks = %lu ; Timeouts = %lu\n", nrSentInterests, nrSatisfiedInterests, nrNacks, nrTimeouts);
+    fprintf(stderr, "Last i_seq0=%lu\n",m_seq);
+
+    fprintf(stderr, "rmap.size()=%d\n", rmap.size ());
+
+    int requests = 0;
+    for(RequestMap::iterator it = rmap.begin (); it != rmap.end (); it++)
+    {
+      requests += it->second;
+    }
+
+    fprintf(stderr, "requests=%d\n", requests);
+
+
     ndn::ConsumerCbr::StopApplication();
 }
 

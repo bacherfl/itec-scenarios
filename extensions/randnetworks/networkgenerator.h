@@ -4,6 +4,11 @@
 #include "ndnbritehelper.h"
 #include "map"
 #include "ns3/random-variable-stream.h"
+#include "ns3/point-to-point-module.h"
+
+#include "ns3/core-module.h"
+#include "ns3/network-module.h"
+#include "ns3/ndnSIM-module.h"
 
 #include "ns3/names.h"
 #include "ns3/log.h"
@@ -27,6 +32,8 @@ public:
   NetworkGenerator(std::string conf_file);
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, PointToPointHelper *p2p);
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, PointToPointHelper *p2p, std::vector<int> ASnumbers);
+
+  void randomlyAddConnectionsBetweenAllAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay, int maxDelay);
 
   int getNumberOfAS();
   int getNumberOfNodesInAS(int ASnumber);
