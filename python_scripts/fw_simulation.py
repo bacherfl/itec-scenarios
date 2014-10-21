@@ -10,77 +10,6 @@ import re
 from subprocess import call
 import consumer_stats as consumer_stats
 
-def generateStats(rootdir):
-
-	print "RootDir = " + rootdir
-
-	ratio = 0
-	counter = 0
-
-	for subdir, dirs, files in os.walk(rootdir):
-		files = glob.glob(subdir + "/*aggregate-trace_*.txt" );
-
-		stats = {}
-
-		TIME_INDEX = 0
-		NODE_INDEX = 1
-		FACE_INDEX = 2 
-		FACE_DESCRIPTION_INDEX = 3
-		TYPE_INDEX = 4
-		PACKET_NR_INDEX = 5
-
-		total_number_of_requests = 0.0
-		total_number_of_statisfied_requests = 0.0
-
-		for file in files:
-			#print  "processing file " + file
-
-			f = open(file,"r");	
-
-			#create first lvl of dictionary and init second level with 0
-			for line in f:
-				l = line.split('\t')
-				if(len(l) < PACKET_NR_INDEX+1):
-					continue
-
-				if("dev=local" in l[FACE_DESCRIPTION_INDEX]):
-					if(l[NODE_INDEX] not in stats):
-						stats[l[NODE_INDEX]] = {}
-
-					if(l[TYPE_INDEX] not in stats[l[NODE_INDEX]]):
-						stats[l[NODE_INDEX]].update({l[TYPE_INDEX]: 0})
-
-			#fill second levle with data
-			f.seek(0)
-			for line in f:
-				l = line.split('\t')		
-				if(len(l) < PACKET_NR_INDEX+1):
-					continue
-
-				if("dev=local" in l[FACE_DESCRIPTION_INDEX]):
-					stats[l[NODE_INDEX]][l[TYPE_INDEX]] += int(l[PACKET_NR_INDEX])
-		
-
-		for key in stats:
-			total_number_of_requests += stats[key]['InInterests']
-			total_number_of_statisfied_requests += stats[key]['OutData']
-
-		print "total_number_of_requests = " + str(total_number_of_requests)
-		print "total_number_of_statisfied_requests = " + str(total_number_of_statisfied_requests)
-
-		if total_number_of_requests > 0:
-			output_file = open(subdir+"/STATS.txt", "w")
-			output_file.write("total_number_of_requests: " + str(total_number_of_requests)+"\n")
-			output_file.write("total_number_of_statisfied_requests: " + str(total_number_of_statisfied_requests)+"\n")
-			output_file.write("ratio: " + str(total_number_of_statisfied_requests/total_number_of_requests)+"\n")
-
-			ratio += (total_number_of_statisfied_requests/total_number_of_requests)
-			counter += 1
-
-	output_file = open(rootdir+"/STATS.txt", "w")
-	output_file.write("ratio: " + str(ratio/counter) +"\n")
-
-
 def copyResults(src,dst):
 	files = glob.glob(src + "/*.txt" );
 
@@ -101,7 +30,7 @@ def copyResults(src,dst):
 
 SIMULATION_DIR=os.getcwd()
 
-SIMULATION_RUNS = 2
+SIMULATION_RUNS = 10
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 
 #brite config file
@@ -146,7 +75,7 @@ for scenarioName in SCENARIOS.keys():
 		print "Simulation run " + str(i) + " in progress..." 
 		tmp = [SIMULATION_DIR+"/" + executeable] +  SCENARIOS[scenarioName]['params'] + ["--RngRun=" + str(i)]
 		print tmp
-		#call(tmp)
+		call(tmp)
 		
 		# move results
 	
