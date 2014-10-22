@@ -36,7 +36,7 @@ SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 #brite config file
 scenario="brite_example"
 
-briteConfig="--briteConfFile=brite_daniel.conf"
+briteConfig="--briteConfFile=brite_low_bw.conf"
 
 bestRoute="--fw-strategy=bestRoute"
 smartFlooding="--fw-strategy=smartflooding"
@@ -82,11 +82,10 @@ for scenarioName in SCENARIOS.keys():
 		dst = SIMULATION_OUTPUT+scenarioName + "/output_run"+str(i)
 		copyResults(SIMULATION_OUTPUT, dst)
 		print "Results copied to", dst
-
-		#compute statistics
-		#generateStats(SIMULATION_OUTPUT+scenarioName);
-		consumer_stats.generateStatsPerSimulation(SIMULATION_OUTPUT+scenarioName);
 	# end for
+
+	#compute statistics
+	consumer_stats.generateStatsPerSimulation(SIMULATION_OUTPUT+scenarioName);
 	
 # end for
 print "Finished."

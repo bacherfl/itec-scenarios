@@ -9,7 +9,7 @@ ForwardingEngine::ForwardingEngine(std::vector<Ptr<ndn::Face> > faces, Ptr<ndn::
   this->prefixComponentNumber = prefixComponentNumber;
   this->fib = fib;
   init(faces);
-  updateEventFWT = Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
+  updateEventFWT = Simulator::Schedule(Seconds(ParameterConfiguration::getInstance ()->getParameter ("UPDATE_INTERVALL")), &ForwardingEngine::update, this);
 }
 
 ForwardingEngine::~ForwardingEngine ()
@@ -133,7 +133,7 @@ void ForwardingEngine::update ()
     it->second->update();
   }
 
-  updateEventFWT = Simulator::Schedule(Seconds(UPDATE_INTERVALL), &ForwardingEngine::update, this);
+  updateEventFWT = Simulator::Schedule(Seconds(ParameterConfiguration::getInstance ()->getParameter ("UPDATE_INTERVALL")), &ForwardingEngine::update, this);
 }
 
 void ForwardingEngine::logDroppingFace (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)

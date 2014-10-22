@@ -179,3 +179,5 @@ extensions/randnetworks/ndnbritehelper.h
 extensions/randnetworks/ndnbritehelper.cc
 extensions/randnetworks/networkgenerator.h
 extensions/randnetworks/networkgenerator.cc
+extensions/utils/parameterconfiguration.h
+extensions/utils/parameterconfiguration.cc

@@ -15,13 +15,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/io.hpp>
 
-#define ALPHA 0.25
-
-#define X_DROPPING 0.4
-
-#define PROBING_TRAFFIC 0.15
-#define SHIFT_THRESHOLD 0.01
-#define SHIFT_TRAFFIC 0.20
+#include "parameterconfiguration.h"
 
 #define FACE_NOT_FOUND -1
 namespace ns3

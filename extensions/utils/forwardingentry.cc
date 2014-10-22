@@ -76,7 +76,7 @@ void ForwardingEntry::checkForRemoveFaces()
 
     double min_usage = 1.0;
     double usage = 0.0;
-    for(int layer = 0; layer < MAX_LAYERS; layer++)
+    for(int layer = 0; layer < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); layer++)
     {
       usage = fwStats->getLinkReliability (*it, layer) * fwTable->getForwardingProbability (*it, layer);
       if(usage < min_usage)

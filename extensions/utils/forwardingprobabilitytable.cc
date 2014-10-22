@@ -15,7 +15,7 @@ void ForwardingProbabilityTable::initTable (std::vector<int> preferedFacesIds)
 {
   std::sort(this->faceIds.begin(), this->faceIds.end());//order
 
-  table = matrix<double> (faceIds.size () /*rows*/, MAX_LAYERS /*columns*/);
+  table = matrix<double> (faceIds.size () /*rows*/, (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS") /*columns*/);
 
   // fill matrix column-wise /* table(i,j) = i-th row, j-th column*/
   for (unsigned j = 0; j < table.size2 (); ++j) /* columns */
@@ -42,7 +42,7 @@ void ForwardingProbabilityTable::initTable (std::vector<int> preferedFacesIds)
     }
   }
 
-  for(int i = 0; i < MAX_LAYERS; i++) // set all as non-jammed
+  for(int i = 0; i < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); i++) // set all as non-jammed
     jammed[i] = false;
 
    //std::cout << table << std::endl; /* prints matrix line by line ( (first line), (second line) )*/
@@ -230,7 +230,7 @@ int ForwardingProbabilityTable::chooseFaceAccordingProbability(boost::numeric::u
 
   if(m.size1 () == 1)
   {
-    NS_LOG_UNCOND("Error ForwardingMatrix contains only one entry, which is the dropping face!");
+    //NS_LOG_UNCOND("Error ForwardingMatrix contains only one entry, which is the dropping face!");
     return DROP_FACE_ID;
   }
 
@@ -260,18 +260,18 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
   std::vector<int> r_faces;
   std::vector<int> ur_faces;
 
-  for(int layer = 0; layer < MAX_LAYERS; layer++) // for each layer
+  for(int layer = 0; layer < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); layer++) // for each layer
   {
     //determine the set of reliable faces
-    r_faces = stats->getReliableFaces (layer, RELIABILITY_THRESHOLD);
+    r_faces = stats->getReliableFaces (layer, ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"));
 
     //determine the set of unreliable faces
-    ur_faces = stats->getUnreliableFaces (layer, RELIABILITY_THRESHOLD);
+    ur_faces = stats->getUnreliableFaces (layer, ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"));
 
     //utf = unstatisfied_trafic_fraction
     //double utf = stats->getUnstatisfiedTrafficFraction (layer);
     double utf = stats->getUnstatisfiedTrafficFractionOfUnreliableFaces (layer);
-    utf *= ALPHA;
+    utf *= ParameterConfiguration::getInstance ()->getParameter ("ALPHA");
 
         /*debug information*/
     NS_LOG_DEBUG("Layer " << layer << " UTF=" << stats->getUnstatisfiedTrafficFraction (layer) << " UTF*alpha=" << utf);
@@ -317,10 +317,10 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
       {
         //fprintf(stderr, "CASE 3\n");
 
-        if(r_faces.size () == 0 || table(determineRowOfFace (DROP_FACE_ID), layer) < X_DROPPING) //then use the old values
+        if(r_faces.size () == 0 || table(determineRowOfFace (DROP_FACE_ID), layer) < ParameterConfiguration::getInstance ()->getParameter ("X_DROPPING")) //then use the old values
           return;
 
-         double probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;
+         double probe = table(determineRowOfFace (DROP_FACE_ID), layer) * ParameterConfiguration::getInstance ()->getParameter ("PROBING_TRAFFIC");
          table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
 
         //distribute the traffic
@@ -344,7 +344,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it)
         {
           //if(calcWeightedUtilization (*it,layer,stats) > SHIFT_THRESHOLD) start here
-          if(stats->getActualForwardingProbability (*it,layer) > SHIFT_THRESHOLD)
+          if(stats->getActualForwardingProbability (*it,layer) > ParameterConfiguration::getInstance()->getParameter ("SHIFT_THRESHOLD"))
             shift_faces.push_back (*it);
           else
             probe_faces.push_back (*it);
@@ -472,9 +472,9 @@ void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer, 
    double probe = 0.0;
 
   if(useDroppingProbabilityFromFWT)
-    probe = table(determineRowOfFace (DROP_FACE_ID), layer) * PROBING_TRAFFIC;
+    probe = table(determineRowOfFace (DROP_FACE_ID), layer) * ParameterConfiguration::getInstance ()->getParameter ("PROBING_TRAFFIC");
   else
-    probe = calcWeightedUtilization(DROP_FACE_ID,layer,stats) * PROBING_TRAFFIC;
+    probe = calcWeightedUtilization(DROP_FACE_ID,layer,stats) * ParameterConfiguration::getInstance ()->getParameter ("PROBING_TRAFFIC");
 
   if(useDroppingProbabilityFromFWT)
     table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
@@ -498,7 +498,7 @@ void ForwardingProbabilityTable::shiftDroppingTraffic(std::vector<int> faces, in
   }
 
   interests_to_shift /= (double)stats->getTotalForwardedInterests (layer);
-  interests_to_shift *= SHIFT_TRAFFIC;
+  interests_to_shift *= ParameterConfiguration::getInstance ()->getParameter ("SHIFT_TRAFFIC");
 
   //double dropped_interests = stats->getForwardedInterests(DROP_FACE_ID, layer);
   double dropped_interests = calcWeightedUtilization(DROP_FACE_ID,layer,stats);
@@ -541,7 +541,7 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
   NS_LOG_DEBUG("syncDroppingPolicy before update:\n" <<table);
 
   //set all layers as not jammed
-  for(int i=0; i < MAX_LAYERS; i++)
+  for(int i=0; i < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); i++)
     jammed[i] = false;
 
   int first = getFirstDroppingLayer ();
@@ -551,7 +551,7 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
 
   if(first < last)
   {
-    for(int i= MAX_LAYERS -1; i > last; i--)
+    for(int i= (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS") -1; i > last; i--)
       jammed[i] = true;
   }
 
@@ -647,17 +647,17 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
 
 int ForwardingProbabilityTable::getFirstDroppingLayer()
 {
-  for(int i = 0; i < MAX_LAYERS; i++) // for each layer
+  for(int i = 0; i < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); i++) // for each layer
   {
     if(table(determineRowOfFace (DROP_FACE_ID), i) > 0.0)
       return i;
   }
-  return MAX_LAYERS-1;
+  return (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS")-1;
 }
 
 int ForwardingProbabilityTable::getLastDroppingLayer()
 {
-  for(int i = MAX_LAYERS - 1; i >= 0; i--) // for each layer
+  for(int i = (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS") - 1; i >= 0; i--) // for each layer
   {
     if(table(determineRowOfFace (DROP_FACE_ID), i) < 1.0)
       return i;
@@ -702,6 +702,6 @@ double ForwardingProbabilityTable::calcWeightedUtilization(int faceId, int layer
   double actual = stats->getActualForwardingProbability (faceId,layer);
   double old = table(determineRowOfFace (faceId), layer);
 
-  return old + ( (actual - old) * ALPHA );
+  return old + ( (actual - old) * ParameterConfiguration::getInstance ()->getParameter ("ALPHA") );
 }
 

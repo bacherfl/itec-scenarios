@@ -7,13 +7,11 @@
 #include "ns3/ndn-pit.h"
 #include "ns3/simple-ref-count.h"
 
+#include "parameterconfiguration.h"
+
 #include <stdio.h>
 
-#define UPDATE_INTERVALL 0.2
-#define MAX_LAYERS 1
 #define DROP_FACE_ID -1
-
-#define RELIABILITY_THRESHOLD 0.95
 
 namespace ns3
 {

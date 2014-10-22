@@ -45,7 +45,11 @@
 
 #include "../extensions/randnetworks/ndnbritehelper.h"
 
+#include "../extensions/utils/parameterconfiguration.h"
+
 using namespace ns3;
+
+#define UNINITIALIZED -1.0
 
 NS_LOG_COMPONENT_DEFINE ("BriteExample");
 
@@ -56,11 +60,56 @@ main (int argc, char *argv[])
   std::string confFile = "brite_daniel.conf";
   std::string strategy = "bestRoute";
   std::string route = "single";
+  std::string outputFolder = "";
+
+  double alpha = UNINITIALIZED;
+  double x_dropping = UNINITIALIZED;
+  double probing_traffic = UNINITIALIZED;
+  double shift_threshold = UNINITIALIZED;
+  double shift_traffic = UNINITIALIZED;
+  double update_intervall = UNINITIALIZED;
+  double max_layers = UNINITIALIZED;
+  double reliability_threshold = UNINITIALIZED;
 
   CommandLine cmd;
   cmd.AddValue ("briteConfFile", "BRITE conf file", confFile);
   cmd.AddValue ("fw-strategy", "Forwarding Strategy", strategy);
   cmd.AddValue ("route", "defines if you use a single route or all possible routes", route);
+  cmd.AddValue ("outputFolder", "defines specific output subdir", outputFolder);
+
+  cmd.AddValue ("ALPHA", "P_ALPHA", alpha);
+  cmd.AddValue ("X_DROPPING", "P_X_DROPPING", x_dropping);
+  cmd.AddValue ("PROBING_TRAFFIC", "P_PROBING_TRAFFIC", probing_traffic);
+  cmd.AddValue ("SHIFT_THRESHOLD", "P_SHIFT_THRESHOLD", shift_threshold);
+  cmd.AddValue ("SHIFT_TRAFFIC", "P_SHIFT_TRAFFIC", shift_traffic);
+  cmd.AddValue ("UPDATE_INTERVALL", "P_UPDATE_INTERVALL", update_intervall);
+  cmd.AddValue ("MAX_LAYERS", "P_MAX_LAYERS", max_layers);
+  cmd.AddValue ("RELIABILITY_THRESHOLD", "P_RELIABILITY_THRESHOLD", reliability_threshold);
+
+  if(alpha != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("ALPHA", alpha);
+
+  if(x_dropping != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("X_DROPPING", x_dropping);
+
+  if(probing_traffic != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("PROBING_TRAFFIC", probing_traffic);
+
+  if(shift_threshold != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("SHIFT_THRESHOLD", shift_threshold);
+
+  if(shift_traffic != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("SHIFT_TRAFFIC", shift_traffic);
+
+  if(update_intervall != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("UPDATE_INTERVALL", update_intervall);
+
+  if(max_layers != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("MAX_LAYERS", max_layers);
+
+  if(reliability_threshold != UNINITIALIZED)
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("RELIABILITY_THRESHOLD", reliability_threshold);
+
   cmd.Parse (argc,argv);
 
   // Invoke the BriteTopologyHelper and pass config file
@@ -102,7 +151,7 @@ main (int argc, char *argv[])
   gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
   gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
 
-  gen.randomlyAddConnectionsBetweenAllAS (1,2000,3000,5,20);
+  gen.randomlyAddConnectionsBetweenAllAS (1,1000,5000,5,20);
 
   ndnHelper.InstallAll();
 
@@ -136,7 +185,7 @@ main (int argc, char *argv[])
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 25k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
 
-  double simTime = 300.0;
+  double simTime = 10.0;
 
   for(int i=0; i<client.size (); i++)
   {
@@ -145,11 +194,11 @@ main (int argc, char *argv[])
     consumerHelper.Install (Names::Find<Node>(std::string("Client_" + boost::lexical_cast<std::string>(i))));
 
     ndn::L3AggregateTracer::Install (Names::Find<Node>(std::string("Client_") + boost::lexical_cast<std::string>(i)),
-                                     std::string("output/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"), Seconds (simTime));
+                                     std::string("output/" + outputFolder + "/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"), Seconds (simTime));
 
 
     ndn::AppDelayTracer::Install(Names::Find<Node>(std::string("Client_") + boost::lexical_cast<std::string>(i)),
-                                 std::string("output/app-delays-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"));
+                                 std::string("output/"+ outputFolder +"/app-delays-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"));
 
   }
 
