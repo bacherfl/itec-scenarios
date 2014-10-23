@@ -58,11 +58,12 @@ def generateStatsPerSimulation(rootdir):
 
 			output_file = open(root+"/"+subdir +"/STATS.txt", "w")
 
-			output_file.write("Total Requests: " + str(run_total_number_of_requests) +"\n")
-			output_file.write( "Statisfied Requests: " + str(run_total_number_of_statisfied_requests) + " Ratio:" + str(run_total_number_of_statisfied_requests/run_total_number_of_requests)+"\n")
-			output_file.write( "Avg Delay[s]: " + str(run_avg_delay_of_request) + "[sec]"+"\n")
-			output_file.write( "Avg Hops: " + str(run_avg_number_of_hops)+"\n")
-			output_file.write( "Avg Rtx : " + str(run_avg_number_of_rtx - 1)+"\n")
+			output_file.write("Total Requests:" + str(run_total_number_of_requests) +"\n")
+			output_file.write( "Statisfied Requests:" + str(run_total_number_of_statisfied_requests) + "\n")
+			output_file.write("Ratio:" + str(run_total_number_of_statisfied_requests/run_total_number_of_requests)+"\n")
+			output_file.write( "Avg Delay[s]:" + str(run_avg_delay_of_request) + "[sec]"+"\n")
+			output_file.write( "Avg Hops:" + str(run_avg_number_of_hops)+"\n")
+			output_file.write( "Avg Rtx:" + str(run_avg_number_of_rtx - 1)+"\n")
 
 			sim_total_number_of_requests += run_total_number_of_requests
 			sim_total_number_of_statisfied_requests += run_total_number_of_statisfied_requests
@@ -77,11 +78,12 @@ def generateStatsPerSimulation(rootdir):
 
 	output_file = open(rootdir+"/STATS.txt", "w")
 
-	output_file.write("Total Requests: " + str(sim_total_number_of_requests) +"\n")
-	output_file.write( "Statisfied Requests: " + str(sim_total_number_of_statisfied_requests) + " Ratio:" + str(sim_total_number_of_statisfied_requests/sim_total_number_of_requests)+"\n")
-	output_file.write( "Avg Delay[s]: " + str(sim_avg_delay_of_request) + "[sec]"+"\n")
-	output_file.write( "Avg Hops: " + str(sim_avg_number_of_hops)+"\n")
-	output_file.write( "Avg Rtx : " + str(sim_avg_number_of_rtx - 1)+"\n")
+	output_file.write("Total Requests:" + str(sim_total_number_of_requests) +"\n")
+	output_file.write( "Statisfied Requests:" + str(sim_total_number_of_statisfied_requests) + "\n")
+	output_file.write( "Ratio:" + str(sim_total_number_of_statisfied_requests/sim_total_number_of_requests)+"\n")
+	output_file.write( "Avg Delay[s]:" + str(sim_avg_delay_of_request) + "[sec]"+"\n")
+	output_file.write( "Avg Hops:" + str(sim_avg_number_of_hops)+"\n")
+	output_file.write( "Avg Rtx:" + str(sim_avg_number_of_rtx - 1)+"\n")
 
 def process_app_delay_trace(file):
 	#print("app-delays-trace(" + app_file_name + ")")

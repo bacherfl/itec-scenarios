@@ -57,10 +57,10 @@ int
 main (int argc, char *argv[])
 {
   // BRITE needs a configuration file to build its graph.
-  std::string confFile = "brite_daniel.conf";
+  std::string confFile = "brite_low_bw.conf";
   std::string strategy = "bestRoute";
   std::string route = "single";
-  std::string outputFolder = "";
+  std::string outputFolder = "output/";
 
   double alpha = UNINITIALIZED;
   double x_dropping = UNINITIALIZED;
@@ -86,31 +86,55 @@ main (int argc, char *argv[])
   cmd.AddValue ("MAX_LAYERS", "P_MAX_LAYERS", max_layers);
   cmd.AddValue ("RELIABILITY_THRESHOLD", "P_RELIABILITY_THRESHOLD", reliability_threshold);
 
+  cmd.Parse (argc,argv);
+
   if(alpha != UNINITIALIZED)
+  {
+    NS_LOG_DEBUG("alpha set to: " << alpha);
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("ALPHA", alpha);
+  }
 
   if(x_dropping != UNINITIALIZED)
+  {
+    NS_LOG_DEBUG("x_dropping set to: " << x_dropping);
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("X_DROPPING", x_dropping);
+  }
 
   if(probing_traffic != UNINITIALIZED)
+  {
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("PROBING_TRAFFIC", probing_traffic);
+    NS_LOG_DEBUG("probing_traffic set to: " << probing_traffic);
+  }
 
   if(shift_threshold != UNINITIALIZED)
+  {
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("SHIFT_THRESHOLD", shift_threshold);
+    NS_LOG_DEBUG("shift_threshold set to: " << shift_threshold);
+  }
 
   if(shift_traffic != UNINITIALIZED)
+  {
+    NS_LOG_DEBUG("shift_traffic set to: " << shift_traffic);
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("SHIFT_TRAFFIC", shift_traffic);
+  }
 
   if(update_intervall != UNINITIALIZED)
+  {
+    NS_LOG_DEBUG("update_intervall set to: " << update_intervall);
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("UPDATE_INTERVALL", update_intervall);
+  }
 
   if(max_layers != UNINITIALIZED)
+  {
+    NS_LOG_DEBUG("max_layers set to: " << max_layers);
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("MAX_LAYERS", max_layers);
+  }
 
   if(reliability_threshold != UNINITIALIZED)
+  {
+    NS_LOG_DEBUG("reliability_threshold set to: " << reliability_threshold);
     ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("RELIABILITY_THRESHOLD", reliability_threshold);
-
-  cmd.Parse (argc,argv);
+  }
 
   // Invoke the BriteTopologyHelper and pass config file
 
@@ -185,7 +209,7 @@ main (int argc, char *argv[])
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 25k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
 
-  double simTime = 10.0;
+  double simTime = 480.0;
 
   for(int i=0; i<client.size (); i++)
   {
@@ -193,12 +217,14 @@ main (int argc, char *argv[])
 
     consumerHelper.Install (Names::Find<Node>(std::string("Client_" + boost::lexical_cast<std::string>(i))));
 
+    //fprintf(stderr, "outputFolder=%s\n", std::string(outputFolder + "/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt").c_str());
+
     ndn::L3AggregateTracer::Install (Names::Find<Node>(std::string("Client_") + boost::lexical_cast<std::string>(i)),
-                                     std::string("output/" + outputFolder + "/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"), Seconds (simTime));
+                                     std::string(outputFolder + "/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"), Seconds (simTime));
 
 
     ndn::AppDelayTracer::Install(Names::Find<Node>(std::string("Client_") + boost::lexical_cast<std::string>(i)),
-                                 std::string("output/"+ outputFolder +"/app-delays-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"));
+                                 std::string(outputFolder +"/app-delays-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"));
 
   }
 
@@ -218,7 +244,7 @@ main (int argc, char *argv[])
   }
 
   // Run the simulator
-  Simulator::Stop (Seconds (simTime+0.001)); // 1 min
+  Simulator::Stop (Seconds (simTime+0.001)); // 10 min
   Simulator::Run ();
   Simulator::Destroy ();
 

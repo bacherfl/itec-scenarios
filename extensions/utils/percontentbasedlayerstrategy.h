@@ -39,7 +39,7 @@ public:
 
   PerContentBasedLayerStrategy () : super()
   {
-    fprintf(stderr, "PerContentBasedLayerStrategy activated...\n");
+    //fprintf(stderr, "PerContentBasedLayerStrategy activated...\n");
 
     fwEngine = new utils::ForwardingEngine(faces, PerContentBasedLayerStrategy<Parent>::m_fib, prefixComponentNum);
   }
