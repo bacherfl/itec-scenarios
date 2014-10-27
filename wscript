@@ -39,8 +39,9 @@ def configure(conf):
     #conf.env.append_value('CPPPATH', conf.env['CPPPATH_LIBDAI'])
     #conf.env.append_value('LIBPATH', conf.env['LIBPATH_LIBDAI'])
 
-    conf.env.LIBPATH_MYLIB = ['~/lib']
-    conf.env.INCLUDES_MYLIB  = ['~/include']
+    #for mcore24 build env 
+    conf.env.LIBPATH = ['/local/users/ndnsim/lib/']
+    conf.env.INCLUDES = ['/local/users/ndnsim/include/']
 
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
     conf.check(lib='brite', uselib="BRITE", define_name='HAVE_BRITE')
