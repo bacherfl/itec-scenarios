@@ -39,10 +39,17 @@ def configure(conf):
     #conf.env.append_value('CPPPATH', conf.env['CPPPATH_LIBDAI'])
     #conf.env.append_value('LIBPATH', conf.env['LIBPATH_LIBDAI'])
 
+    conf.env.LIBPATH_MYLIB = ['~/lib']
+    conf.env.INCLUDES_MYLIB  = ['~/include']
+
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
     conf.check(lib='brite', uselib="BRITE", define_name='HAVE_BRITE')
     #conf.check(lib='ns3-dev-brite-optimized', uselib="BRITE", define_name='HAVE_NS3_BRITE')
     conf.env.append_value('/usr/local/include/libdash/', ['include'])
+
+    #for mcore24 build env    
+    conf.env.append_value('~include/libdash/', ['include'])
+    conf.env.append_value('~include/', ['include'])
 
     conf.check_boost(lib='system iostreams')
     boost_version = conf.env.BOOST_VERSION.split('_')
