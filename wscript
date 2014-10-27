@@ -41,7 +41,7 @@ def configure(conf):
 
     #for mcore24 build env 
     conf.env.LIBPATH = ['/local/users/ndnsim/lib/']
-    conf.env.INCLUDES = ['/local/users/ndnsim/include/']
+    conf.env.INCLUDES = ['/local/users/ndnsim/include/' '/local/users/ndnsim/include/ns3-dev']
 
     conf.check(lib='dash', uselib="DASH", define_name='HAVE_DASH')
     conf.check(lib='brite', uselib="BRITE", define_name='HAVE_BRITE')
@@ -49,8 +49,10 @@ def configure(conf):
     conf.env.append_value('/usr/local/include/libdash/', ['include'])
 
     #for mcore24 build env    
-    conf.env.append_value('~include/libdash/', ['include'])
-    conf.env.append_value('~include/', ['include'])
+   # conf.env.append_value('~include/libdash/', ['include'])
+   # conf.env.append_value('~include/', ['include'])
+   # conf.env.append_value('~include/ns3-dev/', ['include'])
+   # conf.env.append_value('~include/ns3-dev/ns3/', ['include'])
 
     conf.check_boost(lib='system iostreams')
     boost_version = conf.env.BOOST_VERSION.split('_')
@@ -99,7 +101,7 @@ def build (bld):
         source = bld.path.ant_glob(['extensions/**/*.cc']),
         use = deps,
         cxxflags = [bld.env.CXX11_CMD],
-        includes = ' libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/'
+        includes = ' libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/ /local/users/ndnsim/include/ /local/users/ndnsim/include/ns3-dev/'
         )
 
     #framework = bld.objects (
@@ -118,7 +120,7 @@ def build (bld):
             features = ['cxx'],
             source = [scenario],        #added by dposch
             use = deps + " extensions DASH BRITE",
-            includes = " extensions"
+            includes = " extensions libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/ /local/users/ndnsim/include/ /local/users/ndnsim/include/ns3-dev/"
             )
 
 def shutdown (ctx):
