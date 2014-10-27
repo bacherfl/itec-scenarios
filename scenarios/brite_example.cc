@@ -160,7 +160,7 @@ main (int argc, char *argv[])
     exit(-1);
   }
 
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "10000"); // all entities can store up to 1k chunks in cache (about 40MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 1k chunks in cache (about 100MB)
 
   ndn::NetworkGenerator gen(confFile);
 
@@ -182,7 +182,7 @@ main (int argc, char *argv[])
   // Installing global routing interface on all routing nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.Install (gen.getAllASNodes ());
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1000"); // all entities can store up to 1k chunks in cache (about 4MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "2500"); // all entities can store up to 1k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
 
   ndn::AppHelper producerHelper ("ns3::ndn::Producer");
