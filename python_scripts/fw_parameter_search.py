@@ -132,7 +132,7 @@ def	order_results(path):
 SIMULATION_DIR=os.getcwd()
 
 THREADS = 24
-SIMULATION_RUNS = 5
+SIMULATION_RUNS = 10
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 	
 #build project before
@@ -141,7 +141,8 @@ call([SIMULATION_DIR + "/waf"])
 #brite config file
 scenario="brite_example"
 
-briteConfig="--briteConfFile=~/ndnSIM/itec-scenarios/brite_low_bw.conf"
+#briteConfig="--briteConfFile=/home/dposch/ndnSIM/itec-scenarios/brite_low_bw.conf"
+briteConfig="--briteConfFile=/local/users/ndnsim/ndnSIM/itec-scenarios/brite_low_bw.conf"
 
 bestRoute="--fw-strategy=bestRoute"
 smartFlooding="--fw-strategy=smartflooding"
