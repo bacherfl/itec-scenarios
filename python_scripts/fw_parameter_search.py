@@ -131,8 +131,8 @@ def	order_results(path):
 
 SIMULATION_DIR=os.getcwd()
 
-THREADS = 24
-SIMULATION_RUNS = 10
+THREADS = 22
+SIMULATION_RUNS = 15
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 	
 #build project before
@@ -153,8 +153,8 @@ singleRoute="--route=all"
 
 # parameter search range
 alpha_min = 0.05;
-alpha_max = 0.1;
-#alpha_max = 0.5;
+#alpha_max = 0.1;
+alpha_max = 0.4;
 alpha = []
 
 while alpha_min <= alpha_max:
@@ -163,20 +163,20 @@ while alpha_min <= alpha_max:
 
 print "alpha range = " + str(alpha)
 
-reliability_t_min = 0.95
-#reliability_t_min = 0.75
+#reliability_t_min = 0.95
+reliability_t_min = 0.70
 reliability_t_max = 1.0
 reliability_t = []
 
 while reliability_t_min <= reliability_t_max:
 	reliability_t.append(reliability_t_min)
-	reliability_t_min += 0.05
+	reliability_t_min += 0.1
 
 print "reliability range = " + str(reliability_t)
 
-probing_traffic_min = 0.0
-probing_traffic_max = 0.1
-#probing_traffic_max = 0.5
+probing_traffic_min = 0.1
+#probing_traffic_max = 0.1
+probing_traffic_max = 0.5
 probing_traffic = []
 
 while probing_traffic_min <= probing_traffic_max:
@@ -185,20 +185,20 @@ while probing_traffic_min <= probing_traffic_max:
 
 print "probing_traffic range = " + str(probing_traffic)
 
-update_intervall_min = 0.1
-update_intervall_max = 0.3
+update_intervall_min = 0.5
+update_intervall_max = 2.0
 #update_intervall_max = 1.0
 update_intervall = []
 
 while update_intervall_min <= update_intervall_max:
 	update_intervall.append(update_intervall_min)
-	update_intervall_min += 0.2
+	update_intervall_min += 0.5
 
 print "update_intervall range = " + str(update_intervall)
 
 shift_traffic_min = 0.1
-#shift_traffic_max = 0.5
-shift_traffic_max = 0.2
+shift_traffic_max = 0.4
+#shift_traffic_max = 0.2
 shift_traffic = []
 
 while shift_traffic_min <= shift_traffic_max:
@@ -206,8 +206,6 @@ while shift_traffic_min <= shift_traffic_max:
 	shift_traffic_min += 0.1
 
 print "shift_traffic range = " + str(shift_traffic)
-
-time.sleep(3)
 
 SCENARIOS= { }
 
@@ -237,6 +235,8 @@ for entry in SCENARIOS:
 print "Total different Settings = " + str(settings)
 print "Runs per Setting = " + str(SIMULATION_RUNS) 
 print "All in All Runs = " + str(settings*SIMULATION_RUNS) 
+
+time.sleep(3)
 
 ###script start
 print "\nCurring working dir = " + SIMULATION_DIR + "\n"

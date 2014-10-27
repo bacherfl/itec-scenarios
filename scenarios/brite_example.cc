@@ -209,7 +209,7 @@ main (int argc, char *argv[])
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 25k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
 
-  double simTime = 480.0;
+  double simTime = 600.0;
 
   for(int i=0; i<client.size (); i++)
   {
