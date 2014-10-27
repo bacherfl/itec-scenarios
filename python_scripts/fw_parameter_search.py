@@ -11,6 +11,7 @@ import subprocess
 from subprocess import call
 import threading
 import time
+import operator
 import consumer_stats as consumer_stats
 
 curActiveThreads = 0
@@ -87,59 +88,60 @@ def copyResults(src,dst):
 		#os.makedirs(dst)
 	
 	for f in files:
-		os.rename(f, dst+"/"+os.path.basename(f))		
+		os.rename(f, dst+"/"+os.path.basename(f))
+
+def	order_results(path):
+	results = {}
+
+	for root, dirs, files in os.walk(path):
+		for subdir in dirs:
+		
+			if "output_run" in subdir:
+				continue
+
+			#print root+subdir
+
+			files = glob.glob(root+subdir + "/*/*STATS*.txt" );
+		
+			avg_ratio = 0.0
+			file_count = 0		
+
+			for file in files:
+
+				#print file
+				f = open(file, "r")
+				for line in f:
+					if(line.startswith("Ratio:")):
+						avg_ratio += float(line[len("Ratio:"):])
+						file_count +=1
+						break;
+
+			if(file_count > 0):
+	 			avg_ratio /= file_count
+	
+			#print avg_ratio
+			results.update({"AVG_RATIO:"+ subdir : avg_ratio})
+
+	sorted_results = reversed(sorted(results.items(), key=operator.itemgetter(1)))
+	f = open(path + "/result.txt", "w")
+	for entry in sorted_results:
+		f.write(entry[0] + ":" + str(entry[1]) + "\n")
 		
 ###NOTE Start this script FROM itec-scenarios MAIN-FOLDER!!!
 
 SIMULATION_DIR=os.getcwd()
 
-THREADS = 1
+THREADS = 24
 SIMULATION_RUNS = 5
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
-
-results = {}
-
-"""for root, dirs, files in os.walk(SIMULATION_OUTPUT):
-	for subdir in dirs:
-		
-		if "output_run" in subdir:
-			continue
-
-		#print root+subdir
-
-		files = glob.glob(root+subdir + "/*/*STATS*.txt" );
-		
-		avg_ratio = 0.0
-		file_count = 0		
-
-		for file in files:
-
-			print file
-
-			f = open(file, "r")
-			for line in f:
-				if(line.startswith("Ratio:")):
-					avg_ratio += float(line[len("Ratio:"):])
-					file_count +=1
-					break;
-
-		if(file_count > 0):
- 			avg_ratio /= file_count
 	
-		print avg_ratio
-		results.update({"AVG_RATIO:"+ subdir : avg_ratio})
-
-print results
-		
-exit(0)"""
-
 #build project before
 call([SIMULATION_DIR + "/waf"])
 
 #brite config file
 scenario="brite_example"
 
-briteConfig="--briteConfFile=/home/dposch/ndnSIM/itec-scenarios/brite_low_bw.conf"
+briteConfig="--briteConfFile=~/ndnSIM/itec-scenarios/brite_low_bw.conf"
 
 bestRoute="--fw-strategy=bestRoute"
 smartFlooding="--fw-strategy=smartflooding"
@@ -150,7 +152,7 @@ singleRoute="--route=all"
 
 # parameter search range
 alpha_min = 0.05;
-alpha_max = 0.2;
+alpha_max = 0.1;
 #alpha_max = 0.5;
 alpha = []
 
@@ -158,7 +160,9 @@ while alpha_min <= alpha_max:
 	alpha.append(alpha_min)
 	alpha_min += 0.05
 
-reliability_t_min = 0.90
+print "alpha range = " + str(alpha)
+
+reliability_t_min = 0.95
 #reliability_t_min = 0.75
 reliability_t_max = 1.0
 reliability_t = []
@@ -167,8 +171,10 @@ while reliability_t_min <= reliability_t_max:
 	reliability_t.append(reliability_t_min)
 	reliability_t_min += 0.05
 
+print "reliability range = " + str(reliability_t)
+
 probing_traffic_min = 0.0
-probing_traffic_max = 0.2
+probing_traffic_max = 0.1
 #probing_traffic_max = 0.5
 probing_traffic = []
 
@@ -176,8 +182,10 @@ while probing_traffic_min <= probing_traffic_max:
 	probing_traffic.append(probing_traffic_min)
 	probing_traffic_min += 0.1
 
+print "probing_traffic range = " + str(probing_traffic)
+
 update_intervall_min = 0.1
-update_intervall_max = 0.5
+update_intervall_max = 0.3
 #update_intervall_max = 1.0
 update_intervall = []
 
@@ -185,14 +193,20 @@ while update_intervall_min <= update_intervall_max:
 	update_intervall.append(update_intervall_min)
 	update_intervall_min += 0.2
 
+print "update_intervall range = " + str(update_intervall)
+
 shift_traffic_min = 0.1
 #shift_traffic_max = 0.5
-shift_traffic_max = 0.1
+shift_traffic_max = 0.2
 shift_traffic = []
 
 while shift_traffic_min <= shift_traffic_max:
 	shift_traffic.append(shift_traffic_min)
 	shift_traffic_min += 0.1
+
+print "shift_traffic range = " + str(shift_traffic)
+
+time.sleep(3)
 
 SCENARIOS= { }
 
@@ -266,6 +280,7 @@ while curActiveThreads != 0:
 print ""
 
 ## parse results
+order_results(SIMULATION_OUTPUT)
 
 print "We had " + str(invalid_runs) + " invalid runs"
 print "Finished."
