@@ -131,7 +131,7 @@ def	order_results(path):
 
 SIMULATION_DIR=os.getcwd()
 
-THREADS = 22
+THREADS = 24
 SIMULATION_RUNS = 15
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 	
@@ -265,10 +265,11 @@ for scenarioName in SCENARIOS.keys():
     # end while wait...
 
 		dst = SIMULATION_OUTPUT+scenarioName + "/output_run"+str(i)
-		src = SIMULATION_OUTPUT+"tmp_folder_" + str(job_number)
+		src = SIMULATION_OUTPUT+"../ramdisk/tmp_folder_" + str(job_number)
 
 	   # start thread, get callback method to be called when thread is done
 		thread = Thread(job_number, sysCall, threadFinished, src, dst)
+                time.sleep(0.1)
 		thread.start()
 
 		job_number += 1
