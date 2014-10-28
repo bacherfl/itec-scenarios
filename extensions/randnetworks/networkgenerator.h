@@ -66,6 +66,8 @@ public:
 
   NodeContainer getCustomNodes(std::string setIdentifier);
 
+  void creatRandomLinkFailure(double minTimestamp, double maxTimestamp, double minDuration, double maxDuration);
+
 
 private:
   NDNBriteHelper *briteHelper;

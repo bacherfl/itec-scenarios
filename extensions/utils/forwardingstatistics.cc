@@ -248,7 +248,8 @@ double ForwardingStatistics::calculateUnstatisfiedTrafficFractionOfUnreliableFac
   std::vector<int> r_faces = getReliableFaces(layer, ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"));
   r_faces.push_back (DROP_FACE_ID);
   std::vector<int> u_faces = getUnreliableFaces(layer,ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"));
-  double utf = 1.0;
+
+  /*double utf = 1.0;
 
   for(std::vector<int>::iterator it = u_faces.begin(); it != u_faces.end(); ++it)
   {
@@ -258,6 +259,13 @@ double ForwardingStatistics::calculateUnstatisfiedTrafficFractionOfUnreliableFac
   for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it)
   {
     utf -= ( (double) (stats[layer].statisfied_requests[*it] + stats[layer].unstatisfied_requests[*it]) ) / getTotalForwardedInterests(layer);
+  }
+  */
+
+  double utf = 0.0;
+  for(std::vector<int>::iterator it = u_faces.begin(); it != u_faces.end(); ++it)
+  {
+    utf += ( (double) (stats[layer].unstatisfied_requests[*it])) / getTotalForwardedInterests(layer);
   }
 
   stats[layer].unstatisfied_traffic_fraction_unreliable_faces = utf;

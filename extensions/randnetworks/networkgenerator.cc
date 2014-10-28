@@ -167,3 +167,42 @@ ns3::NodeContainer NetworkGenerator::getCustomNodes(std::string setIdentifier)
 {
   return nodeContainerMap[setIdentifier];
 }
+
+void NetworkGenerator::creatRandomLinkFailure(double minTimestamp, double maxTimestamp, double minDuration, double maxDuration)
+{
+  int rand = rvariable->GetInteger(0,getNumberOfAS() - 1);
+
+  NodeContainer c = getAllASNodesFromAS(rand);
+  rand = rvariable->GetInteger (0, c.size ()-1);
+
+  Ptr<Node> node = c.Get (rand);
+
+  fprintf(stderr, "NodeDevices = %d\n", node->GetNDevices ());
+
+  rand = rvariable->GetInteger (0,node->GetNDevices ()-1);
+
+  Ptr<Channel> channel = node->GetDevice (rand)->GetChannel ();
+
+  NodeContainer channelNodes;
+
+  for(int i = 0; i < channel->GetNDevices (); i++)
+  {
+    Ptr<NetDevice> dev = channel->GetDevice (i);
+    channelNodes.Add (dev->GetNode ());
+  }
+
+  if(channelNodes.size () != 2)
+    NS_LOG_ERROR("Invalid Channel with more than 2 nodes...");
+  else
+  {
+
+    double startTime = rvariable->GetValue (minTimestamp, maxTimestamp);
+    double stopTime = startTime + rvariable->GetValue (minDuration, maxDuration);
+
+    Simulator::Schedule (Seconds (startTime), ndn::LinkControlHelper::FailLink, channelNodes.Get (0), channelNodes.Get (1));
+    Simulator::Schedule (Seconds (stopTime), ndn::LinkControlHelper::UpLink,   channelNodes.Get (0), channelNodes.Get (1));
+
+    //fprintf(stderr, "Start LinkFail: %f\n",startTime);
+    //fprintf(stderr, "Stop LinkFail: %f\n",stopTime);
+  }
+}

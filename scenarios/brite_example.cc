@@ -211,6 +211,10 @@ main (int argc, char *argv[])
 
   double simTime = 600.0;
 
+  //add linkfailures if needed
+  //for(int i = 0; i < 100; i++)
+    //gen.creatRandomLinkFailure(0, simTime, 5, 60.0);
+
   for(int i=0; i<client.size (); i++)
   {
     consumerHelper.SetPrefix (std::string("/Server_" + boost::lexical_cast<std::string>(i%server.size ()) + "/layer0"));
