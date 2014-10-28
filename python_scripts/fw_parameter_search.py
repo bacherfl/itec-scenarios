@@ -71,7 +71,7 @@ def threadFinished(job_number,src,dst):
 		os.makedirs(dst)
 
 	for f in files:
-		os.rename(f, dst+"/"+os.path.basename(f))
+		shutil.move(f, dst+"/"+os.path.basename(f))
 
 	#print "DELTE FOLDER " + src
 	shutil.rmtree(src)
@@ -250,6 +250,10 @@ for scenarioName in SCENARIOS.keys():
 	executeable = "build/" + executeable
 	print "------------------------------------------------------------------------"
 	print "Starting", runs , "simulations of", scenarioName
+
+        #REMOVE JUST FOR SMALL TEST
+        #if(job_number>4):
+          #continue
 	
 	for i in range(0, runs):
   	# See if we are using all available threads
