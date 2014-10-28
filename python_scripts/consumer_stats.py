@@ -9,7 +9,7 @@ import collections
 
 def generateStatsPerSimulation(rootdir):
 
-	print "RootDir=" + rootdir
+	#print "RootDir=" + rootdir
 
 	sim_total_number_of_requests = 0.0
 	sim_total_number_of_statisfied_requests = 0.0
@@ -178,4 +178,4 @@ def process_aggregate_trace(file):
 
 #SIMULATION_DIR=os.getcwd()
 #SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
-#generateStatsPerSimulation(SIMULATION_OUTPUT + "BestRoute_SingleRoute")
+#generateStatsPerSimulation(SIMULATION_OUTPUT)

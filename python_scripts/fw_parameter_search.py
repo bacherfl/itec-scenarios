@@ -27,8 +27,8 @@ class Thread(threading.Thread):
 		self.src = src
 		self.dst = dst
 
-		print "JOBNUMMER = " + str(job_number)
-		print "JOBNUMMER = " + str(src)
+		#print "JOBNUMMER = " + str(job_number)
+		#print "JOBNUMMER = " + str(src)
 
   # overwriting run method of threading.Thread (do not call this method, call thread.start() )
   def run(self):
@@ -49,7 +49,7 @@ class Thread(threading.Thread):
 		os.remove("t_" + str(self.jobNumber) + ".stdout.txt")
 
 		# callback
-		print "threadFinishedd(" + src + ")"
+		print "threadFinished(job_" + self.jobNumber + ")"
 		self.callback(self.jobNumber,self.src,self.dst)
 
 def threadFinished(job_number,src,dst):
@@ -57,7 +57,7 @@ def threadFinished(job_number,src,dst):
 
 	global curActiveThreads, invalid_runs
 
-	#print "generateStatsPerSimulation(" + src + ")"
+	print "generateStatsPerSimulation(job_" + job_number + ")"
 	try:
 		consumer_stats.generateStatsPerSimulation(src);
 	except Exception:
@@ -75,6 +75,8 @@ def threadFinished(job_number,src,dst):
 
 	#print "DELTE FOLDER " + src
 	shutil.rmtree(src)
+
+	print "statsCollected(job_" + job_number + ")"
 
 	curActiveThreads -= 1
 
