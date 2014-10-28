@@ -33,8 +33,6 @@ class Thread(threading.Thread):
   # overwriting run method of threading.Thread (do not call this method, call thread.start() )
   def run(self):
 
-		global invalid_runs
-
 		if not os.path.exists(self.src+"/traces"):
 			os.makedirs(self.src+"/traces")
 
@@ -51,30 +49,33 @@ class Thread(threading.Thread):
 		os.remove("t_" + str(self.jobNumber) + ".stdout.txt")
 
 		# callback
-
-		try:
-			consumer_stats.generateStatsPerSimulation(src);
-			if not os.path.exists(dst):
-				os.makedirs(dst)
-		except Exception:
-			invalid_runs += 1
-		pass
-
-		#copy results
-		files = glob.glob(src + "/traces/*STATS*.txt");
-
-		for f in files:
-			shutil.move(f, dst+"/"+os.path.basename(f))
-
-		#print "DELTE FOLDER " + src
-		shutil.rmtree(src)
-
 		print "threadFinishedd(" + src + ")"
 		self.callback(self.jobNumber,self.src,self.dst)
 
 def threadFinished(job_number,src,dst):
 	#compute statistics
-	global curActiveThreads
+
+	global curActiveThreads, invalid_runs
+
+	#print "generateStatsPerSimulation(" + src + ")"
+	try:
+		consumer_stats.generateStatsPerSimulation(src);
+	except Exception:
+		invalid_runs += 1
+		pass
+
+	#copy results
+	files = glob.glob(src + "/traces/*STATS*.txt");
+
+	if not os.path.exists(dst):
+		os.makedirs(dst)
+
+	for f in files:
+		shutil.move(f, dst+"/"+os.path.basename(f))
+
+	#print "DELTE FOLDER " + src
+	shutil.rmtree(src)
+
 	curActiveThreads -= 1
 
 def copyResults(src,dst):
@@ -289,3 +290,4 @@ order_results(SIMULATION_OUTPUT)
 
 print "We had " + str(invalid_runs) + " invalid runs"
 print "Finished."
+
