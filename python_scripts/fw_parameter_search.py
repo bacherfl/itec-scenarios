@@ -55,7 +55,7 @@ class Thread(threading.Thread):
 		try:
 			consumer_stats.generateStatsPerSimulation(src);
 				if not os.path.exists(dst):
-				os.makedirs(dst)
+					os.makedirs(dst)
 		except Exception:
 			invalid_runs += 1
 		pass
