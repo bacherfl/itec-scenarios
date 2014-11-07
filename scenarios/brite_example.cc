@@ -175,7 +175,46 @@ main (int argc, char *argv[])
   gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
   gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
 
-  gen.randomlyAddConnectionsBetweenAllAS (1,1000,5000,5,20);
+  int min_bw = -1;
+  int max_bw = -1;
+  int number_of_connections_between_as = -1;
+
+  if(confFile.find ("low_bw") != std::string::npos)
+  {
+    min_bw = 2000;
+    max_bw = 5000;
+  }
+  else if(confFile.find ("medium_bw") != std::string::npos)
+  {
+    min_bw = 3000;
+    max_bw = 6000;
+  }
+  else if (confFile.find ("high_bw") != std::string::npos)
+  {
+    min_bw = 5000;
+    max_bw = 8000;
+  }
+
+  if(confFile.find ("low_connectivity") != std::string::npos)
+  {
+    number_of_connections_between_as = 1;
+  }
+  else if(confFile.find ("medium_connectivity") != std::string::npos)
+  {
+    number_of_connections_between_as = 2;
+  }
+  else if (confFile.find ("high_connectivity") != std::string::npos)
+  {
+    number_of_connections_between_as = 3;
+  }
+
+  if(min_bw == -1 || max_bw == -1 || number_of_connections_between_as == -1)
+  {
+    fprintf(stderr, "check szenario setting\n");
+    exit(0);
+  }
+
+  gen.randomlyAddConnectionsBetweenAllAS (number_of_connections_between_as,min_bw,max_bw,5,20);
 
   ndnHelper.InstallAll();
 
@@ -212,7 +251,8 @@ main (int argc, char *argv[])
   double simTime = 600.0;
 
   //add linkfailures if needed
-  //for(int i = 0; i < 100; i++)
+  //TODO
+  //for(int i = 0; i < 25; i++)
     //gen.creatRandomLinkFailure(0, simTime, 5, 60.0);
 
   for(int i=0; i<client.size (); i++)
