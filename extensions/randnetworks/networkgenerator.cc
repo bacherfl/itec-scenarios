@@ -177,7 +177,7 @@ void NetworkGenerator::creatRandomLinkFailure(double minTimestamp, double maxTim
 
   Ptr<Node> node = c.Get (rand);
 
-  fprintf(stderr, "NodeDevices = %d\n", node->GetNDevices ());
+  //fprintf(stderr, "NodeDevices = %d\n", node->GetNDevices ());
 
   rand = rvariable->GetInteger (0,node->GetNDevices ()-1);
 
