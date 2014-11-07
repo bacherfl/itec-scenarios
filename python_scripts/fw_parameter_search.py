@@ -136,6 +136,9 @@ SIMULATION_DIR=os.getcwd()
 THREADS = 24
 SIMULATION_RUNS = 15
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
+
+#order_results(SIMULATION_OUTPUT)
+#exit(0)
 	
 #build project before
 call([SIMULATION_DIR + "/waf"])
@@ -150,8 +153,8 @@ bestRoute="--fw-strategy=bestRoute"
 smartFlooding="--fw-strategy=smartflooding"
 perContentBased="--fw-strategy=perContentBased"
 
-allRoutes="--route=single"
-singleRoute="--route=all"
+singleRoute="--route=single"
+allRoute="--route=all"
 
 # parameter search range
 alpha_min = 0.05;
@@ -216,7 +219,7 @@ for straffic in shift_traffic:
 		for ptraffic in probing_traffic:
 			for reliability in reliability_t:
 				for a in alpha:
-					scenario_name = "PerContentBased_AllRoutes_ST(" + "{:1.2f}".format(straffic) + ")_UI(" + "{:1.2f}".format(uinterval) + ")_PT(" + "{:1.2f}".format(ptraffic) + ")_R(" + "{:1.2f}".format(reliability) + ")_Alpha(" + "{:1.2f}".format(a) + ")"
+					scenario_name = "PerContentBased_SingleRoutes_ST(" + "{:1.2f}".format(straffic) + ")_UI(" + "{:1.2f}".format(uinterval) + ")_PT(" + "{:1.2f}".format(ptraffic) + ")_R(" + "{:1.2f}".format(reliability) + ")_Alpha(" + "{:1.2f}".format(a) + ")"
 
 					straffic_parm="--SHIFT_TRAFFIC={:1.2f}".format(straffic)
 					uinterval_parm="--UPDATE_INTERVALL={:1.2f}".format(uinterval)
@@ -224,7 +227,7 @@ for straffic in shift_traffic:
 					reliability_parm="--RELIABILITY_THRESHOLD={:1.2f}".format(reliability)
 					a_parm="--ALPHA={:1.2f}".format(a)
 
-					entry = {scenario_name: { "executeable": scenario, "numRuns": SIMULATION_RUNS, "params": [briteConfig, perContentBased, allRoutes, straffic_parm,uinterval_parm,ptraffic_parm,reliability_parm,a_parm ] }}
+					entry = {scenario_name: { "executeable": scenario, "numRuns": SIMULATION_RUNS, "params": [briteConfig, perContentBased, singleRoute, straffic_parm,uinterval_parm,ptraffic_parm,reliability_parm,a_parm ] }}
 					SCENARIOS.update(entry)
 
 settings = 0
