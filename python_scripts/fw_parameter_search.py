@@ -137,8 +137,8 @@ THREADS = 24
 SIMULATION_RUNS = 15
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 
-#order_results(SIMULATION_OUTPUT)
-#exit(0)
+order_results(SIMULATION_OUTPUT)
+exit(0)
 	
 #build project before
 call([SIMULATION_DIR + "/waf"])
@@ -155,6 +155,8 @@ perContentBased="--fw-strategy=perContentBased"
 
 singleRoute="--route=single"
 allRoute="--route=all"
+
+linkFailures="--linkFailures=15"
 
 # parameter search range
 alpha_min = 0.05;
@@ -227,7 +229,7 @@ for straffic in shift_traffic:
 					reliability_parm="--RELIABILITY_THRESHOLD={:1.2f}".format(reliability)
 					a_parm="--ALPHA={:1.2f}".format(a)
 
-					entry = {scenario_name: { "executeable": scenario, "numRuns": SIMULATION_RUNS, "params": [briteConfig, perContentBased, singleRoute, straffic_parm,uinterval_parm,ptraffic_parm,reliability_parm,a_parm ] }}
+					entry = {scenario_name: { "executeable": scenario, "numRuns": SIMULATION_RUNS, "params": [briteConfig, perContentBased, singleRoute, linkFailures, straffic_parm,uinterval_parm, ptraffic_parm, reliability_parm, a_parm ] }}
 					SCENARIOS.update(entry)
 
 settings = 0

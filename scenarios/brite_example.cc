@@ -61,6 +61,9 @@ main (int argc, char *argv[])
   std::string strategy = "bestRoute";
   std::string route = "single";
   std::string outputFolder = "output/";
+  std::string conectivity = "medium";
+
+  int totalLinkFailures = 0;
 
   double alpha = UNINITIALIZED;
   double x_dropping = UNINITIALIZED;
@@ -73,9 +76,11 @@ main (int argc, char *argv[])
 
   CommandLine cmd;
   cmd.AddValue ("briteConfFile", "BRITE conf file", confFile);
+  cmd.AddValue ("connectivity", "low, medium, high", conectivity);
   cmd.AddValue ("fw-strategy", "Forwarding Strategy", strategy);
   cmd.AddValue ("route", "defines if you use a single route or all possible routes", route);
   cmd.AddValue ("outputFolder", "defines specific output subdir", outputFolder);
+  cmd.AddValue ("linkFailures", "defines number of linkfailures events", totalLinkFailures);
 
   cmd.AddValue ("ALPHA", "P_ALPHA", alpha);
   cmd.AddValue ("X_DROPPING", "P_X_DROPPING", x_dropping);
@@ -143,6 +148,9 @@ main (int argc, char *argv[])
   if(strategy.compare ("perContentBased") == 0)
   {
     ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
+
+    //disable token bucket
+    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true", "UseTokenBucket", "0");
   }
   else if(strategy.compare ("bestRoute") == 0)
   {
@@ -175,46 +183,65 @@ main (int argc, char *argv[])
   gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
   gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
 
-  int min_bw = -1;
-  int max_bw = -1;
-  int number_of_connections_between_as = -1;
+  int min_bw_as = -1;
+  int max_bw_as = -1;
+  int min_bw_leaf = -1;
+  int max_bw_leaf = -1;
+  //int number_of_connections_between_as = -1;
+  int additional_random_connections_as = -1;
+  int additional_random_connections_leaf = - 1;
 
   if(confFile.find ("low_bw") != std::string::npos)
   {
-    min_bw = 2000;
-    max_bw = 5000;
+    min_bw_as = 2000;
+    max_bw_as = 5000;
+
+    min_bw_leaf = 1000;
+    max_bw_leaf = 3000;
   }
   else if(confFile.find ("medium_bw") != std::string::npos)
   {
-    min_bw = 3000;
-    max_bw = 6000;
+    min_bw_as = 3000;
+    max_bw_as = 6000;
+
+    min_bw_leaf = 2000;
+    max_bw_leaf = 4000;
   }
   else if (confFile.find ("high_bw") != std::string::npos)
   {
-    min_bw = 5000;
-    max_bw = 8000;
+    min_bw_as = 5000;
+    max_bw_as = 8000;
+
+    min_bw_leaf = 3000;
+    max_bw_leaf = 5000;
   }
 
-  if(confFile.find ("low_connectivity") != std::string::npos)
+  if(conectivity.compare ("low") == 0)
   {
-    number_of_connections_between_as = 1;
+    additional_random_connections_as = gen.getNumberOfAS () / 2;
+    additional_random_connections_leaf = gen.getAllASNodesFromAS (0).size () / 3;
   }
-  else if(confFile.find ("medium_connectivity") != std::string::npos)
+  else if(conectivity.compare ("medium") == 0)
   {
-    number_of_connections_between_as = 2;
+    additional_random_connections_as = gen.getNumberOfAS ();
+    additional_random_connections_leaf = gen.getAllASNodesFromAS (0).size () / 2;
   }
-  else if (confFile.find ("high_connectivity") != std::string::npos)
+  else if (conectivity.compare ("high") == 0)
   {
-    number_of_connections_between_as = 3;
+    additional_random_connections_as = gen.getNumberOfAS () *2;
+    additional_random_connections_leaf = gen.getAllASNodesFromAS (0).size ();
   }
 
-  if(min_bw == -1 || max_bw == -1 || number_of_connections_between_as == -1)
+  if(min_bw_as == -1 || max_bw_as == -1 || additional_random_connections_as == -1 || additional_random_connections_leaf == -1)
   {
     fprintf(stderr, "check szenario setting\n");
     exit(0);
   }
 
-  gen.randomlyAddConnectionsBetweenAllAS (number_of_connections_between_as,min_bw,max_bw,5,20);
+  //gen.randomlyAddConnectionsBetweenAllAS (number_of_connections_between_as,min_bw_as,max_bw_as,5,20);
+  gen.randomlyAddConnectionsBetweenTwoAS (additional_random_connections_as,min_bw_as,max_bw_as,5,20);
+
+  gen.randomlyAddConnectionsBetweenTwoNodesPerAS(additional_random_connections_leaf,min_bw_leaf,max_bw_leaf,5,20);
 
   ndnHelper.InstallAll();
 
@@ -250,10 +277,8 @@ main (int argc, char *argv[])
 
   double simTime = 600.0;
 
-  //add linkfailures if needed
-  //TODO
-  //for(int i = 0; i < 25; i++)
-    //gen.creatRandomLinkFailure(0, simTime, 5, 60.0);
+  for(int i = 0; i < totalLinkFailures; i++)
+    gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
 
   for(int i=0; i<client.size (); i++)
   {

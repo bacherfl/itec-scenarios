@@ -65,6 +65,7 @@ protected:
   Ptr<utils::ForwardingEngine> fwEngine;
 
   unsigned int prefixComponentNum;
+  unsigned int useTockenBucket;
 };
 
 template<class Parent>
@@ -80,6 +81,10 @@ TypeId PerContentBasedLayerStrategy<Parent>::GetTypeId (void)
       .template AddAttribute("PrefixNameComponentIndex", "The component of the name that is considered as prefix",
                     IntegerValue(0),
                     MakeIntegerAccessor(&PerContentBasedLayerStrategy<Parent>::prefixComponentNum),
+                             MakeIntegerChecker<int32_t>())
+      .template AddAttribute("UseTokenBucket", "Wether to use a Token Bucket Filter per Content Prefix. 1 = Use, 0 = do not use",
+                    IntegerValue(1),
+                    MakeIntegerAccessor(&PerContentBasedLayerStrategy<Parent>::useTockenBucket),
                              MakeIntegerChecker<int32_t>());
   return tid;
 }
@@ -255,10 +260,11 @@ void PerContentBasedLayerStrategy<Parent>::DidReceiveValidNack (Ptr<Face> inFace
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
-  // to turn token bucket off --> return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
-  if(!fwEngine->tryForwardInterest (outFace, interest))
-    return false;
-
+  if(useTockenBucket > 0)
+  {
+    if(!fwEngine->tryForwardInterest (outFace, interest))
+      return false;
+  }
   return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
 }
 
