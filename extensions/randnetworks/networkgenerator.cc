@@ -96,6 +96,70 @@ void NetworkGenerator::randomlyAddConnectionsBetweenAllAS(int numberOfConnection
   }
 }
 
+void NetworkGenerator::randomlyAddConnectionsBetweenTwoAS(int numberOfConnectionsPairs, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms)
+{
+  if(getNumberOfAS() <= 1)
+  {
+    NS_LOG_UNCOND("Error, at least two AS have to exists to add Connections between ASs!");
+    return;
+  }
+
+  PointToPointHelper p2p;
+
+  for(int i = 0; i < numberOfConnectionsPairs; i++)
+  {
+    std::string delay(boost::lexical_cast<std::string>(rvariable->GetValue (minDelay_ms,maxDelay_ms)));
+    delay.append ("ms");
+
+    std::string bw(boost::lexical_cast<std::string>(rvariable->GetValue (minBW_kbits,maxBw_kbits)));
+    bw.append ("Kbps");
+
+    p2p.SetDeviceAttribute ("DataRate", ns3::StringValue (bw));
+    p2p.SetChannelAttribute ("Delay", ns3::StringValue (delay));
+
+    int number_as1 = rvariable->GetInteger (0,getNumberOfAS()-1);
+
+
+    int number_as2 = number_as1;
+
+    while(number_as2 == number_as1)
+      number_as2 = rvariable->GetInteger (0,getNumberOfAS()-1);
+
+    int rand_node_1 = rvariable->GetInteger (0,getAllASNodesFromAS (number_as1).size ()-1);
+    int rand_node_2 = rvariable->GetInteger (0,getAllASNodesFromAS (number_as2).size ()-1);
+
+    p2p.Install (getAllASNodesFromAS (number_as1).Get (rand_node_1), getAllASNodesFromAS (number_as2).Get (rand_node_2));
+  }
+}
+
+void NetworkGenerator::randomlyAddConnectionsBetweenTwoNodesPerAS(int numberOfConnectionsPerAs, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms)
+{
+  PointToPointHelper p2p;
+
+  for(int as = 0; as < getNumberOfAS (); as++)
+  {
+    for(int i = 0; i < numberOfConnectionsPerAs; i++)
+    {
+      std::string delay(boost::lexical_cast<std::string>(rvariable->GetValue (minDelay_ms,maxDelay_ms)));
+      delay.append ("ms");
+
+      std::string bw(boost::lexical_cast<std::string>(rvariable->GetValue (minBW_kbits,maxBw_kbits)));
+      bw.append ("Kbps");
+
+      p2p.SetDeviceAttribute ("DataRate", ns3::StringValue (bw));
+      p2p.SetChannelAttribute ("Delay", ns3::StringValue (delay));
+
+      int rand_node_1 = rvariable->GetInteger (0,getAllASNodesFromAS (as).size ()-1);
+      int rand_node_2 = rand_node_1;
+
+      while(rand_node_1 == rand_node_2)
+        rand_node_2 = rvariable->GetInteger (0,getAllASNodesFromAS (as).size ()-1);
+
+      p2p.Install (getAllASNodesFromAS (as).Get (rand_node_1), getAllASNodesFromAS (as).Get (rand_node_2));
+    }
+  }
+}
+
 int NetworkGenerator::getNumberOfAS ()
 {
   return briteHelper->GetNAs ();
