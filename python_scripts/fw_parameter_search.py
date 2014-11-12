@@ -49,7 +49,7 @@ class Thread(threading.Thread):
 		os.remove("t_" + str(self.jobNumber) + ".stdout.txt")
 
 		# callback
-		print "threadFinished(job_" + self.jobNumber + ")"
+		print "threadFinished(job_" + str(self.jobNumber) + ")"
 		self.callback(self.jobNumber,self.src,self.dst)
 
 def threadFinished(job_number,src,dst):
@@ -57,7 +57,7 @@ def threadFinished(job_number,src,dst):
 
 	global curActiveThreads, invalid_runs
 
-	print "generateStatsPerSimulation(job_" + job_number + ")"
+	print "generateStatsPerSimulation(job_" + str(job_number) + ")"
 	try:
 		consumer_stats.generateStatsPerSimulation(src);
 	except Exception:
@@ -76,7 +76,7 @@ def threadFinished(job_number,src,dst):
 	#print "DELTE FOLDER " + src
 	shutil.rmtree(src)
 
-	print "statsCollected(job_" + job_number + ")"
+	print "statsCollected(job_" + str(job_number) + ")"
 
 	curActiveThreads -= 1
 
@@ -147,7 +147,7 @@ call([SIMULATION_DIR + "/waf"])
 scenario="brite_example"
 
 #briteConfig="--briteConfFile=/home/dposch/ndnSIM/itec-scenarios/brite_low_bw.conf"
-briteConfig="--briteConfFile=/local/users/ndnsim/ndnSIM/itec-scenarios/brite_low_bw.conf"
+briteConfig="--briteConfFile=/local/users/ndnsim/ndnSIM/itec-scenarios/brite_configs/brite_medium_bw_medium_connectivity.conf"
 
 bestRoute="--fw-strategy=bestRoute"
 smartFlooding="--fw-strategy=smartflooding"
