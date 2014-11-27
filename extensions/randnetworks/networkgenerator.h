@@ -37,6 +37,8 @@ public:
   void randomlyAddConnectionsBetweenTwoAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay, int maxDelay);
   void randomlyAddConnectionsBetweenTwoNodesPerAS(int numberOfConnectionsPerAs, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms);
 
+  double calculateConnectivity();
+
   int getNumberOfAS();
   int getNumberOfNodesInAS(int ASnumber);
 

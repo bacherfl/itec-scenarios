@@ -17,6 +17,8 @@
 
 #include "parameterconfiguration.h"
 
+#include <signal.h>
+
 #define FACE_NOT_FOUND -1
 namespace ns3
 {
@@ -27,7 +29,7 @@ class ForwardingProbabilityTable : public SimpleRefCount<ForwardingProbabilityTa
 public:
   ForwardingProbabilityTable(std::vector<int> faceIds, std::vector<int> preferedFacesIds = std::vector<int>());
 
-  int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer);
+  int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer, std::vector<int> blocked_faces);
 
   void updateColumns(Ptr<ForwardingStatistics> stats);
 
@@ -45,8 +47,8 @@ protected:
   std::map<int /*layer*/, bool /*punished*/> jammed;
 
   void initTable(std::vector<int> preferedFacesIds);
-  boost::numeric::ublas::matrix<double> removeFaceFromTable(Ptr<ndn::Face> face);
-  boost::numeric::ublas::matrix<double> removeFaceFromTable (int faceId);
+  boost::numeric::ublas::matrix<double> removeFaceFromTable(Ptr<ndn::Face> face, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces);
+  boost::numeric::ublas::matrix<double> removeFaceFromTable (int faceId, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces);
   boost::numeric::ublas::matrix<double> addFaceToTable (Ptr<ndn::Face> face);
   boost::numeric::ublas::matrix<double> addFaceToTable (int faceId);
   boost::numeric::ublas::matrix<double> normalizeColumns(boost::numeric::ublas::matrix<double> m);
@@ -59,8 +61,11 @@ protected:
   void probeColumn(std::vector<int> faces, int layer, Ptr<ForwardingStatistics> stats, bool useDroppingProbabilityFromFWT);
   void shiftDroppingTraffic(std::vector<int> faces, int layer,Ptr<ForwardingStatistics> stats);
 
-  int determineRowOfFace(Ptr<ndn::Face> face, bool printError = true);
-  int determineRowOfFace(int face_uid, bool printError = true);
+  int determineRowOfFace(Ptr<ndn::Face> face, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces);
+  int determineRowOfFace(int face_uid, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces);
+
+  int determineRowOfFace(Ptr<ndn::Face> face);
+  int determineRowOfFace(int face_uid);
 
   double calcWeightedUtilization(int faceId, int layer, Ptr<ForwardingStatistics> stats);
 

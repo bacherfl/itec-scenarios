@@ -38,11 +38,8 @@ void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
   std::sort(faceIds.begin(), faceIds.end()); // order faces strictly by ID
 }
 
-int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, bool &content_seen)
+int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, std::vector<int> blocked_faces)
 {
-
-  content_seen = true;
-
   //check if content prefix has been seen
   std::string prefix = extractContentPrefix(interest->GetName());
 
@@ -51,8 +48,6 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
     //fprintf(stderr, "prefix = %s\n", prefix.c_str ());
     //fwMap[prefix] = Create<ForwardingEntry>(faceIds, fib->Find(ndn::Name(prefix)));
     fwMap[prefix] = Create<ForwardingEntry>(faceIds, fib->LongestPrefixMatch (interest.operator * ()));
-
-    content_seen = false;
 
     // add buckets for all faces
     for(FaceBucketMap::iterator it = fbMap.begin (); it != fbMap.end (); it++)
@@ -63,7 +58,7 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
   Ptr<ForwardingEntry> entry = fwMap.find(prefix)->second;
 
-  int out_face_id = entry->determineRoute(inFace, interest);
+  int out_face_id = entry->determineRoute(inFace, interest, blocked_faces);
 
   return out_face_id;
 

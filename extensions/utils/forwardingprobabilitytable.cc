@@ -48,81 +48,126 @@ void ForwardingProbabilityTable::initTable (std::vector<int> preferedFacesIds)
    //std::cout << table << std::endl; /* prints matrix line by line ( (first line), (second line) )*/
 }
 
-int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer)
+int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer, std::vector<int> blocked_faces)
 {
-  // normalize column of layer for all possible outgoing faces
+  //copy data structs
+  matrix<double> tmp_matrix(table);
+  std::vector<int> face_list(faceIds);
+  int offset = 0;
 
-  //check if we have to remove the incomming face before choosing the face to forward
-  if(determineRowOfFace (inFace, false) != FACE_NOT_FOUND)
+  //First remove the inface
+  offset = determineRowOfFace(inFace, tmp_matrix, face_list);
+  if(offset != FACE_NOT_FOUND)
   {
-    matrix<double> normalized = removeFaceFromTable(inFace);
-
-    //create a copy of the faceIds that excludes the incoming face
-    std::vector<int> face_list(faceIds);
-    int offset = determineRowOfFace(inFace);
-
+    tmp_matrix = removeFaceFromTable(inFace, tmp_matrix, face_list);
     face_list.erase (face_list.begin ()+offset);
-
-    // choose one face as outgoing according to the probability
-    return chooseFaceAccordingProbability(normalized, ilayer, face_list);
   }
-  else
+
+  //lets check if sum(Fi in blockedFaces > R)
+  double fw_prob = 0.0;
+  for(std::vector<int>::iterator i = blocked_faces.begin (); i != blocked_faces.end ();++i)
   {
-    return chooseFaceAccordingProbability(table,ilayer,faceIds);
+    fw_prob += tmp_matrix(determineRowOfFace(*i, tmp_matrix, face_list),ilayer);
   }
+
+  if(fw_prob > ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"))
+  {
+    /*fprintf(stderr, "fw_prob = %f\n",fw_prob);
+    fprintf(stderr, "blocked_faces size = %d\n", blocked_faces.size ());
+    for(std::vector<int>::iterator i = blocked_faces.begin (); i != blocked_faces.end ();++i)
+        fprintf(stderr, "face[i]=%d\n",*i);
+    fprintf(stderr, "Dropped due to extensive face probing...\n");
+    std::cout << tmp_matrix << "\n" << std::endl;*/
+    return DROP_FACE_ID;
+  }
+
+  //ok now remove the blocked faces
+  offset = 0;
+  for(std::vector<int>::iterator i = blocked_faces.begin (); i != blocked_faces.end ();++i)
+  {
+    offset = determineRowOfFace(*i, tmp_matrix, face_list);
+    if(offset != FACE_NOT_FOUND)
+    {
+      //then remove the row
+      tmp_matrix = removeFaceFromTable(*i, tmp_matrix, face_list);
+
+      //then remove the face from the list
+      face_list.erase (face_list.begin ()+offset);
+    }
+    else
+      fprintf(stderr, "Could not remove face[i]=%d\n",*i);
+  }
+
+  // choose one face as outgoing according to the probability
+  return chooseFaceAccordingProbability(tmp_matrix, ilayer, face_list);
 }
 
-int ForwardingProbabilityTable::determineRowOfFace(Ptr<ndn::Face> face, bool printError)
+int ForwardingProbabilityTable::determineRowOfFace(Ptr<ndn::Face> face)
 {
-  return determineRowOfFace (face->GetId (), printError);
+  return determineRowOfFace (face->GetId (), table, faceIds);
 }
 
-int ForwardingProbabilityTable::determineRowOfFace(int face_id, bool printError)
+int ForwardingProbabilityTable::determineRowOfFace(int face_uid)
 {
+  return determineRowOfFace (face_uid, table, faceIds);
+}
+
+int ForwardingProbabilityTable::determineRowOfFace(Ptr<ndn::Face> face, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces)
+{
+  return determineRowOfFace (face->GetId (), tab, faces);
+}
+
+int ForwardingProbabilityTable::determineRowOfFace(int face_id, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces)
+{
+  if(tab.size1 () != faces.size ())
+  {
+    raise(SIGSEGV);
+    fprintf(stderr, "Invalid Table to faceIds\n");
+    fprintf(stderr, "table size = %d\n", tab.size1 ());
+    fprintf(stderr, "faceIds size = %d\n", faces.size ());
+    return FACE_NOT_FOUND;
+  }
+
   //determine row of face
   int faceRow = FACE_NOT_FOUND;
 
-  for(int i = 0; i < faceIds.size () ; i++)
+  std::sort(faces.begin(), faces.end());//order
+
+  for(int i = 0; i < faces.size () ; i++)
   {
-    if(faceIds.at (i) == face_id)
+    if(faces.at (i) == face_id)
     {
       faceRow = i;
       break;
     }
   }
-
-  if(faceRow == -1 && printError)
-  {
-    NS_LOG_UNCOND("ERROR: Invalid faceID.");
-  }
-
   return faceRow;
 }
 
-matrix<double> ForwardingProbabilityTable::removeFaceFromTable(Ptr<ndn::Face> face)
+matrix<double> ForwardingProbabilityTable::removeFaceFromTable(Ptr<ndn::Face> face, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces)
 {
-  return removeFaceFromTable(face->GetId ());
+  return removeFaceFromTable(face->GetId (), tab, faces);
 }
 
-boost::numeric::ublas::matrix<double> ForwardingProbabilityTable::removeFaceFromTable (int faceId)
+boost::numeric::ublas::matrix<double> ForwardingProbabilityTable::removeFaceFromTable (int faceId, boost::numeric::ublas::matrix<double> tab, std::vector<int> faces)
 {
-  int faceRow = determineRowOfFace (faceId);
+  int faceRow = determineRowOfFace (faceId, tab, faces);
 
   if(faceRow == FACE_NOT_FOUND)
   {
     NS_LOG_UNCOND("Could not remove Face from Table as it does not exist");
-    return table;
+    return tab;
   }
 
-  matrix<double> m (table.size1 () - 1, table.size2 ());
+  matrix<double> m (tab.size1 () - 1, tab.size2 ());
 
-  for (unsigned j = 0; j < table.size2 (); ++j) /* columns */
+  for (unsigned j = 0; j < tab.size2 (); ++j) /* columns */
   {
-    for (unsigned i = 0; i < table.size1 (); ++i) /* rows */
+    for (unsigned i = 0; i < tab.size1 (); ++i) /* rows */
     {
       if(i < faceRow)
       {
-        m(i,j) = table(i,j);
+        m(i,j) = tab(i,j);
       }
       /*else if(faceRow == i)
       {
@@ -130,7 +175,7 @@ boost::numeric::ublas::matrix<double> ForwardingProbabilityTable::removeFaceFrom
       }*/
       else if (i > faceRow)
       {
-        m(i-1,j) = table(i,j);
+        m(i-1,j) = tab(i,j);
       }
     }
   }
@@ -668,7 +713,7 @@ int ForwardingProbabilityTable::getLastDroppingLayer()
 
 void ForwardingProbabilityTable::addFace (int faceId)
 {
-  if(determineRowOfFace (faceId, false) != FACE_NOT_FOUND)
+  if(determineRowOfFace (faceId) != FACE_NOT_FOUND)
   {
     NS_LOG_UNCOND("Trying to add already known face: " << faceId);
     return;
@@ -677,12 +722,12 @@ void ForwardingProbabilityTable::addFace (int faceId)
 
 void ForwardingProbabilityTable::removeFace (int faceId)
 {
-  if(determineRowOfFace (faceId, false) == FACE_NOT_FOUND)
+  if(determineRowOfFace (faceId) == FACE_NOT_FOUND)
   {
     NS_LOG_UNCOND("Trying to remove unknown face: " << faceId);
     return;
   }
-  table = removeFaceFromTable (faceId);
+  table = removeFaceFromTable (faceId, table, faceIds);
 
   //remove from vector...
   for(std::vector<int>::iterator it = faceIds.begin (); it != faceIds.end (); ++it)

@@ -119,9 +119,9 @@ bool ForwardingEntry::faceInRoutingInformation(int faceId)
   return false;
 }
 
-int ForwardingEntry::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest)
+int ForwardingEntry::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, std::vector<int> blocked_faces)
 {
-  return fwTable->determineOutgoingFace(inFace, interest, determineContentLayer(interest));
+  return fwTable->determineOutgoingFace(inFace, interest, determineContentLayer(interest), blocked_faces);
 }
 
 void ForwardingEntry::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)

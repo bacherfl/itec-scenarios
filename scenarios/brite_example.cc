@@ -57,7 +57,7 @@ int
 main (int argc, char *argv[])
 {
   // BRITE needs a configuration file to build its graph.
-  std::string confFile = "brite_low_bw.conf";
+  std::string confFile = "brite_configs/brite_low_bw.conf";
   std::string strategy = "bestRoute";
   std::string route = "single";
   std::string outputFolder = "output/";
@@ -143,33 +143,6 @@ main (int argc, char *argv[])
 
   // Invoke the BriteTopologyHelper and pass config file
 
-  ndn::StackHelper ndnHelper;
-
-  if(strategy.compare ("perContentBased") == 0)
-  {
-    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
-
-    //disable token bucket
-    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true", "UseTokenBucket", "0");
-  }
-  else if(strategy.compare ("bestRoute") == 0)
-  {
-    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
-    ndnHelper.EnableLimits (true, Seconds (0.1), 50, 4096);
-  }
-  else if(strategy.compare("smartflooding") == 0 )
-  {
-    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SmartFlooding::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
-    ndnHelper.EnableLimits (true, Seconds (0.1), 50, 4096);
-  }
-  else
-  {
-    fprintf(stderr,"Invalid Strategy. Exiting..\n ");
-    exit(-1);
-  }
-
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 1k chunks in cache (about 100MB)
-
   ndn::NetworkGenerator gen(confFile);
 
   fprintf(stderr, "Number of ASs = %d\n",gen.getNumberOfAS ());
@@ -179,9 +152,6 @@ main (int argc, char *argv[])
   PointToPointHelper *p2p = new PointToPointHelper;
   p2p->SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
   p2p->SetChannelAttribute ("Delay", StringValue ("2ms"));
-
-  gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
-  gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
 
   int min_bw_as = -1;
   int max_bw_as = -1;
@@ -240,8 +210,50 @@ main (int argc, char *argv[])
 
   //gen.randomlyAddConnectionsBetweenAllAS (number_of_connections_between_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddConnectionsBetweenTwoAS (additional_random_connections_as,min_bw_as,max_bw_as,5,20);
-
   gen.randomlyAddConnectionsBetweenTwoNodesPerAS(additional_random_connections_leaf,min_bw_leaf,max_bw_leaf,5,20);
+
+  //calculaute network connectivity be careful when u call this all nodes/edges are considered
+  fprintf(stderr, "connectivity = %f\n",gen.calculateConnectivity());
+
+  gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
+  gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
+
+  double simTime = 240.0;
+
+  for(int i = 0; i < totalLinkFailures; i++)
+    gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
+
+  ndn::StackHelper ndnHelper;
+
+  if(strategy.compare ("perContentBased") == 0)
+  {
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
+
+    //disable token bucket
+    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true", "UseTokenBucket", "0");
+  }
+  else if(strategy.compare ("bestRoute") == 0)
+  {
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+    ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
+  }
+  else if(strategy.compare("smartflooding") == 0 )
+  {
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SmartFlooding::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+    ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
+  }
+  else if(strategy.compare("broadcast") == 0 )
+  {
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Flooding::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+    ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
+  }
+  else
+  {
+    fprintf(stderr,"Invalid Strategy. Exiting..\n ");
+    exit(-1);
+  }
+
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 1k chunks in cache (about 100MB)
 
   ndnHelper.InstallAll();
 
@@ -274,11 +286,6 @@ main (int argc, char *argv[])
   ndnGlobalRoutingHelper.Install (gen.getCustomNodes ("Client"));
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 25k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
-
-  double simTime = 600.0;
-
-  for(int i = 0; i < totalLinkFailures; i++)
-    gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
 
   for(int i=0; i<client.size (); i++)
   {

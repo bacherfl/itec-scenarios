@@ -189,41 +189,40 @@ Ptr<Interest> PerContentBasedLayerStrategy<Parent>::prepareNack(Ptr<const Intere
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
-  bool content_seen = false;
-  int fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry, content_seen);
 
-  if(fwFaceId == DROP_FACE_ID)
+  std::vector<int> triedFaces;
+  int fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry, triedFaces);
+
+  while(fwFaceId != DROP_FACE_ID)
   {
-    Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
-    inFace->SendInterest (nack);
-    PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
-
-    fwEngine->logDroppingFace(inFace, interest, pitEntry);
-    return false;
-  }
-
-  for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
-      it !=  faces.end (); ++it)
-  {
-    if (fwFaceId == (*it)->GetId())
+    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+        it !=  faces.end (); ++it)
     {
-      bool success = PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(inFace, *it, interest, pitEntry);
-
-      if(!success)
+      if (fwFaceId == (*it)->GetId())
       {
-        Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
-        inFace->SendInterest (nack);
-        PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
-
-        // In this case the current node is the bottleneck. therefore it should not log this, as others will react on it
-        //fwEngine->logExhaustedFace(inFace,interest,pitEntry, *it); //means PerOutFaceLimits blocked it
+        bool success = PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(inFace, *it, interest, pitEntry);
+        if(!success)
+        {
+          //fprintf(stderr, "Blocked! Interest %s blocked on Face %d\n", interest->GetName ().toUri ().c_str (), fwFaceId);
+          triedFaces.push_back (fwFaceId);
+          fwEngine->logExhaustedFace (inFace, interest, pitEntry, *it);
+          break;
+        }
+        //fprintf(stderr, "Successs! Interest %s send out on Face %d\n", interest->GetName ().toUri ().c_str (), fwFaceId);
+        return success; //maybe some more sophisticated handling here.
       }
-
-      return success; //maybe some more sophisticated handling here.
     }
+
+    fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry,triedFaces);
   }
 
-  NS_LOG_UNCOND("Unhandeld Forwarding case!");
+  Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
+  inFace->SendInterest (nack);
+  PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
+
+  //fprintf(stderr, "Fail! Interest %s Dropped\n", interest->GetName ().toUri ().c_str ());
+
+  fwEngine->logDroppingFace(inFace, interest, pitEntry);
   return false;
 }
 

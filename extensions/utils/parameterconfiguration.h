@@ -7,11 +7,11 @@
 
 //default values can be overriden:
 
-#define P_ALPHA 0.30
+#define P_ALPHA 0.35
 
 #define P_X_DROPPING 0.4
 
-#define P_PROBING_TRAFFIC 0.20
+#define P_PROBING_TRAFFIC 0.40
 #define P_SHIFT_THRESHOLD 0.01
 #define P_SHIFT_TRAFFIC 0.30
 
@@ -19,7 +19,7 @@
 #define P_MAX_LAYERS 1
 #define P_DROP_FACE_ID -1
 
-#define P_RELIABILITY_THRESHOLD 0.70
+#define P_RELIABILITY_THRESHOLD 0.80
 
 namespace ns3
 {

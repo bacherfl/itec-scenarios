@@ -270,3 +270,23 @@ void NetworkGenerator::creatRandomLinkFailure(double minTimestamp, double maxTim
     //fprintf(stderr, "Stop LinkFail: %f\n",stopTime);
   }
 }
+
+double NetworkGenerator::calculateConnectivity ()
+{
+  NodeContainer allNodes;
+  allNodes.Add (getAllASNodes ());
+
+  Ptr<Node> n;
+  double connectivity = 0.0;
+
+  for(int i = 0; i < allNodes.size (); i++)
+  {
+    n = allNodes.Get (i);
+    connectivity += n->GetNDevices (); // degree summation
+  }
+
+  connectivity /= allNodes.size ();
+  connectivity /= (allNodes.size () - 1);
+
+  return connectivity;
+}
