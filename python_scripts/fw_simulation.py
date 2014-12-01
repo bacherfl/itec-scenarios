@@ -169,8 +169,8 @@ def getScenarioName(config,connectivity,strategy,route, linkfailure):
 
 SIMULATION_DIR=os.getcwd()
 
-THREADS = 3
-SIMULATION_RUNS = 8
+THREADS = 20
+SIMULATION_RUNS = 100
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 
 #brite config file
@@ -185,21 +185,22 @@ briteConfigMediumBw="--briteConfFile="+britePath+"brite_configs/brite_medium_bw.
 briteConfigHighBw="--briteConfFile="+britePath+"brite_configs/brite_high_bw.conf"
 
 briteConfigs = [briteConfigLowBw, briteConfigMediumBw, briteConfigHighBw]
+#briteConfigs = [briteConfigMediumBw]
 
 lowConnectivity="--connectivity=low"
 mediumConnectivity="--connectivity=medium"
 highConnectivity="--connectivity=high"
 
 connectivities = [lowConnectivity, mediumConnectivity, highConnectivity]
-#connectivities = [lowConnectivity]
+#connectivities = [mediumConnectivity]
 
 bestRoute="--fw-strategy=bestRoute"
 smartFlooding="--fw-strategy=smartflooding"
 broadcast="--fw-strategy=broadcast"
 perContentBased="--fw-strategy=perContentBased"
 
-#forwardingStrategies = [bestRoute, smartFlooding, perContentBased, broadcast]
-forwardingStrategies = [perContentBased]
+forwardingStrategies = [bestRoute, smartFlooding, perContentBased, broadcast]
+#forwardingStrategies = [perContentBased]
 
 singleRoute="--route=single"
 allRoute="--route=all"
@@ -208,7 +209,7 @@ allRoute="--route=all"
 routes = [allRoute]
 
 #linkFailures = ["--linkFailures=0", "--linkFailures=15", "--linkFailures=30", "--linkFailures=50", "--linkFailures=100"]
-linkFailures = ["--linkFailures=15"]
+linkFailures = ["--linkFailures=30", "--linkFailures=50", "--linkFailures=100"]
 
 SCENARIOS = {
 #"BestRoute_AllRoutes":     { "executeable": scenario, "numRuns": SIMULATION_RUNS, "params": [briteConfig, bestRoute, allRoutes] },
