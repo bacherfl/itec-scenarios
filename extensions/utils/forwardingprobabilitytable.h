@@ -40,6 +40,8 @@ public:
   void addFace(int faceId);
   void removeFace(int faceId);
 
+  double getCurrentReliability(){return this->curReliability;}
+
 protected:
 
   boost::numeric::ublas::matrix<double> table;
@@ -71,6 +73,12 @@ protected:
 
   int getFirstDroppingLayer();
   int getLastDroppingLayer();
+
+  void decreaseReliabilityThreshold();
+  void increaseReliabilityThreshold();
+  void updateReliabilityThreshold(bool mode);
+
+  double curReliability;
 
   ns3::UniformVariable randomVariable;
 };

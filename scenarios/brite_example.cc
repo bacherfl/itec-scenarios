@@ -138,7 +138,7 @@ main (int argc, char *argv[])
   if(reliability_threshold != UNINITIALIZED)
   {
     NS_LOG_DEBUG("reliability_threshold set to: " << reliability_threshold);
-    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("RELIABILITY_THRESHOLD", reliability_threshold);
+    ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("RELIABILITY_THRESHOLD_MIN", reliability_threshold);
   }
 
   // Invoke the BriteTopologyHelper and pass config file
@@ -164,23 +164,23 @@ main (int argc, char *argv[])
   if(confFile.find ("low_bw") != std::string::npos)
   {
     min_bw_as = 2000;
-    max_bw_as = 5000;
+    max_bw_as = 4000;
 
     min_bw_leaf = 1000;
-    max_bw_leaf = 3000;
+    max_bw_leaf = 2000;
   }
   else if(confFile.find ("medium_bw") != std::string::npos)
   {
     min_bw_as = 3000;
-    max_bw_as = 6000;
+    max_bw_as = 5000;
 
     min_bw_leaf = 2000;
     max_bw_leaf = 4000;
   }
   else if (confFile.find ("high_bw") != std::string::npos)
   {
-    min_bw_as = 5000;
-    max_bw_as = 8000;
+    min_bw_as = 4000;
+    max_bw_as = 6000;
 
     min_bw_leaf = 3000;
     max_bw_leaf = 5000;
@@ -218,7 +218,7 @@ main (int argc, char *argv[])
   gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
   gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
 
-  double simTime = 240.0;
+  double simTime = 3600.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);

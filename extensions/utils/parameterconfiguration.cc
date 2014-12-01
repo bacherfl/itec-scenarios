@@ -14,7 +14,11 @@ ParameterConfiguration::ParameterConfiguration()
   setParameter ("UPDATE_INTERVALL", P_UPDATE_INTERVALL);
   setParameter ("MAX_LAYERS", P_MAX_LAYERS);
   setParameter ("DROP_FACE_ID", P_DROP_FACE_ID);
-  setParameter ("RELIABILITY_THRESHOLD", P_RELIABILITY_THRESHOLD);
+
+  //setParameter ("RELIABILITY_THRESHOLD", P_RELIABILITY_THRESHOLD);
+
+  setParameter ("RELIABILITY_THRESHOLD_MIN", P_RELIABILITY_THRESHOLD);
+  setParameter ("RELIABILITY_THRESHOLD_MAX", 1.0);
 }
 
 

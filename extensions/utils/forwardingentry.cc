@@ -46,7 +46,7 @@ void ForwardingEntry::initFaceIds(std::vector<int> faceIds)
 void ForwardingEntry::update()
 {
 
-  fwStats->resetStatistics ();
+  fwStats->resetStatistics (fwTable->getCurrentReliability ());
 
   fwTable->updateColumns(fwStats);
   fwTable->syncDroppingPolicy(fwStats);

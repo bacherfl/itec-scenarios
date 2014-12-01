@@ -209,7 +209,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
           break;
         }
         //fprintf(stderr, "Successs! Interest %s send out on Face %d\n", interest->GetName ().toUri ().c_str (), fwFaceId);
-        return success; //maybe some more sophisticated handling here.
+        return success;
       }
     }
 

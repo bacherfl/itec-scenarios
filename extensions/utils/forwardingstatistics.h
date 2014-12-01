@@ -42,7 +42,7 @@ public:
   std::vector<int>  getReliableFaces(int layer, double threshold);
   std::vector<int>  getUnreliableFaces(int layer, double threshold);
 
-  void resetStatistics();
+  void resetStatistics(double reliability_t);
 
   void removeFace(int faceId);
 
@@ -63,8 +63,8 @@ protected:
   void calculateLinkReliabilities(int layer);
   void calculateGoodput(int layer);
   void calculateUnstatisfiedTrafficFraction(int layer);
-  double calculateUnstatisfiedTrafficFractionOfReliableFaces(int layer);
-  double calculateUnstatisfiedTrafficFractionOfUnreliableFaces(int layer);
+  double calculateUnstatisfiedTrafficFractionOfReliableFaces(int layer, double reliability_t);
+  double calculateUnstatisfiedTrafficFractionOfUnreliableFaces(int layer, double reliability_t);
   void calculateActualForwardingProbabilities (int layer);
   void calculatTotalForwardedRequests(int layer);
 

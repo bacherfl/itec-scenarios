@@ -11,9 +11,9 @@
 
 #define P_X_DROPPING 0.4
 
-#define P_PROBING_TRAFFIC 0.40
+#define P_PROBING_TRAFFIC 0.40  //test 0.30
 #define P_SHIFT_THRESHOLD 0.01
-#define P_SHIFT_TRAFFIC 0.30
+#define P_SHIFT_TRAFFIC 0.30    //test 0.40
 
 #define P_UPDATE_INTERVALL 0.5
 #define P_MAX_LAYERS 1

@@ -7,6 +7,7 @@ NS_LOG_COMPONENT_DEFINE ("ForwardingProbabilityTable");
 
 ForwardingProbabilityTable::ForwardingProbabilityTable(std::vector<int> faceIds, std::vector<int> preferedFacesIds)
 {
+  this->curReliability = ParameterConfiguration::getInstance ()->getParameter("RELIABILITY_THRESHOLD_MIN");
   this->faceIds = faceIds;
   initTable (preferedFacesIds);
 }
@@ -70,7 +71,7 @@ int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr
     fw_prob += tmp_matrix(determineRowOfFace(*i, tmp_matrix, face_list),ilayer);
   }
 
-  if(fw_prob > ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"))
+  if(fw_prob > curReliability)
   {
     /*fprintf(stderr, "fw_prob = %f\n",fw_prob);
     fprintf(stderr, "blocked_faces size = %d\n", blocked_faces.size ());
@@ -302,16 +303,17 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 {
   NS_LOG_DEBUG("Forwarding Matrix before update:\n" << table);
 
+  //fprintf(stderr, "%d: current Reliability=%f\n",Simulator::Now ().GetMilliSeconds (),curReliability);
   std::vector<int> r_faces;
   std::vector<int> ur_faces;
 
   for(int layer = 0; layer < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); layer++) // for each layer
   {
     //determine the set of reliable faces
-    r_faces = stats->getReliableFaces (layer, ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"));
+    r_faces = stats->getReliableFaces (layer, curReliability);
 
     //determine the set of unreliable faces
-    ur_faces = stats->getUnreliableFaces (layer, ParameterConfiguration::getInstance ()->getParameter ("RELIABILITY_THRESHOLD"));
+    ur_faces = stats->getUnreliableFaces (layer, curReliability);
 
     //utf = unstatisfied_trafic_fraction
     //double utf = stats->getUnstatisfiedTrafficFraction (layer);
@@ -343,6 +345,10 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
 
         if(!jammed[layer])  // only probe if not jammed
           probeColumn(r_faces, layer, stats, true);
+
+        //lower reliability
+        if(table(determineRowOfFace (DROP_FACE_ID),layer) > (1.0-curReliability) )
+          decreaseReliabilityThreshold();
       }
       else
       {
@@ -378,6 +384,9 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         if(stats->getTotalForwardedInterests (layer) != 0)
           for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it)
             table(determineRowOfFace(*it), layer) = calcWeightedUtilization(*it,layer,stats);
+
+        //increase Reliability Threshold
+         increaseReliabilityThreshold();
       }
       else
       {
@@ -401,6 +410,10 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
           // however this might be good, as it lowers, dropping probability, and distributes forwarding prob at all other faces...
           //fprintf(stderr, "CASE 5\n");
           probeColumn(probe_faces, layer, stats, false); // do only probing
+
+          //increase Reliability Threshold
+          if(table(determineRowOfFace (DROP_FACE_ID),layer) < (1.0-curReliability) )
+            increaseReliabilityThreshold();
         }
         else
         {
@@ -748,5 +761,35 @@ double ForwardingProbabilityTable::calcWeightedUtilization(int faceId, int layer
   double old = table(determineRowOfFace (faceId), layer);
 
   return old + ( (actual - old) * ParameterConfiguration::getInstance ()->getParameter ("ALPHA") );
+}
+
+void ForwardingProbabilityTable::increaseReliabilityThreshold()
+{
+  updateReliabilityThreshold (true);
+}
+
+void ForwardingProbabilityTable::decreaseReliabilityThreshold()
+{
+  updateReliabilityThreshold (false);
+}
+
+void ForwardingProbabilityTable::updateReliabilityThreshold(bool mode)
+{
+  ParameterConfiguration *p = ParameterConfiguration::getInstance ();
+
+  double new_t = 0.0;
+
+  if(mode)
+    new_t = curReliability + ((p->getParameter("RELIABILITY_THRESHOLD_MAX") - curReliability) * p->getParameter("ALPHA"));
+  else
+    new_t = curReliability - ((curReliability - p->getParameter("RELIABILITY_THRESHOLD_MIN")) * p->getParameter("ALPHA"));
+
+  if(new_t > p->getParameter("RELIABILITY_THRESHOLD_MAX"))
+    new_t = p->getParameter("RELIABILITY_THRESHOLD_MAX");
+
+  if(new_t < p->getParameter("RELIABILITY_THRESHOLD_MIN"))
+    new_t = p->getParameter("RELIABILITY_THRESHOLD_MIN");
+
+  curReliability = new_t;
 }
 
