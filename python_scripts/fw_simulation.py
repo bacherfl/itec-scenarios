@@ -276,7 +276,8 @@ for scenarioName in SCENARIOS.keys():
 
 	   # start thread, get callback method to be called when thread is done
 		thread = Thread(job_number, sysCall, threadFinished, src, dst)
-		time.sleep(0.1)
+		if(job_number<THREADS): # do this to avoid that all threads copy at the same time
+			time.sleep(15.0)
 		thread.start()
 
 		job_number += 1

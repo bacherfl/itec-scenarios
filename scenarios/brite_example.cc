@@ -59,7 +59,7 @@ main (int argc, char *argv[])
   // BRITE needs a configuration file to build its graph.
   std::string confFile = "brite_configs/brite_low_bw.conf";
   std::string strategy = "bestRoute";
-  std::string route = "single";
+  std::string route = "all";
   std::string outputFolder = "output/";
   std::string conectivity = "medium";
 
