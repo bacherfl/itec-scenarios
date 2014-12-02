@@ -122,10 +122,10 @@ int ForwardingProbabilityTable::determineRowOfFace(int face_id, boost::numeric::
 {
   if(tab.size1 () != faces.size ())
   {
-    raise(SIGSEGV);
+    //raise(SIGSEGV);
     fprintf(stderr, "Invalid Table to faceIds\n");
-    fprintf(stderr, "table size = %d\n", tab.size1 ());
-    fprintf(stderr, "faceIds size = %d\n", faces.size ());
+    fprintf(stderr, "table size = %l\n", tab.size1 ());
+    fprintf(stderr, "faceIds size = %l\n", faces.size ());
     return FACE_NOT_FOUND;
   }
 
