@@ -169,7 +169,7 @@ def getScenarioName(config,connectivity,strategy,route, linkfailure):
 
 SIMULATION_DIR=os.getcwd()
 
-THREADS = 20
+THREADS = 22
 SIMULATION_RUNS = 100
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 
@@ -178,7 +178,7 @@ scenario="brite_example"
 
 
 #britePath="--briteConfFile=/local/users/ndnsim/ndnSIM/itec-scenarios/"
-britePath="/home/dposch/ndnSIM/itec-scenarios/"
+britePath="/local/users/ndnsim/ndnSIM/itec-scenarios/"
 
 briteConfigLowBw="--briteConfFile="+britePath+"brite_configs/brite_low_bw.conf"
 briteConfigMediumBw="--briteConfFile="+britePath+"brite_configs/brite_medium_bw.conf"
