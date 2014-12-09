@@ -181,3 +181,4 @@ extensions/randnetworks/networkgenerator.h
 extensions/randnetworks/networkgenerator.cc
 extensions/utils/parameterconfiguration.h
 extensions/utils/parameterconfiguration.cc
+scenarios/brite_dash.cc

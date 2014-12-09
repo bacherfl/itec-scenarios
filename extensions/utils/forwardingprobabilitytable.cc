@@ -282,6 +282,7 @@ int ForwardingProbabilityTable::chooseFaceAccordingProbability(boost::numeric::u
 
   for(int i = 0; i < m.size1 (); i++)
   {
+    //fprintf(stderr, "layer_of_interest = %d\n", layer_of_interest);
     sum += m(i, layer_of_interest);
 
     if(rvalue <= sum)

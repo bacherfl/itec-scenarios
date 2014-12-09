@@ -61,7 +61,8 @@ def computeStats(curdir):
 
 	#print "Curring working dir = " + curdir + "\n"
 
-	files = glob.glob(curdir + "/Content*.txt" );
+	#files = glob.glob(curdir + "/Content*.txt" );
+	files = glob.glob(curdir + "/Client*.txt" );
 	output_file = open(curdir+"/STATS.txt", "w")
 
 	###statistic over all clients

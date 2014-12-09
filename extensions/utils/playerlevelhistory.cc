@@ -76,7 +76,9 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
   NS_LOG_FUNCTION(this);
 
   ofstream file;
-  FileName = "output/" + FileName;
+  //FileName = "output/" + FileName;
+  FileName = "traces/" + FileName;
+
   file.open(FileName.c_str());
 
   file << "SegmentNr, Level, Buffer, Unsmooth Second(s), Requested Level, Segment(s) Size (bytes), Download Time (ms), Goodput (kbit/s)" << endl;

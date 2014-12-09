@@ -157,8 +157,8 @@ int ForwardingEntry::determineContentLayer(Ptr<const Interest> interest)
 
   //TODO fix levels
   if (svcLevelTagExists)
-  {
-    return levelTag.Get ();
+  {   
+    return levelTag.Get () % 10; // This is done as our content has level sometimes levels of 1, 10, 20, 30
   }
 
   std::string layer = interest->GetName ().get(1).toUri();
