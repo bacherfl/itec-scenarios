@@ -178,9 +178,9 @@ Ptr<Interest> PerContentBasedLayerStrategy<Parent>::prepareNack(Ptr<const Intere
   //nack->SetNack (ndn::Interest::NACK_CONGESTION);
   nack->SetNack (ndn::Interest::NACK_CONGESTION); // set this since ndn changes it anyway to this.
 
-  SVCLevelTag levelTag;
+  /*SVCLevelTag levelTag; // this causes loops together with svccounting strategy so be careful...
   levelTag.Set (-1); // means packet dropped on purpose
-  nack->GetPayload ()->AddPacketTag (levelTag);
+  nack->GetPayload ()->AddPacketTag (levelTag);*/
 
   //fprintf(stderr, "NACK %s prepared at time: %f\n", interest->GetName ().toUri ().c_str (), Simulator::Now ().ToDouble (Time::S));
   return nack;
