@@ -91,7 +91,11 @@ bool PlayerLevelHistory::WriteToFile(std::string FileName)
   int dlSpeed = 0;
 
   int qualitySwitches = 0;
-  int lastLevel = levelHistory.at(0);
+
+  int lastLevel = 0;
+  if(levelHistory.size ()>0)
+    lastLevel = levelHistory.at(0);
+
 
   for (int i = 0; i < this->levelHistory.size (); i++)
   {
