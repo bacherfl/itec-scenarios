@@ -80,9 +80,11 @@ void ForwardingEngine::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
 {
   //check if content prefix has been seen
   std::string prefix = extractContentPrefix(pitEntry->GetInterest()->GetName());
+
   if(fwMap.find(prefix) == fwMap.end ())
   {
     NS_LOG_UNCOND("Error in logUnstatisfiedRequest");
+    return;
   }
 
   fwMap[prefix]->logUnstatisfiedRequest(pitEntry);
@@ -94,6 +96,7 @@ void ForwardingEngine::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pi
   if(fwMap.find(prefix) == fwMap.end ())
   {
     NS_LOG_UNCOND("Error in logStatisfiedRequest");
+    return;
   }
 
    fwMap[prefix]->logStatisfiedRequest(inFace,pitEntry);
@@ -105,6 +108,7 @@ void ForwardingEngine::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> in
   if(fwMap.find(prefix) == fwMap.end ())
   {
     NS_LOG_UNCOND("Error in logExhaustedFace");
+    return;
   }
 
    fwMap[prefix]->logExhaustedFace(inFace,interest,pitEntry,targetedOutFace);
