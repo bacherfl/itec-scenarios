@@ -305,6 +305,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
   NS_LOG_DEBUG("Forwarding Matrix before update:\n" << table);
 
   //fprintf(stderr, "%d: current Reliability=%f\n",Simulator::Now ().GetMilliSeconds (),curReliability);
+  NS_LOG_DEBUG("Reliabilty Threshold before update=" << curReliability);
   std::vector<int> r_faces;
   std::vector<int> ur_faces;
 
@@ -445,6 +446,8 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
   }*/
 
   NS_LOG_DEBUG("Forwarding Matrix after normalization:\n" << table);
+
+  NS_LOG_DEBUG("Reliabilty Threshold after update =" << curReliability);
 }
 
 //shift == true means shift trafic towards faces, else remove traffic from faces.
