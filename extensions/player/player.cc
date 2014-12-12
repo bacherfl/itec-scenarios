@@ -89,6 +89,15 @@ void Player::stop ()
   // stop download manager
   dwnManager->stop ();
   NotifyEnd(Simulator::Now().GetSeconds());
+
+  //this writes last stall in log if we stop player before all segments downloaded.
+  if (currentSegmentNumber != -1)
+  {
+    SetConsumedPlayerLevel(this->currentSegmentNumber, 0);
+    SetPlayerLevel(currentSegmentNumber, 0, 0, 0,(Simulator::Now ().GetMilliSeconds ()- dlStartTime.GetMilliSeconds ()));
+    SetRequestedPlayerLevel(currentSegmentNumber,0);
+  }
+
   WriteToFile(m_nodeName + ".txt");
 }
 
