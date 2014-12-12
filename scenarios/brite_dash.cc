@@ -59,9 +59,7 @@ int
 main (int argc, char *argv[])
 {
 
-  /*LogComponentEnableAll (LOG_ALL);
-  LogComponentDisableAll (LOG_LOGIC);
-  LogComponentDisableAll (LOG_FUNCTION);*/
+  //LogComponentEnableAll (LOG_ALL);
 
   // BRITE needs a configuration file to build its graph.
   std::string confFile = "brite_configs/brite_low_bw.conf";
@@ -156,10 +154,6 @@ main (int argc, char *argv[])
   fprintf(stderr, "Number of ASNodes = %d\n",gen.getAllASNodes ().size ());
   fprintf(stderr, "Number of LeafNodes = %d\n",gen.getAllLeafNodes ().size ());
 
-  PointToPointHelper *p2p = new PointToPointHelper;
-  p2p->SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
-  p2p->SetChannelAttribute ("Delay", StringValue ("2ms"));
-
   int min_bw_as = -1;
   int max_bw_as = -1;
   int min_bw_leaf = -1;
@@ -170,27 +164,27 @@ main (int argc, char *argv[])
 
   if(confFile.find ("low_bw") != std::string::npos)
   {
-    min_bw_as = 2000;
-    max_bw_as = 4000;
+    min_bw_as = 15000;
+    max_bw_as = 25000;
 
-    min_bw_leaf = 1000;
-    max_bw_leaf = 2000;
+    min_bw_leaf = 10000;
+    max_bw_leaf = 15000;
   }
   else if(confFile.find ("medium_bw") != std::string::npos)
   {
-    min_bw_as = 3000;
-    max_bw_as = 5000;
+    min_bw_as = 30000;
+    max_bw_as = 40000;
 
-    min_bw_leaf = 2000;
-    max_bw_leaf = 4000;
+    min_bw_leaf = 20000;
+    max_bw_leaf = 25000;
   }
   else if (confFile.find ("high_bw") != std::string::npos)
   {
-    min_bw_as = 4000;
-    max_bw_as = 6000;
+    min_bw_as = 20000;
+    max_bw_as = 30000;
 
-    min_bw_leaf = 3000;
-    max_bw_leaf = 5000;
+    min_bw_leaf = 15000;
+    max_bw_leaf = 20000;
   }
   else if (confFile.find ("test") != std::string::npos)
   {
@@ -230,14 +224,12 @@ main (int argc, char *argv[])
   //calculaute network connectivity be careful when u call this all nodes/edges are considered
   fprintf(stderr, "connectivity = %f\n",gen.calculateConnectivity());
 
-  gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
-  gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
-
-  double simTime = 300.0;
+   double simTime = 60.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
 
+  //1. setup helper for network nodes
   ndn::StackHelper ndnHelper;
 
   if(strategy.compare ("perContentBased") == 0)
@@ -270,17 +262,43 @@ main (int argc, char *argv[])
 
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 1k chunks in cache (about 100MB)
 
-  ndnHelper.InstallAll();
+  //2. create server and clients nodes
+  PointToPointHelper *p2p = new PointToPointHelper;
+  p2p->SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
+  p2p->SetChannelAttribute ("Delay", StringValue ("2ms"));
 
-  // Installing global routing interface on all routing nodes
+  gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
+  gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
+
+  //3. install strategies for network nodes
+  ndnHelper.Install(gen.getAllASNodes ());// install all on network nodes...
+
+
+  //4. setup and install strategy for server/clients
+  NodeContainer server = gen.getCustomNodes ("Server");
+  NodeContainer client = gen.getCustomNodes ("Client");
+
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+  ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
+
+  //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "6250"); // all entities can store up to 1k chunks in cache (about 25MB)
+  ndnHelper.Install (client);
+
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "250"); // all entities can store up to 1k chunks in cache (about 1MB)
+  ndnHelper.Install (server);
+
+
+  //5. Installing global routing interface on all routing nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
-  ndnGlobalRoutingHelper.Install (gen.getAllASNodes ());
+  ndnGlobalRoutingHelper.InstallAll ();
+  /*ndnGlobalRoutingHelper.Install (gen.getAllASNodes ());
+  ndnGlobalRoutingHelper.Install (server);
+  ndnGlobalRoutingHelper.Install (client);*/
 
+  //6. install the apps
   ndn::AppHelper producerHelper ("ContentProvider"); // use our content provider
   producerHelper.SetAttribute("ContentPath", StringValue("/data")); // set data path
-
-  NodeContainer server = gen.getCustomNodes ("Server");
-  ndnGlobalRoutingHelper.Install (gen.getCustomNodes ("Server"));
 
   for(int i=0; i<server.size (); i++)
   {
@@ -293,18 +311,16 @@ main (int argc, char *argv[])
   }
 
   ndn::AppHelper consumerHelper ("ns3::ndn::PlayerRequester");
-  consumerHelper.SetAttribute("EnableAdaptation", StringValue("0")); // for now use a simple congestion window on the client
-  consumerHelper.SetAttribute ("CongestionWindowType", StringValue("static")); // no cong. window
+  consumerHelper.SetAttribute("EnableAdaptation", StringValue("1"));
+  //consumerHelper.SetAttribute ("CongestionWindowType", StringValue("static")); // no cong. window
+  consumerHelper.SetAttribute ("CongestionWindowType", StringValue("tcp")); // no cong. window
 
   //set content layers
-  ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("MAX_LAYERS", 3);
-
-  NodeContainer client = gen.getCustomNodes ("Client");
-  ndnGlobalRoutingHelper.Install (gen.getCustomNodes ("Client"));
+  ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("MAX_LAYERS", 4);
 
   for(int i=0; i<client.size (); i++)
   {
-    std::string mpdPath("/data/bunny_spatial_2s_set"+ boost::lexical_cast<std::string>(i%server.size ()) + "/bunny-spatial");
+    std::string mpdPath("/data/concatenated_set"+ boost::lexical_cast<std::string>(i%server.size ()) + "/concatenated");
     std::string set("-server" + boost::lexical_cast<std::string>(i%server.size ()) + ".mpd");
     consumerHelper.SetAttribute ("MPD", StringValue(mpdPath.append(set).c_str()));
 
