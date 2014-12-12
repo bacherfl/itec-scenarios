@@ -46,9 +46,19 @@ void PlayerRequester::StartApplication ()
   {
     player = player::PlayerFactory::getInstance()->createPlayer(
           mpd_path, utils::WindowNDN, cwnd_type, static_cast<dashimpl::AdaptationLogicType> (alogic_type), this->GetNode ());
-  } else {
+  } else if (enableAdaptation == 1){
     player = player::PlayerFactory::getInstance()->createPlayer(
           mpd_path, utils::NACKCountingSVC, cwnd_type, static_cast<dashimpl::AdaptationLogicType>(alogic_type), this->GetNode ());
+  }
+  else if ((enableAdaptation == 2))
+  {
+    player = player::PlayerFactory::getInstance()->createPlayer(
+          mpd_path, utils::SVCWindowNDN, cwnd_type, static_cast<dashimpl::AdaptationLogicType>(alogic_type), this->GetNode ());
+  }
+  else
+  {
+    fprintf(stderr, "Invalid setting for player\n");
+    exit(-1);
   }
   player->play();
 }
