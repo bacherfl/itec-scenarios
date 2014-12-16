@@ -129,7 +129,7 @@ template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
 {
   //TODO
-  interest->SetInterestLifetime (Time::FromDouble (1,Time::S));
+  //interest->SetInterestLifetime (Time::FromDouble (1,Time::S));
 
   //fprintf(stderr, "OnInterest %s \n", interest->GetName ().toUri ().c_str ());
 
@@ -154,7 +154,7 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
     //log unstatisfied request
     fwEngine->logUnstatisfiedRequest (pitEntry);
 
-    // we dont kall super::NACK(), since we skip looking for other sources.
+    // we dont call super::NACK(), since we skip looking for other sources.
 
     //forward nack
     Ptr<Interest> nack = Create<Interest> (*interest);
@@ -216,13 +216,24 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
     fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry,triedFaces);
   }
 
+  // set all outgoing faces to useless (in vain)
+  for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+      it !=  faces.end (); ++it)
+  {
+      if ((*it)->GetId() != inFace->GetId())
+      {
+        pitEntry->SetWaitingInVain ((*it));
+      }
+  }
+
+  fwEngine->logDroppingFace(inFace, interest, pitEntry);
+
+  // create a nack and reply
   Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
   inFace->SendInterest (nack);
   PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
 
   //fprintf(stderr, "Fail! Interest %s Dropped\n", interest->GetName ().toUri ().c_str ());
-
-  fwEngine->logDroppingFace(inFace, interest, pitEntry);
   return false;
 }
 
