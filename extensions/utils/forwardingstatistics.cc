@@ -120,6 +120,7 @@ void ForwardingStatistics::calculateUnstatisfiedTrafficFraction(int layer)
 
 void ForwardingStatistics::calculateLinkReliabilities(int layer)
 {
+  NS_LOG_DEBUG("Calculating link reliability for layer " << layer);
   for(std::vector<int>::iterator it = faceIds.begin(); it != faceIds.end(); ++it) // for each face
   {
     if(stats[layer].unstatisfied_requests[*it] == 0)

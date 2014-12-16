@@ -18,6 +18,11 @@ ForwardingEngine::~ForwardingEngine ()
 
 void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
 {
+
+  //store node reference
+  if(faces.size ()>0)
+    node = faces.at(0)->GetNode();
+
   faceIds.clear ();
   fbMap.clear ();
 
@@ -116,7 +121,7 @@ void ForwardingEngine::logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> in
 
 void ForwardingEngine::update ()
 {
-  NS_LOG_DEBUG("New FWT UPDATE at SimTime " << Simulator::Now ().GetSeconds () << "\n");
+  NS_LOG_DEBUG("FWT UPDATE at SimTime " << Simulator::Now ().GetSeconds () << " for node: '" <<   Names::FindName(node) << "'\n");
 
   /*experimental*/ //somthing is increasing the ref count from 1 to 2. i have no idea who...
   if(this->GetReferenceCount () == 1)

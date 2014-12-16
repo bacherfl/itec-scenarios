@@ -19,7 +19,7 @@
 #define P_MAX_LAYERS 1
 #define P_DROP_FACE_ID -1
 
-#define P_RELIABILITY_THRESHOLD 0.80
+#define P_RELIABILITY_THRESHOLD 0.70
 
 namespace ns3
 {

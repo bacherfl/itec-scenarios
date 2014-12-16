@@ -7,6 +7,7 @@
 
 #include "vector"
 #include "stdio.h"
+#include "ns3/names.h"
 
 #include "forwardingentry.h"
 #include "facebucketmanager.h"
@@ -44,6 +45,8 @@ protected:
 
   std::vector<int> faceIds;
   Ptr<ndn::Fib> fib;
+
+  Ptr<Node> node;
 
   /* map for storing forwarding stats for all faces */
   typedef std::map

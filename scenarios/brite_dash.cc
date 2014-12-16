@@ -59,8 +59,6 @@ int
 main (int argc, char *argv[])
 {
 
-  //LogComponentEnableAll (LOG_ALL);
-
   // BRITE needs a configuration file to build its graph.
   std::string confFile = "brite_configs/brite_low_bw.conf";
   std::string strategy = "bestRoute";
@@ -78,6 +76,7 @@ main (int argc, char *argv[])
   double update_intervall = UNINITIALIZED;
   double max_layers = UNINITIALIZED;
   double reliability_threshold = UNINITIALIZED;
+  bool debug = false;
 
   CommandLine cmd;
   cmd.AddValue ("briteConfFile", "BRITE conf file", confFile);
@@ -86,6 +85,7 @@ main (int argc, char *argv[])
   cmd.AddValue ("route", "defines if you use a single route or all possible routes", route);
   cmd.AddValue ("outputFolder", "defines specific output subdir", outputFolder);
   cmd.AddValue ("linkFailures", "defines number of linkfailures events", totalLinkFailures);
+  cmd.AddValue ("debug", "Activates debug output", debug);
 
   cmd.AddValue ("ALPHA", "P_ALPHA", alpha);
   cmd.AddValue ("X_DROPPING", "P_X_DROPPING", x_dropping);
@@ -97,6 +97,13 @@ main (int argc, char *argv[])
   cmd.AddValue ("RELIABILITY_THRESHOLD", "P_RELIABILITY_THRESHOLD", reliability_threshold);
 
   cmd.Parse (argc,argv);
+
+  if(debug)
+  {
+    LogComponentEnableAll (LOG_ALL);
+    LogComponentDisableAll (LOG_LOGIC);
+    LogComponentDisableAll (LOG_FUNCTION);
+  }
 
   if(alpha != UNINITIALIZED)
   {
@@ -164,35 +171,35 @@ main (int argc, char *argv[])
 
   if(confFile.find ("low_bw") != std::string::npos)
   {
-    min_bw_as = 15000;
-    max_bw_as = 25000;
+    min_bw_as = 5000;
+    max_bw_as = 8000;
 
-    min_bw_leaf = 10000;
-    max_bw_leaf = 15000;
+    min_bw_leaf = 3000;
+    max_bw_leaf = 5000;
   }
   else if(confFile.find ("medium_bw") != std::string::npos)
   {
-    min_bw_as = 30000;
-    max_bw_as = 40000;
+    min_bw_as = 6000;
+    max_bw_as = 10000;
 
-    min_bw_leaf = 20000;
-    max_bw_leaf = 25000;
+    min_bw_leaf = 5000;
+    max_bw_leaf = 8000;
   }
   else if (confFile.find ("high_bw") != std::string::npos)
   {
-    min_bw_as = 20000;
-    max_bw_as = 30000;
+    min_bw_as = 8000;
+    max_bw_as = 12000;
 
-    min_bw_leaf = 15000;
-    max_bw_leaf = 20000;
+    min_bw_leaf = 6000;
+    max_bw_leaf = 10000;
   }
   else if (confFile.find ("test") != std::string::npos)
   {
-    min_bw_as = 40000;
-    max_bw_as = 60000;
+    min_bw_as = 3000;
+    max_bw_as = 3000;
 
-    min_bw_leaf = 30000;
-    max_bw_leaf = 50000;
+    min_bw_leaf = 3000;
+    max_bw_leaf = 3000;
   }
 
   if(conectivity.compare ("low") == 0)
@@ -224,7 +231,7 @@ main (int argc, char *argv[])
   //calculaute network connectivity be careful when u call this all nodes/edges are considered
   fprintf(stderr, "connectivity = %f\n",gen.calculateConnectivity());
 
-   double simTime = 60.0;
+   double simTime = 180.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
@@ -264,10 +271,12 @@ main (int argc, char *argv[])
 
   //2. create server and clients nodes
   PointToPointHelper *p2p = new PointToPointHelper;
-  p2p->SetDeviceAttribute ("DataRate", StringValue ("5Mbps"));
   p2p->SetChannelAttribute ("Delay", StringValue ("2ms"));
 
+  p2p->SetDeviceAttribute ("DataRate", StringValue ("10Mbps"));
   gen.randomlyPlaceNodes (10, "Server",ndn::NetworkGenerator::ASNode, p2p);
+
+  p2p->SetDeviceAttribute ("DataRate", StringValue ("4Mbps"));
   gen.randomlyPlaceNodes (100, "Client",ndn::NetworkGenerator::LeafNode, p2p);
 
   //3. install strategies for network nodes
@@ -311,9 +320,9 @@ main (int argc, char *argv[])
   }
 
   ndn::AppHelper consumerHelper ("ns3::ndn::PlayerRequester");
-  consumerHelper.SetAttribute("EnableAdaptation", StringValue("1"));
-  //consumerHelper.SetAttribute ("CongestionWindowType", StringValue("static")); // no cong. window
-  consumerHelper.SetAttribute ("CongestionWindowType", StringValue("tcp")); // no cong. window
+  consumerHelper.SetAttribute("EnableAdaptation", StringValue("2"));
+  consumerHelper.SetAttribute ("CongestionWindowType", StringValue("static")); // no cong. window
+  //consumerHelper.SetAttribute ("CongestionWindowType", StringValue("tcp")); // no cong. window
 
   //set content layers
   ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("MAX_LAYERS", 4);
@@ -325,7 +334,9 @@ main (int argc, char *argv[])
     consumerHelper.SetAttribute ("MPD", StringValue(mpdPath.append(set).c_str()));
 
     ApplicationContainer consumer = consumerHelper.Install (Names::Find<Node>(std::string("Client_" + boost::lexical_cast<std::string>(i))));
-    consumer.Start (Seconds(0.1));
+
+    Ptr<UniformRandomVariable> r = CreateObject<UniformRandomVariable>();
+    consumer.Start (Seconds(r->GetInteger (0,30)));
     consumer.Stop (Seconds(simTime));
 
     //fprintf(stderr, "outputFolder=%s\n", std::string(outputFolder + "/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt").c_str());

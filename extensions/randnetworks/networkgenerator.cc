@@ -13,9 +13,9 @@ NetworkGenerator::NetworkGenerator(std::string conf_file)
   //briteHelper->AssignStreams (3);
   briteHelper->BuildBriteTopology ();
 
-  for(int i=0; i<getAllLeafNodes ().size (); i++)
+  for(int i=0; i<getAllASNodes ().size (); i++)
   {
-    Names::Add (std::string("Leaf_" + boost::lexical_cast<std::string>(i)), getAllLeafNodes ().Get (i));
+    Names::Add (std::string("Node_" + boost::lexical_cast<std::string>(i)), getAllASNodes ().Get (i));
   }
 }
 
