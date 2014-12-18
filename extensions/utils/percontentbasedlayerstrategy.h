@@ -53,7 +53,6 @@ public:
   virtual void DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
   virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
   virtual bool TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
-  virtual void DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
 
   Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 
@@ -329,27 +328,6 @@ bool PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(Ptr< Face > inFace
       return false;
   }
   return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
-}
-
-//code just copied...
-template<class Parent>
-void PerContentBasedLayerStrategy<Parent>::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
-{
-  if (PerContentBasedLayerStrategy<Parent>::m_nacksEnabled)
-  {
-    Ptr<Interest> nack = Create<Interest> (*interest);
-    nack->SetNack (Interest::NACK_GIVEUP_PIT);
-
-    BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
-      {
-        NS_LOG_DEBUG ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
-        incoming.m_face->SendInterest (nack);
-        PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, incoming.m_face);
-      }
-
-    pitEntry->ClearOutgoing (); // to force erasure of the record
-  }
-  super::DidExhaustForwardingOptions (inFace, interest, pitEntry);
 }
 
 }
