@@ -14,6 +14,7 @@ ForwardingProbabilityTable::ForwardingProbabilityTable(std::vector<int> faceIds,
 
 void ForwardingProbabilityTable::initTable (std::vector<int> preferedFacesIds)
 {
+  this->preferedFacesIds=preferedFacesIds;
   std::sort(this->faceIds.begin(), this->faceIds.end());//order
 
   table = matrix<double> (faceIds.size () /*rows*/, (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS") /*columns*/);
@@ -66,9 +67,17 @@ int ForwardingProbabilityTable::determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr
 
   //lets check if sum(Fi in blockedFaces > R)
   double fw_prob = 0.0;
+  int row = -1;
   for(std::vector<int>::iterator i = blocked_faces.begin (); i != blocked_faces.end ();++i)
   {
-    fw_prob += tmp_matrix(determineRowOfFace(*i, tmp_matrix, face_list),ilayer);
+    row = determineRowOfFace(*i, tmp_matrix, face_list);
+    if(row != FACE_NOT_FOUND)
+      fw_prob += tmp_matrix(row,ilayer);
+    else
+    {
+      NS_LOG_INFO("Could not find face return dropping face now...");
+      return DROP_FACE_ID;
+    }
   }
 
   if(fw_prob > curReliability)
@@ -124,8 +133,8 @@ int ForwardingProbabilityTable::determineRowOfFace(int face_id, boost::numeric::
   {
     //raise(SIGSEGV);
     fprintf(stderr, "Invalid Table to faceIds\n");
-    fprintf(stderr, "table size = %u\n", tab.size1 ());
-    fprintf(stderr, "faceIds size = %u\n", faces.size ());
+    fprintf(stderr, "table size = %lu\n", tab.size1 ());
+    fprintf(stderr, "faceIds size = %lu\n", faces.size ());
     return FACE_NOT_FOUND;
   }
 
@@ -142,6 +151,7 @@ int ForwardingProbabilityTable::determineRowOfFace(int face_id, boost::numeric::
       break;
     }
   }
+  //fprintf(stderr, "faceRow=%d\n", faceRow);
   return faceRow;
 }
 
@@ -371,9 +381,36 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         //fprintf(stderr, "CASE 3\n");
 
         if(r_faces.size () == 0 || table(determineRowOfFace (DROP_FACE_ID), layer) < ParameterConfiguration::getInstance ()->getParameter ("X_DROPPING")) //then use the old values
-          return;
+        {
+           NS_LOG_DEBUG("No interests forwarded for layer " << layer << ". r_facers =" << r_faces.size () << " F(-1)=" << table(determineRowOfFace (DROP_FACE_ID), layer)
+                        << "vs X_DROPPING=" << ParameterConfiguration::getInstance ()->getParameter ("X_DROPPING"));
+          continue;
+        }
 
-         double probe = table(determineRowOfFace (DROP_FACE_ID), layer) * ParameterConfiguration::getInstance ()->getParameter ("PROBING_TRAFFIC");
+        //fallback
+        //fprintf(stderr, "fallback\n");
+        /*for (unsigned f = 0; f < table.size1 (); ++f) // rows
+        {
+          if(faceIds.at (f) == DROP_FACE_ID)
+            table(f,layer) = 0.0;
+          else if(preferedFacesIds.size () == 0)
+          {
+            table(f,layer) = (1.0 / ((double)faceIds.size () - 1.0)); //set default value to 1 / (d - 1)
+          }
+          else
+          {
+            if(std::find(preferedFacesIds.begin (), preferedFacesIds.end (), faceIds.at (f)) != preferedFacesIds.end ())
+            {
+              table(f,layer) = (1.0 / ((double)preferedFacesIds.size () - 1.0)); //set default value to 1 / (d - 1)
+            }
+            else
+            {
+              table(f,layer) = 0; //set default value to 1 / (d - 1)
+            }
+          }
+        }*/
+
+        double probe = table(determineRowOfFace (DROP_FACE_ID), layer) * ParameterConfiguration::getInstance ()->getParameter ("PROBING_TRAFFIC");
          table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
 
         //distribute the traffic
@@ -546,7 +583,10 @@ void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer, 
   //split the probe (forwarding percents)....
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each ur_face
   {
-    table(determineRowOfFace (*it), layer) = calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ()));
+    if(layer == 0)
+      table(determineRowOfFace (*it), layer) = calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ()));
+    else//this code is new
+      table(determineRowOfFace (*it), layer) = ( calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ())) ) * table(determineRowOfFace (*it), 0);
   }
 }
 
@@ -694,7 +734,6 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
         table(determineRowOfFace (*it), first) += (chi/stats->getTotalForwardedInterests (first)) * (table(determineRowOfFace (*it), first)/n_first);
         table(determineRowOfFace (*it), last) -= (chi/stats->getTotalForwardedInterests (last)) * (table(determineRowOfFace (*it), last)/n_last);
       }
-      table = normalizeColumns(table);
     }
 
     first = getFirstDroppingLayer ();
@@ -702,6 +741,15 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
   }
 
   NS_LOG_DEBUG("Forwarding Matrix after syncDroppingPolicy:\n" << table);
+  table = normalizeColumns(table);
+  NS_LOG_DEBUG("Forwarding Matrix after normalization:\n" << table);
+
+  //TODO
+  //********
+  for(int i = 0; i < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); i++) // set all as non-jammed
+    jammed[i] = false;
+  NS_LOG_DEBUG("JAMMING DISABLED FOR NOW");
+  //********
 
   for(int i = 0; i < jammed.size (); i++)
     NS_LOG_DEBUG("jammed[" << i << "]="<< jammed[i]);

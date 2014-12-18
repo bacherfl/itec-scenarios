@@ -83,6 +83,12 @@ std::string ForwardingEngine::extractContentPrefix(ndn::Name name)
 
 void ForwardingEngine::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
 {
+  for (pit::Entry::out_container::iterator face = pitEntry->GetOutgoing ().begin ();face != pitEntry->GetOutgoing ().end (); face ++)
+    logUnstatisfiedRequest((*face).m_face, pitEntry);
+}
+
+void ForwardingEngine::logUnstatisfiedRequest(Ptr<Face> face, Ptr<pit::Entry> pitEntry)
+{
   //check if content prefix has been seen
   std::string prefix = extractContentPrefix(pitEntry->GetInterest()->GetName());
 
@@ -92,7 +98,7 @@ void ForwardingEngine::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
     return;
   }
 
-  fwMap[prefix]->logUnstatisfiedRequest(pitEntry);
+  fwMap[prefix]->logUnstatisfiedRequest(face, pitEntry);
 }
 
 void ForwardingEngine::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)

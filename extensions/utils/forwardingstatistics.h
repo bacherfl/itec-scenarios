@@ -22,7 +22,7 @@ class ForwardingStatistics : public SimpleRefCount<ForwardingStatistics>
 public:
   ForwardingStatistics(std::vector<int> faceIds);
 
-  void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry, int ilayer);
+  void logUnstatisfiedRequest(Ptr<Face> face, int ilayer);
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry, int ilayer);
   void logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace, int ilayer);
   void logDroppingFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, int ilayer);

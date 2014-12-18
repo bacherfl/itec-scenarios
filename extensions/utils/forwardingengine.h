@@ -30,6 +30,7 @@ public:
 
   int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, std::vector<int> blocked_faces);
   void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry);
+  void logUnstatisfiedRequest(Ptr<Face> face, Ptr<pit::Entry> pitEntry);
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
   void logExhaustedFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry, Ptr<Face> targetedOutFace);
   void logDroppingFace(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);

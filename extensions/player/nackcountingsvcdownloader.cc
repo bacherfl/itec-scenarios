@@ -30,6 +30,11 @@ void NackCountingSVCDownloader::OnNack (Ptr<const ndn::Interest> interest)
     return;
   }
 
+  /*if (Names::FindName(this->GetNode ()).compare("Client_2") == 0)
+  {
+    fprintf(stderr, "Nack\n");
+  }*/
+
   // check if this is level 0 - we are not dropping level 0 = baselayer on purpose.
   if (this->segment->getLevel() != 0)
   {
@@ -37,8 +42,9 @@ void NackCountingSVCDownloader::OnNack (Ptr<const ndn::Interest> interest)
     Ptr<Packet> packet = ndn::Wire::FromInterest(interest);
     ndn::SVCLevelTag levelTag;
 
-    bool tagExists = packet->PeekPacketTag(levelTag);
-    if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
+    //tags -1 is not anymore used by percontentbased strategy
+    //bool tagExists = packet->PeekPacketTag(levelTag);
+    //if (tagExists && levelTag.Get () == -1) //means adaptive node has choosen to drop layers
     {
       NS_LOG_INFO("Packet was dropped on purpose:" << interest->GetName());
       nacks++;
@@ -60,12 +66,15 @@ void NackCountingSVCDownloader::OnNack (Ptr<const ndn::Interest> interest)
 
 bool NackCountingSVCDownloader::checkAbortDownload ()
 {
+  if(nacks < 5)
+    return false;
+
   if(valid_packets < 5) // if received less than 5 valid chunks stop download this seg
     return true;
 
   double ratio = (double) nacks / (double) valid_packets;
 
-  if(ratio > 0.33)
+  if(ratio > 0.5)
     return true;
 
   return false;

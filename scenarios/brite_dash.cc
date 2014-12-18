@@ -231,7 +231,7 @@ main (int argc, char *argv[])
   //calculaute network connectivity be careful when u call this all nodes/edges are considered
   fprintf(stderr, "connectivity = %f\n",gen.calculateConnectivity());
 
-   double simTime = 180.0;
+   double simTime = 1200.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
@@ -287,8 +287,11 @@ main (int argc, char *argv[])
   NodeContainer server = gen.getCustomNodes ("Server");
   NodeContainer client = gen.getCustomNodes ("Client");
 
-  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
-  ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
+  //DONT USE LIMITS ON CLIENTS
+  /*ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
+  ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);*/
+  ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
+  ndnHelper.EnableLimits (false);
 
   //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::PerContentBasedLayerStrategy", "EnableNACKs", "true");
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "6250"); // all entities can store up to 1k chunks in cache (about 25MB)
@@ -320,12 +323,13 @@ main (int argc, char *argv[])
   }
 
   ndn::AppHelper consumerHelper ("ns3::ndn::PlayerRequester");
-  consumerHelper.SetAttribute("EnableAdaptation", StringValue("2"));
+  consumerHelper.SetAttribute("EnableAdaptation", StringValue("1"));
   consumerHelper.SetAttribute ("CongestionWindowType", StringValue("static")); // no cong. window
   //consumerHelper.SetAttribute ("CongestionWindowType", StringValue("tcp")); // no cong. window
 
   //set content layers
   ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("MAX_LAYERS", 4);
+  //ns3::ndn::ParameterConfiguration::getInstance ()->setParameter ("MAX_LAYERS", 1);
 
   for(int i=0; i<client.size (); i++)
   {
@@ -365,9 +369,8 @@ main (int argc, char *argv[])
   }
 
   // Run the simulator
-  Simulator::Stop (Seconds (simTime+0.1)); // 10 min
+  Simulator::Stop (Seconds (simTime+0.5)); // 10 min
   Simulator::Run ();
   Simulator::Destroy ();
-
   return 0;
 }

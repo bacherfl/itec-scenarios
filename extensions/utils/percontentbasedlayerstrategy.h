@@ -46,13 +46,14 @@ public:
 
   virtual void AddFace(Ptr< Face> face);
   virtual void RemoveFace(Ptr< Face > face);
-  virtual void OnInterest(Ptr< Face > inface, Ptr< Interest > interest);
+  virtual void OnInterest(Ptr< Face > inFace, Ptr< Interest > interest);
   virtual bool DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
   virtual void WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry);
   virtual void WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);
   virtual void DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
   virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
   virtual bool TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
+  virtual void DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
 
   Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 
@@ -124,11 +125,34 @@ void PerContentBasedLayerStrategy<Parent>::RemoveFace (Ptr<Face> face)
   super::RemoveFace(face);
 }
 
+bool hasEnding (std::string const &fullString, std::string const &ending)
+{
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
 
 template<class Parent>
-void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< Interest > interest)
+void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inFace, Ptr< Interest > interest)
 {
-  //TODO
+
+  /*if(interest->GetNack () != Interest::NORMAL_INTEREST)
+  {
+    if (interest->GetName().toUri().find("/Server_2") != std::string::npos && hasEnding(interest->GetName().toUri(),"/chunk_0"))
+    {
+      if (Names::FindName(inFace->GetNode ()).compare("Node_72") == 0)
+      {
+        if (interest->GetNack () > 0)
+        {
+          fprintf(stderr, "OnNack(%f,%d,%s): %s, nonce=%u\n", Simulator::Now().GetSeconds (), inFace->GetId(), Names::FindName(inFace->GetNode ()).c_str(), interest->GetName().toUri ().c_str (), interest->GetNonce ());
+        }
+      }
+    }
+  }*/
+  super::OnInterest(inFace,interest);
+  /*//TODO
   //interest->SetInterestLifetime (Time::FromDouble (1,Time::S));
 
   //fprintf(stderr, "OnInterest %s \n", interest->GetName ().toUri ().c_str ());
@@ -156,18 +180,29 @@ void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inface, Ptr< 
 
     // we dont call super::NACK(), since we skip looking for other sources.
 
-    //forward nack
-    Ptr<Interest> nack = Create<Interest> (*interest);
+
+
+    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+        it !=  faces.end (); ++it)
+    {
+        if ((*it)->GetId() != inface->GetId())
+        {
+          pitEntry->SetWaitingInVain ((*it));
+        }
+    }*/
+
+    //super::DidExhaustForwardingOptions(inface, interest, pitEntry);
+
+    //forward nack this should be done by DidExhaustForwardingOptions
+    /*Ptr<Interest> nack = Create<Interest> (*interest);
     nack->SetNack (interest->GetNack ());
     BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
     {
       incoming.m_face->SendInterest (nack);
       PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, incoming.m_face);
-    }
+    }*/
 
-    pitEntry->RemoveIncoming (inface);
-    pitEntry->ClearOutgoing ();
-  }
+  //}
 }
 
 template<class Parent>
@@ -178,7 +213,7 @@ Ptr<Interest> PerContentBasedLayerStrategy<Parent>::prepareNack(Ptr<const Intere
   //nack->SetNack (ndn::Interest::NACK_CONGESTION);
   nack->SetNack (ndn::Interest::NACK_CONGESTION); // set this since ndn changes it anyway to this.
 
-  /*SVCLevelTag levelTag; // this causes loops together with svccounting strategy so be careful...
+  /*SVCLevelTag levelTag; // this causes loops together with limits on the clients be careful
   levelTag.Set (-1); // means packet dropped on purpose
   nack->GetPayload ()->AddPacketTag (levelTag);*/
 
@@ -189,9 +224,22 @@ Ptr<Interest> PerContentBasedLayerStrategy<Parent>::prepareNack(Ptr<const Intere
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
-
   std::vector<int> triedFaces;
+  BOOST_FOREACH (const pit::OutgoingFace &outgoing, pitEntry->GetOutgoing())
+  {
+    triedFaces.push_back (outgoing.m_face->GetId());
+  }
+
   int fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry, triedFaces);
+
+  /*if (interest->GetName().toUri().find("/Server_2") != std::string::npos && hasEnding(interest->GetName().toUri(),"/chunk_0"))
+    {
+      if (Names::FindName(inFace->GetNode ()).compare("Node_72") == 0)
+      {
+        fprintf(stderr, "DoPropagate(%f,%s): %s, nonce=%u\n", Simulator::Now().GetSeconds (), Names::FindName(inFace->GetNode ()).c_str(), interest->GetName().toUri ().c_str (), interest->GetNonce ());
+        fprintf(stderr, "fwFaceId=%d\n", fwFaceId);
+      }
+    }*/
 
   while(fwFaceId != DROP_FACE_ID)
   {
@@ -205,7 +253,9 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
         {
           //fprintf(stderr, "Blocked! Interest %s blocked on Face %d\n", interest->GetName ().toUri ().c_str (), fwFaceId);
           triedFaces.push_back (fwFaceId);
-          fwEngine->logExhaustedFace (inFace, interest, pitEntry, *it);
+          //fwEngine->logExhaustedFace (inFace, interest, pitEntry, *it);
+          //pitEntry->AddOutgoing ((*it));
+          //pitEntry->SetWaitingInVain ((*it));
           break;
         }
         //fprintf(stderr, "Successs! Interest %s send out on Face %d\n", interest->GetName ().toUri ().c_str (), fwFaceId);
@@ -217,21 +267,24 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
   }
 
   // set all outgoing faces to useless (in vain)
-  for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+  /*for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
       it !=  faces.end (); ++it)
   {
       if ((*it)->GetId() != inFace->GetId())
       {
+        //pitEntry->AddOutgoing ((*it));
         pitEntry->SetWaitingInVain ((*it));
       }
-  }
+  }*/
 
-  fwEngine->logDroppingFace(inFace, interest, pitEntry);
+  //fwEngine->logDroppingFace(inFace, interest, pitEntry);
 
+  /*
   // create a nack and reply
   Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
   inFace->SendInterest (nack);
   PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
+  */
 
   //fprintf(stderr, "Fail! Interest %s Dropped\n", interest->GetName ().toUri ().c_str ());
   return false;
@@ -263,8 +316,8 @@ void PerContentBasedLayerStrategy<Parent>::DidSendOutInterest (Ptr< Face > inFac
 template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry)
 {
-  fwEngine->logUnstatisfiedRequest (pitEntry);
-  super::DidExhaustForwardingOptions (inFace, nack, pitEntry);
+  fwEngine->logUnstatisfiedRequest (inFace, pitEntry);
+  super::DidReceiveValidNack (inFace, nackCode, nack, pitEntry);
 }
 
 template<class Parent>
@@ -276,6 +329,27 @@ bool PerContentBasedLayerStrategy<Parent>::TrySendOutInterest(Ptr< Face > inFace
       return false;
   }
   return super::TrySendOutInterest(inFace,outFace, interest, pitEntry);
+}
+
+//code just copied...
+template<class Parent>
+void PerContentBasedLayerStrategy<Parent>::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
+{
+  if (PerContentBasedLayerStrategy<Parent>::m_nacksEnabled)
+  {
+    Ptr<Interest> nack = Create<Interest> (*interest);
+    nack->SetNack (Interest::NACK_GIVEUP_PIT);
+
+    BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
+      {
+        NS_LOG_DEBUG ("Send NACK for " << boost::cref (nack->GetName ()) << " to " << boost::cref (*incoming.m_face));
+        incoming.m_face->SendInterest (nack);
+        PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, incoming.m_face);
+      }
+
+    pitEntry->ClearOutgoing (); // to force erasure of the record
+  }
+  super::DidExhaustForwardingOptions (inFace, interest, pitEntry);
 }
 
 }

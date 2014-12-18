@@ -17,6 +17,8 @@ ForwardingEntry::ForwardingEntry(std::vector<int> faceIds, Ptr<fib::Entry> fibEn
   initFaceIds(faceIds);
   this->fwTable = Create<ForwardingProbabilityTable>(faceIds, faceIds_active);
   this->fwStats = Create<ForwardingStatistics>(faceIds);
+
+  fallbackCounter = 0;
 }
 
 void ForwardingEntry::initFaceIds(std::vector<int> faceIds)
@@ -47,14 +49,64 @@ void ForwardingEntry::update()
 {
 
   fwStats->resetStatistics (fwTable->getCurrentReliability ());
+  bool fallback = evaluateFallback();
 
-  fwTable->updateColumns(fwStats);
-  fwTable->syncDroppingPolicy(fwStats);
+  if(!fallback)
+    fwTable->updateColumns(fwStats);
+  else
+  {
+    std::vector<int> allFaces = faceIds_active;
+    allFaces.insert (allFaces.end (),faceIds_standby.begin (),faceIds_standby.end ());
+    fwTable = Create<ForwardingProbabilityTable>(allFaces, faceIds_active);
+    //fprintf(stderr, "FALLBACK\n");
+  }
+
+  //fwTable->syncDroppingPolicy(fwStats);
 
   //now check if we should remove / add faces
   //checkForAddFaces();
   //checkForRemoveFaces();
 
+}
+
+bool ForwardingEntry::evaluateFallback()
+{
+  bool fallback = false;
+  bool increaseFallback = true;
+
+  //NS_LOG_UNCOND("total forwarded = "<< fwStats->getTotalForwardedInterests (0));
+
+  if(fwStats->getTotalForwardedInterests (0) == 0)
+    return false;
+
+  std::vector<int> allFaces = faceIds_active;
+  allFaces.insert (allFaces.end (),faceIds_standby.begin (),faceIds_standby.end ());
+
+  for(std::vector<int>::iterator it=allFaces.begin (); it != allFaces.end (); ++it)
+  {
+    if(*it == DROP_FACE_ID)
+      continue;
+
+    //NS_LOG_UNCOND("forwarded=" << fwStats->getForwardedInterests(*it, 0) << ", linkReliability=" << fwStats->getLinkReliability (*it, 0));
+    if( fwStats->getForwardedInterests (*it, 0) > 0 && fwStats->getLinkReliability (*it, 0) > 0)
+    {
+      increaseFallback = false;
+      break;
+    }
+  }
+
+  if(increaseFallback)
+    fallbackCounter++;
+  else if (fallbackCounter > 0)
+    fallbackCounter--;
+
+  if(fallbackCounter > 10.0 / ParameterConfiguration::getInstance ()->getParameter ("UPDATE_INTERVALL"))
+  {
+    fallbackCounter = 0;
+    fallback = true;
+  }
+
+  return fallback;
 }
 
 void ForwardingEntry::checkForAddFaces()
@@ -124,9 +176,9 @@ int ForwardingEntry::determineRoute(Ptr<Face> inFace, Ptr<const Interest> intere
   return fwTable->determineOutgoingFace(inFace, interest, determineContentLayer(interest), blocked_faces);
 }
 
-void ForwardingEntry::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry)
+void ForwardingEntry::logUnstatisfiedRequest(Ptr<Face> face, Ptr<pit::Entry> pitEntry)
 {
-  fwStats->logUnstatisfiedRequest(pitEntry,determineContentLayer(pitEntry->GetInterest ()));
+  fwStats->logUnstatisfiedRequest(face,determineContentLayer(pitEntry->GetInterest ()));
 }
 
 void ForwardingEntry::logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
@@ -158,8 +210,11 @@ int ForwardingEntry::determineContentLayer(Ptr<const Interest> interest)
   //TODO fix levels
   if (svcLevelTagExists)
   {   
+    //fprintf(stderr, "levelTag=%d\n",levelTag.Get ());
     return levelTag.Get () % 10; // This is done as our content has level sometimes levels of 1, 10, 20, 30
   }
+  else
+    fprintf(stderr, "No level Tag found\n");
 
   std::string layer = interest->GetName ().get(1).toUri();
   layer = layer.substr (layer.length ()-1, layer.length ());

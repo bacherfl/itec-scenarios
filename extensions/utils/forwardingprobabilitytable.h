@@ -80,6 +80,8 @@ protected:
 
   double curReliability;
 
+  std::vector<int> preferedFacesIds;
+
   ns3::UniformVariable randomVariable;
 };
 

@@ -51,7 +51,7 @@ void SVCWindowNDNDownloader::OnNack (Ptr<const ndn::Interest> interest)
   // the super class will then most likely reduce the congestion window to avoid more congestion
 
   // continue with super::OnNack*/
-  // WindowNDNDownloader::OnNack(interest);
+  WindowNDNDownloader::OnNack(interest);
 }
 
 
@@ -133,8 +133,10 @@ void SVCWindowNDNDownloader::downloadChunk(int chunk_number)
 
       int level = atoi(uri.c_str());
 
+      //TODO
       ndn::SVCLevelTag levelTag;
       levelTag.Set(level);
+      //levelTag.Set (0);
       interest->GetPayload ()->AddPacketTag (levelTag);
 
       /*

@@ -99,6 +99,8 @@ void Player::stop ()
   }
 
   WriteToFile(m_nodeName + ".txt");
+
+  NS_LOG_INFO("Player(" << m_nodeName << ") finished..");
 }
 
 

@@ -26,13 +26,12 @@ ForwardingStatistics::ForwardingStatistics(std::vector<int> faceIds)
 }
 
 // here we log all unstatisfied requests. events like timeout and NACKs
-void ForwardingStatistics::logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry, int ilayer)
+void ForwardingStatistics::logUnstatisfiedRequest(Ptr<Face> face, int ilayer)
 {
   //fprintf(stderr, "TIMEOUT\n");
   //bytes_transmitted += pitEntry->GetInterest ()->GetWire ()->GetSize ();
 
-  for (pit::Entry::out_container::iterator face = pitEntry->GetOutgoing ().begin ();face != pitEntry->GetOutgoing ().end (); face ++)
-    stats[ilayer].unstatisfied_requests[(*face).m_face->GetId ()] += 1;
+  stats[ilayer].unstatisfied_requests[face->GetId ()] += 1;
 }
 
 //here we log all statisfied requests
