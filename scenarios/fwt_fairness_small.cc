@@ -91,11 +91,7 @@ int main(int argc, char* argv[])
   Ptr<Node> router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   while(router != NULL)
   {
-    if(nodeIndex == 2)
-      routers.Add (router);
-    else
-      streamers.Add (router);
-
+    routers.Add (router);
     router = Names::Find<Node>(nodeNamePrefix +  boost::lexical_cast<std::string>(nodeIndex++));
   }
 
@@ -121,7 +117,7 @@ int main(int argc, char* argv[])
   consumerHelper.SetAttribute ("Frequency", StringValue ("150")); // ca. 5Mbit/s per streamer
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
 
-  for(int i=0; i < 1; i++)
+  for(int i=0; i < streamers.size (); i++)
   {
     consumerHelper.SetPrefix (prefix + "_c" + boost::lexical_cast<std::string>(i) + "/layer0");
     consumerHelper.Install (streamers.Get (i));

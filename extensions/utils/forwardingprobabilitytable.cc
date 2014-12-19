@@ -387,29 +387,6 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
           continue;
         }
 
-        //fallback
-        //fprintf(stderr, "fallback\n");
-        /*for (unsigned f = 0; f < table.size1 (); ++f) // rows
-        {
-          if(faceIds.at (f) == DROP_FACE_ID)
-            table(f,layer) = 0.0;
-          else if(preferedFacesIds.size () == 0)
-          {
-            table(f,layer) = (1.0 / ((double)faceIds.size () - 1.0)); //set default value to 1 / (d - 1)
-          }
-          else
-          {
-            if(std::find(preferedFacesIds.begin (), preferedFacesIds.end (), faceIds.at (f)) != preferedFacesIds.end ())
-            {
-              table(f,layer) = (1.0 / ((double)preferedFacesIds.size () - 1.0)); //set default value to 1 / (d - 1)
-            }
-            else
-            {
-              table(f,layer) = 0; //set default value to 1 / (d - 1)
-            }
-          }
-        }*/
-
         double probe = table(determineRowOfFace (DROP_FACE_ID), layer) * ParameterConfiguration::getInstance ()->getParameter ("PROBING_TRAFFIC");
          table(determineRowOfFace (DROP_FACE_ID), layer) -= probe;
 
@@ -417,7 +394,7 @@ void ForwardingProbabilityTable::updateColumns(Ptr<ForwardingStatistics> stats)
         for(std::vector<int>::iterator it = r_faces.begin(); it != r_faces.end(); ++it) // for each ur_face
           table(determineRowOfFace (*it), layer) += (probe / ((double)r_faces.size ()));
       }
-      else if(table(determineRowOfFace(DROP_FACE_ID),layer) == 0.0 || r_faces.size () == 0) // dropping prob == 0 or there are no reliable faces
+      else if(table(determineRowOfFace(DROP_FACE_ID),layer) == 0.0) // dropping prob == 0 or there are no reliable faces
       {
         //fprintf(stderr, "CASE 4\n");
         if(stats->getTotalForwardedInterests (layer) != 0)
@@ -583,10 +560,11 @@ void ForwardingProbabilityTable::probeColumn(std::vector<int> faces, int layer, 
   //split the probe (forwarding percents)....
   for(std::vector<int>::iterator it = faces.begin(); it != faces.end(); ++it) // for each ur_face
   {
-    if(layer == 0)
+    table(determineRowOfFace (*it), layer) = calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ()));
+    /*if(layer == 0)
       table(determineRowOfFace (*it), layer) = calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ()));
     else//this code is new
-      table(determineRowOfFace (*it), layer) = ( calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ())) ) * table(determineRowOfFace (*it), 0);
+      table(determineRowOfFace (*it), layer) = ( calcWeightedUtilization(*it,layer,stats) + (probe / ((double)faces.size ())) ) * table(determineRowOfFace (*it), 0);*/
   }
 }
 

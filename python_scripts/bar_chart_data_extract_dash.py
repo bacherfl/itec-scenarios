@@ -54,6 +54,7 @@ def readAttribute(filename, attrib):
 	
 	for line in f:
 		if(line.startswith(attrib)):
+			#print line
 			return float(re.findall(r"[-+]?\d*\.\d+|\d+", line)[0])
 
 	print "Could not find line: " + attrib + " in file " + filename

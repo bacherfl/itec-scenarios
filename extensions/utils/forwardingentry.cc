@@ -74,7 +74,7 @@ bool ForwardingEntry::evaluateFallback()
   bool fallback = false;
   bool increaseFallback = true;
 
-  //NS_LOG_UNCOND("total forwarded = "<< fwStats->getTotalForwardedInterests (0));
+  //NS_LOG_UNCOND("evaluateFallback(" << fallbackCounter << ")::total forwarded = "<< fwStats->getTotalForwardedInterests (0));
 
   if(fwStats->getTotalForwardedInterests (0) == 0)
     return false;
@@ -100,7 +100,7 @@ bool ForwardingEntry::evaluateFallback()
   else if (fallbackCounter > 0)
     fallbackCounter--;
 
-  if(fallbackCounter > 10.0 / ParameterConfiguration::getInstance ()->getParameter ("UPDATE_INTERVALL"))
+  if(fallbackCounter >= 10.0 / ParameterConfiguration::getInstance ()->getParameter ("UPDATE_INTERVALL"))
   {
     fallbackCounter = 0;
     fallback = true;
