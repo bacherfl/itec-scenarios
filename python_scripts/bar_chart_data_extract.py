@@ -94,7 +94,7 @@ CONNECTIVITY_FILTERS = ["LowConnectivity", "MediumConnectivity", "HighConnectivi
 BANDWIDTH_FILTERS= ["LowBW", "MediumBW", "HighBW"]
 ALGORITHM_FILTERS= ["BestRoute", "SmartFlooding", "PerContentBased", "Broadcast"]
 #LINK_FAILURE_FILTER = "LinkFailure_0"
-LINK_FAILURE_FILTER = "LinkFailure_15"
+LINK_FAILURE_FILTER = "LinkFailure_30"
 
 
 #simulations = getSubdirsForConnectivity(FILTER)

@@ -30,7 +30,7 @@ class ForwardingEntry : public SimpleRefCount<ForwardingEntry>
 public:
   ForwardingEntry(std::vector<int> faceIds, Ptr<fib::Entry> fibEntry);
 
-  int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, std::vector<int> blocked_faces);
+  int determineRoute(std::vector<Ptr<Face> > inFaces, Ptr<const Interest> interest, std::vector<int> blocked_faces);
 
   void logUnstatisfiedRequest(Ptr<Face> face, Ptr<pit::Entry> pitEntry);
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);

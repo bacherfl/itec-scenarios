@@ -231,7 +231,7 @@ main (int argc, char *argv[])
   //calculaute network connectivity be careful when u call this all nodes/edges are considered
   fprintf(stderr, "connectivity = %f\n",gen.calculateConnectivity());
 
-   double simTime = 1200.0;
+   double simTime = 1800.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);

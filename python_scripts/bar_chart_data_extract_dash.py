@@ -86,7 +86,7 @@ def calculateQuartiles(simulations, alg_filter, mode):
 				for f in files:
 					#print f
 					if("stalls" in mode):
-						values.append(readAttribute(f, "AVG Unsmooth per Client:"))
+						values.append(readAttribute(f, "AVG Unsmooth per Client:")/readAttribute(f,"Simulation Time:"))
 					elif("quality" in mode):
 						values.append(readAttribute(f, "AVG Level per Client:"))
 					else:

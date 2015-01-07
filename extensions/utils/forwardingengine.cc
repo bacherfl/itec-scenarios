@@ -43,7 +43,7 @@ void ForwardingEngine::init (std::vector<Ptr<ndn::Face> > faces)
   std::sort(faceIds.begin(), faceIds.end()); // order faces strictly by ID
 }
 
-int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, std::vector<int> blocked_faces)
+int ForwardingEngine::determineRoute(std::vector<Ptr<Face> > inFaces, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, std::vector<int> blocked_faces)
 {
   //check if content prefix has been seen
   std::string prefix = extractContentPrefix(interest->GetName());
@@ -63,7 +63,7 @@ int ForwardingEngine::determineRoute(Ptr<Face> inFace, Ptr<const Interest> inter
 
   Ptr<ForwardingEntry> entry = fwMap.find(prefix)->second;
 
-  int out_face_id = entry->determineRoute(inFace, interest, blocked_faces);
+  int out_face_id = entry->determineRoute(inFaces, interest, blocked_faces);
 
   return out_face_id;
 

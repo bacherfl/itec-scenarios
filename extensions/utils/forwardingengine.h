@@ -28,7 +28,7 @@ public:
 
   bool tryForwardInterest(Ptr< Face > outFace, Ptr< const Interest > interest);
 
-  int determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, std::vector<int> blocked_faces);
+  int determineRoute(std::vector<Ptr<Face> >inFaces, Ptr<const Interest> interest, Ptr<pit::Entry> pit_entry, std::vector<int> blocked_faces);
   void logUnstatisfiedRequest(Ptr<pit::Entry> pitEntry);
   void logUnstatisfiedRequest(Ptr<Face> face, Ptr<pit::Entry> pitEntry);
   void logStatisfiedRequest(Ptr<Face> inFace, Ptr<pit::Entry> pitEntry);

@@ -117,7 +117,7 @@ def	order_results(path):
 	for entry in sorted_results:
 		f.write(entry[0] + ":" + str(entry[1]) + "\n")
 		
-def getScenarioName(config,connectivity,strategy,route, linkfailure):
+def getScenarioName(config,connectivity,strategy,linkfailure):
 	
 	name = ""
 
@@ -132,9 +132,9 @@ def getScenarioName(config,connectivity,strategy,route, linkfailure):
 	else:
 		name += "UnknownStrategy"
 
-	if("route=single" in route):
+	if("route=single" in strategy):
 		name += "_SingleRoute"
-	elif("route=all" in route):
+	elif("route=all" in strategy):
 		name += "_AllRoutes"
 	else:
 		name += "_UnkownRoute"
@@ -173,7 +173,7 @@ def getScenarioName(config,connectivity,strategy,route, linkfailure):
 SIMULATION_DIR=os.getcwd()
 
 THREADS = 2
-SIMULATION_RUNS = 1
+SIMULATION_RUNS = 10
 SIMULATION_OUTPUT = SIMULATION_DIR + "/output/"
 
 #brite config file
@@ -187,29 +187,26 @@ briteConfigMediumBw="--briteConfFile="+britePath+"brite_configs/dash_medium_bw.c
 briteConfigHighBw="--briteConfFile="+britePath+"brite_configs/dash_high_bw.conf"
 
 #briteConfigs = [briteConfigLowBw, briteConfigMediumBw, briteConfigHighBw]
-briteConfigs = [briteConfigLowBw]
+briteConfigs = [briteConfigLowBw, briteConfigMediumBw]
 
 lowConnectivity="--connectivity=low"
 mediumConnectivity="--connectivity=medium"
 highConnectivity="--connectivity=high"
 
 #connectivities = [lowConnectivity, mediumConnectivity, highConnectivity]
-connectivities = [mediumConnectivity]
-
-bestRoute="--fw-strategy=bestRoute"
-smartFlooding="--fw-strategy=smartflooding"
-broadcast="--fw-strategy=broadcast"
-perContentBased="--fw-strategy=perContentBased"
-
-#forwardingStrategies = [bestRoute, smartFlooding, broadcast]
-#forwardingStrategies = [bestRoute, smartFlooding, broadcast, perContentBased]
-forwardingStrategies = [perContentBased]
+connectivities = [lowConnectivity, mediumConnectivity]
 
 singleRoute="--route=single"
 allRoute="--route=all"
 
-routes = [singleRoute]#, allRoute]
-#routes = [allRoute]
+bestRoute="--fw-strategy=bestRoute " + allRoute
+smartFlooding="--fw-strategy=smartflooding " + allRoute
+broadcast="--fw-strategy=broadcast " + allRoute
+perContentBased="--fw-strategy=perContentBased " + singleRoute
+
+#forwardingStrategies = [bestRoute, smartFlooding, broadcast]
+forwardingStrategies = [bestRoute, smartFlooding, broadcast, perContentBased]
+#forwardingStrategies = [perContentBased]
 
 #linkFailures = ["--linkFailures=0", "--linkFailures=15", "--linkFailures=30", "--linkFailures=50", "--linkFailures=100"]
 #linkFailures = ["--linkFailures=30", "--linkFailures=50", "--linkFailures=100"]
@@ -221,11 +218,11 @@ settings_counter = 0
 for config in briteConfigs:
 	for connectivity in connectivities:
 		for strategy in forwardingStrategies:
-			for route in routes:
-				for failures in linkFailures:
-					name = getScenarioName(config,connectivity,strategy,route, failures) 
-					SCENARIOS.update({name : { "executeable": scenario, "numRuns": SIMULATION_RUNS, "params": [config, connectivity, strategy, route, failures, "--debug"] }})			
-					settings_counter += 1
+			#for route in routes:
+			for failures in linkFailures:
+				name = getScenarioName(config,connectivity,strategy,failures) 
+				SCENARIOS.update({name : { "executeable": scenario, "numRuns": SIMULATION_RUNS, "params": [config, connectivity, strategy, failures] }})			
+				settings_counter += 1
 
 #build project before
 call([SIMULATION_DIR + "/waf"])
@@ -271,8 +268,8 @@ for scenarioName in SCENARIOS.keys():
 
 	   # start thread, get callback method to be called when thread is done
 		thread = Thread(job_number, sysCall, threadFinished, src, dst)
-		if(job_number<THREADS): # do this to avoid that all threads copy at the same time
-			time.sleep(15.0)
+		#if(job_number != 0 and job_number<THREADS): # do this to avoid that all threads copy at the same time
+			#time.sleep(15.0)
 		thread.start()
 
 		job_number += 1

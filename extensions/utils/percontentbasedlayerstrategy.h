@@ -138,6 +138,46 @@ template<class Parent>
 void PerContentBasedLayerStrategy<Parent>::OnInterest (Ptr< Face > inFace, Ptr< Interest > interest)
 {
   super::OnInterest(inFace,interest);
+
+  /*if(interest->GetNack () == Interest::NORMAL_INTEREST)
+  {
+    super::OnInterest(inFace,interest);
+  }
+  else
+  {
+    Ptr<pit::Entry> pitEntry = PerContentBasedLayerStrategy<Parent>::m_pit->Lookup (*interest);
+    if (pitEntry == 0)
+    {
+      PerContentBasedLayerStrategy<Parent>::m_dropNacks (interest, inFace);
+      return;
+    }
+    fwEngine->logUnstatisfiedRequest (pitEntry);
+    // we dont call super::NACK(), since we skip looking for other sources.
+
+    // set all outgoing faces to useless (in vain)
+    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+        it !=  faces.end (); ++it)
+    {
+        if ((*it)->GetId() != inFace->GetId())
+        {
+          pitEntry->AddOutgoing ((*it));
+          pitEntry->SetWaitingInVain ((*it));
+        }
+    }
+
+    //forward nack
+    Ptr<Interest> nack = Create<Interest> (*interest);
+    nack->SetNack (interest->GetNack ());
+    BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
+    {
+      incoming.m_face->SendInterest (nack);
+      PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, incoming.m_face);
+    }
+
+    pitEntry->RemoveIncoming (inFace);
+    pitEntry->ClearOutgoing ();
+  }*/
+
 }
 
 template<class Parent>
@@ -159,13 +199,24 @@ Ptr<Interest> PerContentBasedLayerStrategy<Parent>::prepareNack(Ptr<const Intere
 template<class Parent>
 bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
+  //lets find the origin inface(s)
+  std::vector<Ptr<Face> > originInFaces;
+  BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
+  {
+    originInFaces.push_back(incoming.m_face);
+  }
+
+  //lets find the already tried faces
   std::vector<int> triedFaces;
   BOOST_FOREACH (const pit::OutgoingFace &outgoing, pitEntry->GetOutgoing())
   {
-    triedFaces.push_back (outgoing.m_face->GetId());
+    if(std::find(originInFaces.begin (), originInFaces.end (), outgoing.m_face) == originInFaces.end ())
+      triedFaces.push_back (outgoing.m_face->GetId());
   }
 
-  int fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry, triedFaces);
+  //fprintf(stderr, "total(%lu),incoming(%lu),tried(%lu)\n", this->faces.size (), originInFaces.size (), triedFaces.size ());
+
+  int fwFaceId = fwEngine->determineRoute(originInFaces, interest, pitEntry, triedFaces);
 
   while(fwFaceId != DROP_FACE_ID)
   {
@@ -179,7 +230,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
         {
           //fprintf(stderr, "Blocked! Interest %s blocked on Face %d\n", interest->GetName ().toUri ().c_str (), fwFaceId);
           triedFaces.push_back (fwFaceId);
-          fwEngine->logExhaustedFace (inFace, interest, pitEntry, *it);
+          //fwEngine->logExhaustedFace (inFace, interest, pitEntry, *it); //logging here an error is not a good idea
           pitEntry->AddOutgoing ((*it));
           pitEntry->SetWaitingInVain ((*it));
           break;
@@ -189,7 +240,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
       }
     }
 
-    fwFaceId = fwEngine->determineRoute(inFace, interest, pitEntry,triedFaces);
+    fwFaceId = fwEngine->determineRoute(originInFaces, interest, pitEntry,triedFaces);
   }
 
   // set all outgoing faces to useless (in vain)
@@ -203,17 +254,7 @@ bool PerContentBasedLayerStrategy<Parent>::DoPropagateInterest(Ptr<Face> inFace,
       }
   }
 
-  //todo check if this is needed
   fwEngine->logDroppingFace(inFace, interest, pitEntry);
-
-  /*
-  // create a nack and reply
-  Ptr<Interest> nack = PerContentBasedLayerStrategy<Parent>::prepareNack (interest);
-  inFace->SendInterest (nack);
-  PerContentBasedLayerStrategy<Parent>::m_outNacks (nack, inFace);
-  */
-
-  //fprintf(stderr, "Fail! Interest %s Dropped\n", interest->GetName ().toUri ().c_str ());
   return false;
 }
 

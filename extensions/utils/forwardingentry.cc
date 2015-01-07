@@ -171,9 +171,9 @@ bool ForwardingEntry::faceInRoutingInformation(int faceId)
   return false;
 }
 
-int ForwardingEntry::determineRoute(Ptr<Face> inFace, Ptr<const Interest> interest, std::vector<int> blocked_faces)
+int ForwardingEntry::determineRoute(std::vector<Ptr<Face> > inFaces, Ptr<const Interest> interest, std::vector<int> blocked_faces)
 {
-  return fwTable->determineOutgoingFace(inFace, interest, determineContentLayer(interest), blocked_faces);
+  return fwTable->determineOutgoingFace(inFaces, interest, determineContentLayer(interest), blocked_faces);
 }
 
 void ForwardingEntry::logUnstatisfiedRequest(Ptr<Face> face, Ptr<pit::Entry> pitEntry)
@@ -213,8 +213,8 @@ int ForwardingEntry::determineContentLayer(Ptr<const Interest> interest)
     //fprintf(stderr, "levelTag=%d\n",levelTag.Get ());
     return levelTag.Get () % 10; // This is done as our content has level sometimes levels of 1, 10, 20, 30
   }
-  else
-    fprintf(stderr, "No level Tag found\n");
+  /*else
+    fprintf(stderr, "No level Tag found\n");*/
 
   std::string layer = interest->GetName ().get(1).toUri();
   layer = layer.substr (layer.length ()-1, layer.length ());

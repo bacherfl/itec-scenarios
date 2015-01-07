@@ -41,6 +41,9 @@ def getAVGBuffer(f):
 def getAVGGoodput(f):
 	return float(extract(f, "# AVG Goodput (kbit/s) = "))
 
+def getSimTime(f):
+	return float(extract(f, "# EndTime = "))
+
 def groupByVideo(files):
 	groupedLists = { }
 
@@ -101,7 +104,13 @@ def computeStats(curdir):
 	output_file.write("AVG Unsmooth per Client: " + str(avg_unsmooth_seconds_per_client) + "s\n")
 	output_file.write("MAX Unsmooth over all: " + str(max_unsmooth_seconds) + "s\n")
 	output_file.write("AVG Buffer per Client: " + str(avg_buffer_per_client) + "s\n")
-	output_file.write("AVG Goodput per Client: " + str(avg_goodput_per_client) + "kbit/s\n\n")
+	output_file.write("AVG Goodput per Client: " + str(avg_goodput_per_client) + "kbit/s\n")
+
+	#add sim time
+	if(len(files) > 0):
+		output_file.write("Simulation Time: " + str(getSimTime(f)) +"\n\n")
+	else:
+		output_file.write("Simulation Time: 0\n\n")
 
 	###statistics per downloaded video
 

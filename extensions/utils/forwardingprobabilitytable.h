@@ -29,7 +29,7 @@ class ForwardingProbabilityTable : public SimpleRefCount<ForwardingProbabilityTa
 public:
   ForwardingProbabilityTable(std::vector<int> faceIds, std::vector<int> preferedFacesIds = std::vector<int>());
 
-  int determineOutgoingFace(Ptr<ndn::Face> inFace, Ptr<const Interest> interest, int ilayer, std::vector<int> blocked_faces);
+  int determineOutgoingFace(std::vector<Ptr<Face> > inFaces, Ptr<const Interest> interest, int ilayer, std::vector<int> blocked_faces);
 
   void updateColumns(Ptr<ForwardingStatistics> stats);
 
