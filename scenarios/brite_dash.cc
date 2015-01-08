@@ -171,27 +171,27 @@ main (int argc, char *argv[])
 
   if(confFile.find ("low_bw") != std::string::npos)
   {
-    min_bw_as = 5000;
-    max_bw_as = 8000;
+    min_bw_as = 4000;
+    max_bw_as = 6000;
 
-    min_bw_leaf = 3000;
-    max_bw_leaf = 5000;
+    min_bw_leaf = 2000;
+    max_bw_leaf = 4000;
   }
   else if(confFile.find ("medium_bw") != std::string::npos)
   {
     min_bw_as = 6000;
-    max_bw_as = 10000;
+    max_bw_as = 8000;
 
-    min_bw_leaf = 5000;
-    max_bw_leaf = 8000;
+    min_bw_leaf = 4000;
+    max_bw_leaf = 6000;
   }
   else if (confFile.find ("high_bw") != std::string::npos)
   {
     min_bw_as = 8000;
-    max_bw_as = 12000;
+    max_bw_as = 10000;
 
     min_bw_leaf = 6000;
-    max_bw_leaf = 10000;
+    max_bw_leaf = 8000;
   }
   else if (confFile.find ("test") != std::string::npos)
   {
@@ -231,7 +231,7 @@ main (int argc, char *argv[])
   //calculaute network connectivity be careful when u call this all nodes/edges are considered
   fprintf(stderr, "connectivity = %f\n",gen.calculateConnectivity());
 
-   double simTime = 1800.0;
+   double simTime = 2700.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
