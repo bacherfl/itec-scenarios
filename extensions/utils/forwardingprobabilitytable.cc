@@ -141,8 +141,8 @@ int ForwardingProbabilityTable::determineRowOfFace(int face_id, boost::numeric::
   {
     //raise(SIGSEGV);
     fprintf(stderr, "Invalid Table to faceIds\n");
-    fprintf(stderr, "table size = %lu\n", tab.size1 ());
-    fprintf(stderr, "faceIds size = %lu\n", faces.size ());
+    fprintf(stderr, "table size = %u\n", tab.size1 ());
+    fprintf(stderr, "faceIds size = %u\n", faces.size ());
     return FACE_NOT_FOUND;
   }
 
@@ -751,9 +751,10 @@ void ForwardingProbabilityTable::syncDroppingPolicy(Ptr<ForwardingStatistics> st
 
   //TODO
   //********
-  for(int i = 0; i < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); i++) // set all as non-jammed
+  /*for(int i = 0; i < (int)ParameterConfiguration::getInstance ()->getParameter ("MAX_LAYERS"); i++) // set all as non-jammed
     jammed[i] = false;
   NS_LOG_DEBUG("JAMMING DISABLED FOR NOW");
+  */
   //********
 
   for(int i = 0; i < jammed.size (); i++)

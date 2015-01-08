@@ -61,7 +61,7 @@ void ForwardingEntry::update()
     //fprintf(stderr, "FALLBACK\n");
   }
 
-  //fwTable->syncDroppingPolicy(fwStats);
+  fwTable->syncDroppingPolicy(fwStats);
 
   //now check if we should remove / add faces
   //checkForAddFaces();
