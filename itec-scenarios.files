@@ -182,3 +182,5 @@ extensions/randnetworks/networkgenerator.cc
 extensions/utils/parameterconfiguration.h
 extensions/utils/parameterconfiguration.cc
 scenarios/brite_dash.cc
+extensions/utils/sdncontrolledstrategy.h
+extensions/utils/sdncontrolledstrategy.cc
