@@ -9,7 +9,7 @@ namespace ns3 {
 class SDNP2PHelper
 {
 public:
-    SDNP2PHelper(Ptr<PointToPointHelper> p2p);
+    SDNP2PHelper(PointToPointHelper *p2p);
     virtual ~SDNP2PHelper () {}
 
     /**
@@ -68,7 +68,7 @@ public:
      * Set these attributes on each ns3::PointToPointNetDevice created
      * by PointToPointHelper::Install
      */
-    void SetDeviceAttribute (std::string name, const AttributeValue &value);
+    void SetDeviceAttribute (std::string name, std::string value);
 
     /**
      * Set an attribute value to be propagated to each Channel created by the
@@ -80,12 +80,12 @@ public:
      * Set these attribute on each ns3::PointToPointChannel created
      * by PointToPointHelper::Install
      */
-    void SetChannelAttribute (std::string name, const AttributeValue &value);
+    void SetChannelAttribute (std::string name, std::string value);
 
 private:
-    Ptr<PointToPointHelper> m_p2p;
-    std::map<std::string, AttributeValue& > deviceAttributes;
-    std::map<std::string, AttributeValue& > channelAttributes;
+    PointToPointHelper *m_p2p;
+    std::map<std::string, std::string > deviceAttributes;
+    std::map<std::string, std::string > channelAttributes;
 
 };
 

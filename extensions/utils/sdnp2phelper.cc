@@ -1,11 +1,12 @@
 #include "sdnp2phelper.h"
 #include "sdncontroller.h"
+#include "ns3/core-module.h"
 
 namespace ns3 {
 
 using namespace ndn;
 
-SDNP2PHelper::SDNP2PHelper(Ptr<PointToPointHelper> p2p):
+SDNP2PHelper::SDNP2PHelper(PointToPointHelper *p2p):
     m_p2p(p2p)
 {
 }
@@ -37,16 +38,16 @@ NetDeviceContainer SDNP2PHelper::Install (std::string aNode, std::string bNode)
     return m_p2p->Install(aNode, bNode);
 }
 
-void SDNP2PHelper::SetDeviceAttribute (std::string name, const AttributeValue &value)
+void SDNP2PHelper::SetDeviceAttribute (std::string name, std::string value)
 {
     channelAttributes[name] = value;
-    m_p2p->SetDeviceAttribute(name, value);
+    m_p2p->SetDeviceAttribute(name, StringValue(value));
 }
 
-void SDNP2PHelper::SetChannelAttribute (std::string name, const AttributeValue &value)
+void SDNP2PHelper::SetChannelAttribute (std::string name, std::string value)
 {
     deviceAttributes[name] = value;
-    m_p2p->SetChannelAttribute(name, value);
+    m_p2p->SetChannelAttribute(name, StringValue(value));
 }
 
 }

@@ -57,9 +57,9 @@ public:
   virtual bool TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
   virtual void DidExhaustForwardingOptions(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
 
-
-  Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest);
   Ptr<Face> GetFaceFromSDNController(Ptr<const Interest> interest);
+  Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest);
+
   Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 
 protected:
@@ -187,7 +187,7 @@ Ptr<Interest> SDNControlledStrategy<Parent>::prepareNack(Ptr<const Interest> int
 }
 
 template<class Parent>
-Ptr<Interest> SDNControlledStrategy<Parent>::GetFaceFromSDNController(Ptr<const Interest> interest)
+Ptr<Face> SDNControlledStrategy<Parent>::GetFaceFromSDNController(Ptr<const Interest> interest)
 {
     //TODO implement method
     //SDNController::
@@ -195,7 +195,7 @@ Ptr<Interest> SDNControlledStrategy<Parent>::GetFaceFromSDNController(Ptr<const 
 }
 
 template<class Parent>
-Ptr<Interest> SDNControlledStrategy<Parent>::SelectFaceFromLocalFib(Ptr<const Interest> interest)
+Ptr<Face> SDNControlledStrategy<Parent>::SelectFaceFromLocalFib(Ptr<const Interest> interest)
 {
     //TODO implement method
     return NULL;

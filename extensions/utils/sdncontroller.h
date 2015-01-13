@@ -8,6 +8,7 @@
 #include "ns3-dev/ns3/ndn-interest.h"
 #include "ns3-dev/ns3/packet.h"
 #include "ns3-dev/ns3/ndn-wire.h"
+#include "ns3-dev/ns3/node.h"
 
 #include "../../../ns-3/src/ndnSIM/model/ndn-global-router.h"
 
@@ -16,6 +17,7 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <curl/curl.h>
 
 namespace ns3 {
 namespace ndn {
@@ -33,19 +35,20 @@ public:
 
     static void AddLink(Ptr<Node> a,
                         Ptr<Node> b,
-                        std::map<std::string, AttributeValue& > channelAttributes,
-                        std::map<std::string, AttributeValue& > deviceAttributes);
+                        std::map<std::string, std::string> channelAttributes,
+                        std::map<std::string, std::string> deviceAttributes);
 
     static void RequestForUnknownPrefix(std::string &prefix);
     static void NodeReceivedNackOnFace(Ptr<Node>, Ptr<Face>);
+    static void PerformNeo4jTrx(const std::string &url, const std::string &requestContent);
 
 
 private:
     static void PushRoute(Route route);
 
 
-    typedef std::map<std::string, AttributeValue& > ChannelAttributes;
-    typedef std::map<std::string, AttributeValue& > DeviceAttributes;
+    typedef std::map<std::string, std::string > ChannelAttributes;
+    typedef std::map<std::string, std::string > DeviceAttributes;
     typedef boost::tuples::tuple<Ptr<Node>, Ptr<Node>, ChannelAttributes, DeviceAttributes> IncidencyListEntry;
     Ptr<GlobalRouter> globalRouter;
 
@@ -56,6 +59,7 @@ private:
     static const int IDX_CHANNEL_ATTRIBUTES = 2;
     static const int IDX_DEVICE_ATTRIBUTES = 3;
 
+    static CURL *ch;
 
 
 };
