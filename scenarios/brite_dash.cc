@@ -334,7 +334,7 @@ main (int argc, char *argv[])
   for(int i=0; i<client.size (); i++)
   {
     std::string mpdPath("/data/concatenated_set"+ boost::lexical_cast<std::string>(i%server.size ()) + "/concatenated");
-    std::string set("-server" + boost::lexical_cast<std::string>(i%server.size ()) + ".mpd");
+    std::string set("-3layers-server" + boost::lexical_cast<std::string>(i%server.size ()) + ".mpd");
     consumerHelper.SetAttribute ("MPD", StringValue(mpdPath.append(set).c_str()));
 
     ApplicationContainer consumer = consumerHelper.Install (Names::Find<Node>(std::string("Client_" + boost::lexical_cast<std::string>(i))));
