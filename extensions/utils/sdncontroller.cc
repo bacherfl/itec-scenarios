@@ -1,4 +1,6 @@
 #include "sdncontroller.h"
+#include <curl/curl.h>
+
 
 namespace ns3 {
 namespace ndn {
