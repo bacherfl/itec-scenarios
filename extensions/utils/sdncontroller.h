@@ -21,10 +21,12 @@
 
 namespace ns3 {
 namespace ndn {
-
+namespace fw {
 typedef struct route_t {
     std::vector<std::map<Ptr<Node>, Ptr<Face> > > endpoints;
 } Route;
+
+class SDNControlledStrategy;
 
 class SDNController {
 public:
@@ -38,9 +40,16 @@ public:
                         std::map<std::string, std::string> channelAttributes,
                         std::map<std::string, std::string> deviceAttributes);
 
+    static void AddLink(Ptr<Node> a,
+                        Ptr<Node> b,
+                        uint32_t faceId);
+
     static void RequestForUnknownPrefix(std::string &prefix);
     static void NodeReceivedNackOnFace(Ptr<Node>, Ptr<Face>);
     static void PerformNeo4jTrx(std::string url, std::string requestContent);
+
+    static void registerForwarder(const SDNControlledStrategy *fwd, uint32_t nodeId);
+    static void clearGraphDb();
 
 
 private:
@@ -51,6 +60,8 @@ private:
     typedef std::map<std::string, std::string > DeviceAttributes;
     typedef boost::tuples::tuple<Ptr<Node>, Ptr<Node>, ChannelAttributes, DeviceAttributes> IncidencyListEntry;
     Ptr<GlobalRouter> globalRouter;
+
+    static std::map<uint32_t, const SDNControlledStrategy*> forwarders;
 
     static std::map<std::string, std::vector<Ptr<Node> > > contentOrigins;
     static std::vector<IncidencyListEntry> incidencyList;
@@ -65,6 +76,6 @@ private:
 };
 }
 }
-
+}
 
 #endif // SDNCONTROLLER_H

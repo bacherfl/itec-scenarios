@@ -1,16 +1,17 @@
 #include "sdncontroller.h"
 #include <curl/curl.h>
 #include <jsoncpp/json/json.h>
-
+#include "sdncontrolledstrategy.h"
 
 
 namespace ns3 {
 namespace ndn {
-
+namespace fw {
 using namespace boost::tuples;
 using namespace std;
 
 std::map<std::string, std::vector<Ptr<Node> > > SDNController::contentOrigins;
+std::map<uint32_t, const SDNControlledStrategy*> SDNController::forwarders;
 CURL* SDNController::ch;
 
 SDNController::SDNController()
@@ -119,6 +120,58 @@ void SDNController::AddLink(Ptr<Node> a,
     PerformNeo4jTrx(std::string("http://localhost:7474/db/data/transaction/commit"), writer.write(neo4jTrx));
 }
 
+void SDNController::clearGraphDb()
+{
+    Json::Value neo4jTrx = Json::Value(Json::objectValue);
+    Json::Value  statements = Json::Value(Json::arrayValue);
+
+    Json::Value statementObject = Json::Value(Json::objectValue);
+    std::stringstream statement;
+    statement << "MATCH (n:Node)-[r]-() DELETE n, r; MATCH (p:Prefix)-[r2]-() DELETE p, r2;";
+
+    statementObject["statement"] = statement.str();
+
+    statements.append(statementObject);
+
+    neo4jTrx["statements"] = statements;
+
+    Json::StyledWriter writer;
+
+    PerformNeo4jTrx(std::string("http://localhost:7474/db/data/transaction/commit"), writer.write(neo4jTrx));
+}
+
+void SDNController::AddLink(Ptr<Node> a,
+                    Ptr<Node> b,
+                    uint32_t faceId)
+{
+    int idA = a->GetId();
+    int idB = b->GetId();
+
+    Json::Value neo4jTrx = Json::Value(Json::objectValue);
+    Json::Value  statements = Json::Value(Json::arrayValue);
+
+    Json::Value statementObject = Json::Value(Json::objectValue);
+    std::stringstream statement;
+    statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
+                 "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
+                 "CREATE (a)-[l:LINK {faceId:'" << faceId <<"'}]->(b) RETURN a,l";
+
+    statementObject["statement"] = statement.str();
+
+    statements.append(statementObject);
+
+    neo4jTrx["statements"] = statements;
+
+    Json::StyledWriter writer;
+
+    PerformNeo4jTrx(std::string("http://localhost:7474/db/data/transaction/commit"), writer.write(neo4jTrx));
+}
+
+void SDNController::registerForwarder(const SDNControlledStrategy *fwd, uint32_t nodeId)
+{
+    forwarders[nodeId] = fwd;
+}
+
 void SDNController::RequestForUnknownPrefix(std::string &prefix)
 {
 
@@ -129,5 +182,6 @@ void SDNController::NodeReceivedNackOnFace(Ptr<Node>, Ptr<Face>)
 
 }
 
+}
 }
 }

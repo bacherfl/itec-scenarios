@@ -32,6 +32,8 @@ void init(int argc, char *argv[])
     NodeContainer nodes;
     nodes.Create(4);
 
+    ndn::fw::SDNController::clearGraphDb();
+
     // Connecting nodes using two links
     PointToPointHelper p2p;
     SDNP2PHelper sdnp2p(p2p);
@@ -43,7 +45,7 @@ void init(int argc, char *argv[])
     ndn::StackHelper ndnHelper;
     ndnHelper.SetDefaultRoutes (true);
     ndnHelper.SetContentStore("ns3::ndn::cs::Random");
-    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Nacks::SDNControlledStrategy");
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy");
     ndnHelper.Install(nodes);
 
     ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
@@ -64,7 +66,7 @@ void init(int argc, char *argv[])
     //Add /prefix origins to ndn::GlobalRouter
     std::string prefix = "/source";
     ndnGlobalRoutingHelper.AddOrigins(prefix, producer);
-    ndn::SDNController::AddOrigins(prefix, producer);
+    ndn::fw::SDNController::AddOrigins(prefix, producer);
     // Calculate and install FIBs
     ndn::GlobalRoutingHelper::CalculateRoutes ();
 
