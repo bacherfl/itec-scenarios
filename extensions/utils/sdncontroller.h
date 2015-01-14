@@ -40,7 +40,7 @@ public:
 
     static void RequestForUnknownPrefix(std::string &prefix);
     static void NodeReceivedNackOnFace(Ptr<Node>, Ptr<Face>);
-    static void PerformNeo4jTrx(const std::string &url, const std::string &requestContent);
+    static void PerformNeo4jTrx(std::string url, std::string requestContent);
 
 
 private:

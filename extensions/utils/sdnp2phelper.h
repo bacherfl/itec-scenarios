@@ -9,7 +9,7 @@ namespace ns3 {
 class SDNP2PHelper
 {
 public:
-    SDNP2PHelper(PointToPointHelper *p2p);
+    SDNP2PHelper(PointToPointHelper p2p);
     virtual ~SDNP2PHelper () {}
 
     /**
@@ -83,7 +83,7 @@ public:
     void SetChannelAttribute (std::string name, std::string value);
 
 private:
-    PointToPointHelper *m_p2p;
+    PointToPointHelper m_p2p;
     std::map<std::string, std::string > deviceAttributes;
     std::map<std::string, std::string > channelAttributes;
 
