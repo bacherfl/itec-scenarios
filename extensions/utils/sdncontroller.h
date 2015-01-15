@@ -22,9 +22,20 @@
 namespace ns3 {
 namespace ndn {
 namespace fw {
+
 typedef struct route_t {
     std::vector<std::map<Ptr<Node>, Ptr<Face> > > endpoints;
 } Route;
+
+typedef struct path_entry_t {
+    int start;
+    int face;
+    int end;
+} PathEntry;
+
+typedef struct path_t {
+    std::vector<PathEntry*> pathEntries;
+} Path;
 
 class SDNControlledStrategy;
 
@@ -32,7 +43,7 @@ class SDNController {
 public:
     SDNController();
 
-    static void CalculateRoutesForPrefix(Ptr<Node> start, const std::string &prefix);
+    static void CalculateRoutesForPrefix(int startNodeId, const std::string &prefix);
     static void AddOrigins(std::string &prefix, Ptr<Node> producer);
 
     static void AddLink(Ptr<Node> a,
@@ -46,14 +57,15 @@ public:
 
     static void RequestForUnknownPrefix(std::string &prefix);
     static void NodeReceivedNackOnFace(Ptr<Node>, Ptr<Face>);
-    static void PerformNeo4jTrx(std::string url, std::string requestContent);
+    static std::string PerformNeo4jTrx(std::string requestContent, size_t (*callback)(void*, size_t, size_t, void*));
 
-    static void registerForwarder(const SDNControlledStrategy *fwd, uint32_t nodeId);
+    static void registerForwarder(SDNControlledStrategy *fwd, uint32_t nodeId);
     static void clearGraphDb();
-
+    static int getNumberOfFacesForNode(uint32_t nodeId);
+    static size_t curlCallback(void *ptr, size_t size, size_t nmemb, void *stream);
 
 private:
-    static void PushRoute(Route route);
+    static void PushPath(Path p, const std::string &prefix);
 
 
     typedef std::map<std::string, std::string > ChannelAttributes;
@@ -61,7 +73,7 @@ private:
     typedef boost::tuples::tuple<Ptr<Node>, Ptr<Node>, ChannelAttributes, DeviceAttributes> IncidencyListEntry;
     Ptr<GlobalRouter> globalRouter;
 
-    static std::map<uint32_t, const SDNControlledStrategy*> forwarders;
+    static std::map<uint32_t, SDNControlledStrategy*> forwarders;
 
     static std::map<std::string, std::vector<Ptr<Node> > > contentOrigins;
     static std::vector<IncidencyListEntry> incidencyList;
@@ -69,6 +81,8 @@ private:
     static const int IDX_NODE2 = 1;
     static const int IDX_CHANNEL_ATTRIBUTES = 2;
     static const int IDX_DEVICE_ATTRIBUTES = 3;
+
+    static std::stringstream recv_data;
 
     static CURL *ch;
 

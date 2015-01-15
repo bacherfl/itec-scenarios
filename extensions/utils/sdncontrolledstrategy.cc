@@ -43,13 +43,22 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
 {
     if (!initialized)
         this->init();
+
   // add face to faces vector
+    /*
   Ptr<Node> node = this->GetObject<Node> ();
   Ptr<Node> targetNode = face->GetNode();
   SDNController::AddLink(node, targetNode, face->GetId());
+  */
   faces.push_back (face);
   //fwEngine = new utils::ForwardingEngine(faces, SDNControlledStrategy::m_fib, prefixComponentNum);
   ForwardingStrategy::AddFace(face);
+}
+
+void SDNControlledStrategy::PushRule(const std::string &prefix, int faceId)
+{
+    std::cout << "new rule: " << prefix << " -> face " << faceId << "\n";
+    localFib[prefix].push_back(faceId);
 }
 
 /* remove face */
@@ -136,15 +145,35 @@ Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
 
 Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> interest)
 {
-    //TODO implement method
-    //SDNController::
-    return NULL;
+    std::string prefix = interest->GetName().toUri();
+    Ptr<Node> node = GetObject<Node>();
+    //let the controller calculate the route and push the rules to all nodes on the path to the target
+    SDNController::CalculateRoutesForPrefix(node->GetId(), prefix);
+
+    return SelectFaceFromLocalFib(interest);
 }
 
 
 Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> interest)
 {
-    //TODO implement method
+    std::string prefix = interest->GetName().toUri();
+    std::cout << prefix << "\n";
+    if (localFib[prefix].size() > 0)
+    {
+        int faceId = localFib[prefix].at(0);
+
+        for (int i = 0; i < faces.size(); i++)
+        {
+            Ptr<Face> face = faces.at(i);
+            std::cout << "FaceID = " << face->GetId() << "\n";
+            if (face->GetId() == faceId)
+            {
+                std::cout << "forwarding interest via face " << faceId << "\n";
+                return face;
+            }
+        }
+    }
+    std::cout << "no face found in local fib \n";
     return NULL;
 }
 
@@ -153,13 +182,18 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 {
     Ptr<Face> outFace = SelectFaceFromLocalFib(interest);
 
-    if (outFace != NULL)
-    {
+    int propagatedCount = 0;
 
-    }
-    else {
+    if (outFace == NULL)
+    {
         outFace = GetFaceFromSDNController(interest);
     }
+
+    if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+        propagatedCount ++;
+
+    /*
+
     typedef fib::FaceMetricContainer::type::index<fib::i_metric>::type FacesByMetric;
       FacesByMetric &faces = pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ();
       FacesByMetric::iterator faceIterator = faces.begin ();
@@ -168,8 +202,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
       // forward to best-metric face
       if (faceIterator != faces.end ())
-        {
-          std::cout << "test";
+        {          
           if (TrySendOutInterest (inFace, faceIterator->GetFace (), interest, pitEntry))
             propagatedCount ++;
 
@@ -184,6 +217,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
           faceIterator ++;
         }
+      */
       return propagatedCount > 0;
 }
 
@@ -219,11 +253,13 @@ void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nack
 
 bool SDNControlledStrategy::TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
+    /*
   if(useTockenBucket > 0)
   {
     if(!fwEngine->tryForwardInterest (outFace, interest))
       return false;
   }
+  */
   return ForwardingStrategy::TrySendOutInterest(inFace,outFace, interest, pitEntry);
 }
 

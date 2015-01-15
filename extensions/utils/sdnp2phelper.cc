@@ -19,7 +19,7 @@ NetDeviceContainer SDNP2PHelper::Install (NodeContainer c)
 
 NetDeviceContainer SDNP2PHelper::Install (Ptr<Node> a, Ptr<Node> b)
 {
-    //SDNController::AddLink(a, b, channelAttributes, deviceAttributes);
+    fw::SDNController::AddLink(a, b, channelAttributes, deviceAttributes);
     return m_p2p.Install(a, b);
 }
 

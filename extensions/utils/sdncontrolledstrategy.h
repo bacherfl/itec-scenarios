@@ -51,6 +51,7 @@ public:
   virtual void DidExhaustForwardingOptions(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
 
   void init();
+  void PushRule(const std::string &prefix, int faceId);
 
   Ptr<Face> GetFaceFromSDNController(Ptr<const Interest> interest);
   Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest);
@@ -65,7 +66,7 @@ protected:
   std::vector<Ptr<ndn::Face> > faces;
   Ptr<utils::ForwardingEngine> fwEngine;
 
-  std::vector<std::map<Ptr<Name>, std::vector<Ptr<Face> > > > localFib;
+  std::map<std::string, std::vector<int> > localFib;
 
   unsigned int prefixComponentNum;
   unsigned int useTockenBucket;
