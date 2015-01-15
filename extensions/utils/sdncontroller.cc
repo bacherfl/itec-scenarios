@@ -194,8 +194,8 @@ void SDNController::AddLink(Ptr<Node> a,
 
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
-                 "CREATE (a)-[:LINK {faceId:'" << getNumberOfFacesForNode(idA) + 1 << "'} ]->(b) " <<
-                 "CREATE (a)<-[:LINK {faceId:'" << getNumberOfFacesForNode(idB) + 1 << "'} ]-(b) RETURN a";
+                 "CREATE (a)-[:LINK {faceId:'" << getNumberOfFacesForNode(idA) << "'} ]->(b) " <<
+                 "CREATE (a)<-[:LINK {faceId:'" << getNumberOfFacesForNode(idB) << "'} ]-(b) RETURN a";
 
     statementObject["statement"] = statement.str();
 

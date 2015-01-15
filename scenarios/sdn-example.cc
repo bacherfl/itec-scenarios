@@ -30,7 +30,7 @@ void init(int argc, char *argv[])
 
     // Creating nodes
     NodeContainer nodes;
-    nodes.Create(10);
+    nodes.Create(50);
 
     ndn::fw::SDNController::clearGraphDb();
 
@@ -51,11 +51,14 @@ void init(int argc, char *argv[])
     sdnp2p.Install (nodes.Get (8), nodes.Get (7));
     sdnp2p.Install (nodes.Get (9), nodes.Get (4));
     */
-    for (int i = 0; i < 20; i++)
+    for (int i = 0; i < 100; i++)
     {
-        int rand1 = rand() % 10;
-        int rand2 = rand() % 10;
+        int rand1 = rand() % 50;
+        int rand2 = rand() % 50;
 
+        while (rand1 == rand2)
+            rand2 = rand() % 50;
+        //TODO: avoid duplicates
         sdnp2p.Install(nodes.Get(rand1), nodes.Get(rand2));
     }
 
