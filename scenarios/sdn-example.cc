@@ -30,17 +30,18 @@ void init(int argc, char *argv[])
 
     // Creating nodes
     NodeContainer nodes;
-    nodes.Create(50);
+    nodes.Create(10);
 
     ndn::fw::SDNController::clearGraphDb();
 
     // Connecting nodes using two links
     PointToPointHelper p2p;
     SDNP2PHelper sdnp2p(p2p);
-    /*
+
     sdnp2p.Install (nodes.Get (0), nodes.Get (2));
     sdnp2p.Install (nodes.Get (1), nodes.Get (2));
     sdnp2p.Install (nodes.Get (2), nodes.Get (3));
+
     sdnp2p.Install (nodes.Get (4), nodes.Get (3));
     sdnp2p.Install (nodes.Get (5), nodes.Get (4));
     sdnp2p.Install (nodes.Get (5), nodes.Get (1));
@@ -50,7 +51,8 @@ void init(int argc, char *argv[])
     sdnp2p.Install (nodes.Get (8), nodes.Get (5));
     sdnp2p.Install (nodes.Get (8), nodes.Get (7));
     sdnp2p.Install (nodes.Get (9), nodes.Get (4));
-    */
+
+    /*
     for (int i = 0; i < 100; i++)
     {
         int rand1 = rand() % 50;
@@ -61,7 +63,7 @@ void init(int argc, char *argv[])
         //TODO: avoid duplicates
         sdnp2p.Install(nodes.Get(rand1), nodes.Get(rand2));
     }
-
+    */
     // Install NDN stack on all nodes
     ndn::StackHelper ndnHelper;
     ndnHelper.SetDefaultRoutes (true);
@@ -83,6 +85,10 @@ void init(int argc, char *argv[])
     ApplicationContainer sink1 = helperSink.Install(consumer1);
     ApplicationContainer sink2 = helperSink.Install(consumer2);
     ApplicationContainer source = helperSource.Install(producer);
+
+    //ndn::fw::SDNController::AppFaceAddedToNode(consumer1);
+    //ndn::fw::SDNController::AppFaceAddedToNode(consumer2);
+    //ndn::fw::SDNController::AppFaceAddedToNode(producer);
 
     //Add /prefix origins to ndn::GlobalRouter
     std::string prefix = "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s";

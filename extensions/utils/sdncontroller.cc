@@ -19,6 +19,29 @@ SDNController::SDNController()
     globalRouter = Create<GlobalRouter>();
 }
 
+void SDNController::AppFaceAddedToNode(Ptr<Node> node)
+{
+    int nodeId = node->GetId();
+
+    Json::Value neo4jTrx = Json::Value(Json::objectValue);
+    Json::Value  statements = Json::Value(Json::arrayValue);
+
+    Json::Value statementObject = Json::Value(Json::objectValue);
+    std::stringstream statement;
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l:LINK]->() SET l.faceId=l.faceId+1;";
+
+    statementObject["statement"] = statement.str();
+
+    statements.append(statementObject);
+
+    neo4jTrx["statements"] = statements;
+
+    Json::StyledWriter writer;
+
+    std::string data = PerformNeo4jTrx(writer.write(neo4jTrx), curlCallback);
+
+}
+
 void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string &prefix)
 {
     std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
@@ -28,7 +51,7 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
     statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (content:Prefix{name:'" << prefix << "'})," <<
-                 "p = shortestPath((requester)-[*]-(content)) return p;";
+                 "p = shortestPath((requester)-[*]->(content)) return p;";
 
     statementObject["statement"] = statement.str();
 
@@ -74,7 +97,7 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
                 Json::Value node = path[i];
                 if (!node["faceId"].isNull())
                 {
-                    pe->face = atoi(node["faceId"].asCString());
+                    pe->face = node["faceId"].asInt();
                 }
                 else if (!node["nodeId"].isNull())
                 {
@@ -194,8 +217,8 @@ void SDNController::AddLink(Ptr<Node> a,
 
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
-                 "CREATE (a)-[:LINK {faceId:'" << getNumberOfFacesForNode(idA) << "'} ]->(b) " <<
-                 "CREATE (a)<-[:LINK {faceId:'" << getNumberOfFacesForNode(idB) << "'} ]-(b) RETURN a";
+                 "CREATE (a)-[:LINK {faceId:" << getNumberOfFacesForNode(idA) << "} ]->(b) " <<
+                 "CREATE (a)<-[:LINK {faceId:" << getNumberOfFacesForNode(idB) << "} ]-(b) RETURN a";
 
     statementObject["statement"] = statement.str();
 
@@ -235,7 +258,7 @@ int SDNController::getNumberOfFacesForNode(uint32_t nodeId)
 
     Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
-    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l:LINK]->() RETURN n, count(*)";
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l:LINK]-() RETURN n, count(*)";
 
     statementObject["statement"] = statement.str();
 
@@ -257,7 +280,7 @@ int SDNController::getNumberOfFacesForNode(uint32_t nodeId)
         return 0;
     }
     Json::Value nrFaces = root["results"][0]["data"][0]["row"][1];
-    return nrFaces.asInt();
+    return nrFaces.asInt() / 2;
 }
 
 void SDNController::AddLink(Ptr<Node> a,
@@ -274,7 +297,7 @@ void SDNController::AddLink(Ptr<Node> a,
     std::stringstream statement;
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
-                 "CREATE (a)-[l:LINK {faceId:'" << faceId <<"'}]->(b) RETURN a,l";
+                 "CREATE (a)-[l:LINK {faceId:" << faceId <<"}]->(b) RETURN a,l";
 
     statementObject["statement"] = statement.str();
 

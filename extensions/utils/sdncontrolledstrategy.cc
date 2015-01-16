@@ -168,7 +168,8 @@ Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> inte
             std::cout << "FaceID = " << face->GetId() << "\n";
             if (face->GetId() == faceId)
             {
-                std::cout << "forwarding interest via face " << faceId << "\n";
+                Ptr<Node> node = this->GetObject<Node>();
+                std::cout << node->GetId() << " forwarding interest via face " << faceId << "\n";
                 return face;
             }
         }
@@ -189,36 +190,44 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
         outFace = GetFaceFromSDNController(interest);
     }
 
-    if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
-        propagatedCount ++;
-
-    /*
-
-    typedef fib::FaceMetricContainer::type::index<fib::i_metric>::type FacesByMetric;
-      FacesByMetric &faces = pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ();
-      FacesByMetric::iterator faceIterator = faces.begin ();
-
-      int propagatedCount = 0;
-
-      // forward to best-metric face
-      if (faceIterator != faces.end ())
-        {          
-          if (TrySendOutInterest (inFace, faceIterator->GetFace (), interest, pitEntry))
+    if (outFace != NULL)
+    {
+        if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
             propagatedCount ++;
+    }
+    //we're on the target node where the prefix is available --> forward to app face
+    else {
+        Ptr<Node> node = this->GetObject<Node>();
 
-          faceIterator ++;
-        }
+        typedef fib::FaceMetricContainer::type::index<fib::i_metric>::type FacesByMetric;
+        FacesByMetric &faces = pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ();
+        FacesByMetric::iterator faceIterator = faces.begin ();
 
-      // forward to second-best-metric face
-      if (faceIterator != faces.end ())
+        int propagatedCount = 0;
+
+        // forward to best-metric face
+        if (faceIterator != faces.end ())
         {
-          if (TrySendOutInterest (inFace, faceIterator->GetFace (), interest, pitEntry))
-            propagatedCount ++;
+            std::cout << node->GetId() << " forwarding interest to face " << faceIterator->GetFace()->GetId() << "\n";
+            if (TrySendOutInterest (inFace, faceIterator->GetFace (), interest, pitEntry))
+                propagatedCount ++;
 
-          faceIterator ++;
+            faceIterator++;
+
         }
-      */
-      return propagatedCount > 0;
+        // forward to second-best-metric face
+        if (faceIterator != faces.end ())
+        {
+            std::cout << node->GetId() << " forwarding interest to face " << faceIterator->GetFace()->GetId() << "\n";
+            if (TrySendOutInterest (inFace, faceIterator->GetFace (), interest, pitEntry))
+                propagatedCount ++;
+
+            faceIterator ++;
+        }
+    }
+    std::cout << "Propagated count: " << propagatedCount << "\n";
+
+    return propagatedCount > 0;
 }
 
 
@@ -250,18 +259,19 @@ void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nack
   //ForwardingStrategy::DidReceiveValidNack (inFace, nackCode, nack, pitEntry);
 }
 
-
+/*
 bool SDNControlledStrategy::TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
-    /*
+
   if(useTockenBucket > 0)
   {
     if(!fwEngine->tryForwardInterest (outFace, interest))
       return false;
   }
-  */
+
   return ForwardingStrategy::TrySendOutInterest(inFace,outFace, interest, pitEntry);
 }
+*/
 
 
 void SDNControlledStrategy::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)

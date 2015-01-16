@@ -63,6 +63,7 @@ public:
     static void clearGraphDb();
     static int getNumberOfFacesForNode(uint32_t nodeId);
     static size_t curlCallback(void *ptr, size_t size, size_t nmemb, void *stream);
+    static void AppFaceAddedToNode(Ptr<Node> node);
 
 private:
     static void PushPath(Path p, const std::string &prefix);
