@@ -20,48 +20,25 @@ SDNController::SDNController()
 }
 
 void SDNController::AppFaceAddedToNode(Ptr<Node> node)
-{
+{    
     int nodeId = node->GetId();
 
-    Json::Value neo4jTrx = Json::Value(Json::objectValue);
-    Json::Value  statements = Json::Value(Json::arrayValue);
-
-    Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
     statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l:LINK]->() SET l.faceId=l.faceId+1;";
 
-    statementObject["statement"] = statement.str();
-
-    statements.append(statementObject);
-
-    neo4jTrx["statements"] = statements;
-
-    Json::StyledWriter writer;
-
-    std::string data = PerformNeo4jTrx(writer.write(neo4jTrx), curlCallback);
+    std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
 }
 
 void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string &prefix)
 {
     std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
-    Json::Value neo4jTrx = Json::Value(Json::objectValue);
-    Json::Value  statements = Json::Value(Json::arrayValue);
 
-    Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
     statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (content:Prefix{name:'" << prefix << "'})," <<
                  "p = shortestPath((requester)-[*]->(content)) return p;";
 
-    statementObject["statement"] = statement.str();
-
-    statements.append(statementObject);
-
-    neo4jTrx["statements"] = statements;
-
-    Json::StyledWriter writer;
-
-    std::string data = PerformNeo4jTrx(writer.write(neo4jTrx), curlCallback);
+    std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
     Json::Reader reader;
     Json::Value root;
@@ -82,32 +59,19 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     Path p;
     if (!path.isNull())
     {
-        for (int i = 0; i < path.size(); i++) {
-            if (firstNode)
-            {
-                pe = new PathEntry;
-                Json::Value node = path[i];
-                if (!node["nodeId"].isNull())
-                {
-                    pe->start = atoi(node["nodeId"].asCString());
-                    firstNode = false;
-                }
-            }
-            else {
-                Json::Value node = path[i];
-                if (!node["faceId"].isNull())
-                {
-                    pe->face = node["faceId"].asInt();
-                }
-                else if (!node["nodeId"].isNull())
-                {
-                    pe->end = atoi(node["nodeId"].asCString());
-                    p.pathEntries.push_back(pe);
-                    pe = new PathEntry;
-                    pe->start = atoi(node["nodeId"].asCString());
-                }
-            }
+
+        for (int i = 0; i < path.size() - 3; i += 6)
+        {
+            pe = new PathEntry;
+            Json::Value startNode = path[i];
+            Json::Value face = path[i+2];
+            Json::Value endNode = path[i+6];
+            pe->start = atoi(startNode["nodeId"].asCString());
+            pe->face = face["faceId"].asInt();
+            pe->end = atoi(endNode["nodeId"].asCString());
+            p.pathEntries.push_back(pe);
         }
+
     }
     std::stringstream str;
     str << "\n" << p.pathEntries.size() << "\n";
@@ -121,40 +85,57 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
 
 void SDNController::AddOrigins(std::string &prefix, Ptr<Node> producer)
 {
-    vector<Ptr<Node> > producersForPrefix = contentOrigins[prefix];
-    producersForPrefix.push_back(producer);
-
-    //insert content location into graph database
-
     int prodId = producer->GetId();
-
-    Json::Value neo4jTrx = Json::Value(Json::objectValue);
-    Json::Value  statements = Json::Value(Json::arrayValue);
-
-    Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
     statement << "MATCH (n:Node) where n.nodeId = '" << prodId
                  << "' CREATE UNIQUE (n)-[:PROVIDES]->(p:Prefix {name:'" << prefix << "'}) RETURN p";
 
-    statementObject["statement"] = statement.str();
-
-    statements.append(statementObject);
-
-    neo4jTrx["statements"] = statements;
-
-    Json::StyledWriter writer;
-
-    PerformNeo4jTrx(writer.write(neo4jTrx), NULL);
+    PerformNeo4jTrx(statement.str(), NULL);
 }
 
 void SDNController::PushPath(Path p, const std::string &prefix)
 {
+    std::stringstream statement;
     for (int i = 0; i < p.pathEntries.size(); i++)
     {
         PathEntry *pe = p.pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
-        strategy->PushRule(prefix, pe->face);
+        strategy->PushRule(prefix, pe->face);               
     }
+    //LogChosenPath(p, prefix);
+}
+
+void SDNController::LinkFailure(int nodeId, int faceId, std::string name)
+{
+    std::stringstream statement;
+    statement << "MATCH (n:Node {nodeId='" << nodeId << "'})-[r:ROUTE {prefix:'"<< name <<"'}]->() SET r.status='RED';";
+
+    PerformNeo4jTrx(statement.str(), NULL);
+
+    //TODO: find alternative route
+}
+
+void SDNController::InstallBandwidthQueue(int nodeId, int faceId, std::string prefix)
+{
+
+}
+
+void SDNController::LogChosenPath(Path p, const std::string &prefix)
+{
+    std::vector<std::string> statements;
+
+    std::stringstream statement;
+    for (int i = 0; i < p.pathEntries.size(); i++)
+    {
+
+        PathEntry *pe = p.pathEntries.at(i);
+        statement << "MATCH (n:Node {nodeId:'" << pe->start << "'}), (m:Node {nodeId:'" << pe->end <<"'}) "
+                     << "CREATE UNIQUE (n)-[:ROUTE {faceId:" << pe->face << ", prefix:'" << prefix << "'}]->(m);";
+
+        statements.push_back(statement.str());
+        statement.str("");
+    }
+    PerformNeo4jTrx(statements, NULL);
 }
 
 size_t SDNController::curlCallback(void *contents, size_t size, size_t nmemb, void *stream)
@@ -167,8 +148,22 @@ size_t SDNController::curlCallback(void *contents, size_t size, size_t nmemb, vo
     return size*nmemb;
 }
 
-std::string SDNController::PerformNeo4jTrx(std::string requestContent, size_t (*callback)(void*, size_t, size_t, void*))
+std::string SDNController::PerformNeo4jTrx(std::vector<std::string> statementsStr, size_t (*callback)(void*, size_t, size_t, void*))
 {
+    Json::Value neo4jTrx = Json::Value(Json::objectValue);
+    Json::Value  statements = Json::Value(Json::arrayValue);
+
+    for (int i = 0; i < statementsStr.size(); i++)
+    {
+        Json::Value statementObject = Json::Value(Json::objectValue);
+        statementObject["statement"] = statementsStr.at(i);
+        statements.append(statementObject);
+    }
+
+    neo4jTrx["statements"] = statements;
+
+    Json::StyledWriter writer;
+
     struct curl_slist *headers = NULL;
     if ((ch = curl_easy_init()) == NULL)
     {
@@ -182,7 +177,54 @@ std::string SDNController::PerformNeo4jTrx(std::string requestContent, size_t (*
     curl_easy_setopt(ch, CURLOPT_URL, "http://10.0.2.2:7474/db/data/transaction/commit");
     curl_easy_setopt(ch, CURLOPT_CUSTOMREQUEST, "POST");
     curl_easy_setopt(ch, CURLOPT_HTTPHEADER, headers);
-    curl_easy_setopt(ch, CURLOPT_POSTFIELDS, requestContent.c_str());
+    curl_easy_setopt(ch, CURLOPT_POSTFIELDS, writer.write(neo4jTrx).c_str());
+    curl_easy_setopt(ch, CURLOPT_WRITEFUNCTION, callback);
+
+    int rcode = curl_easy_perform(ch);
+
+    /*
+    if(rcode != CURLE_OK)
+          fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                  curl_easy_strerror(rcode));
+    */
+    /* always cleanup */
+    curl_easy_cleanup(ch);
+
+    std::string ret(recv_data.str());
+    recv_data.str("");
+
+    return ret;
+}
+
+std::string SDNController::PerformNeo4jTrx(std::string statement, size_t (*callback)(void*, size_t, size_t, void*))
+{
+    Json::Value neo4jTrx = Json::Value(Json::objectValue);
+    Json::Value  statements = Json::Value(Json::arrayValue);
+
+    Json::Value statementObject = Json::Value(Json::objectValue);
+
+    statementObject["statement"] = statement;
+
+    statements.append(statementObject);
+
+    neo4jTrx["statements"] = statements;
+
+    Json::StyledWriter writer;
+
+    struct curl_slist *headers = NULL;
+    if ((ch = curl_easy_init()) == NULL)
+    {
+        fprintf(stderr, "ERROR: Failed to create curl handle");
+        return "";
+    }
+
+    headers = curl_slist_append(headers, "Accept: application/json; charset=UTF-8");
+    headers = curl_slist_append(headers, "Content-type: application/json");
+
+    curl_easy_setopt(ch, CURLOPT_URL, "http://10.0.2.2:7474/db/data/transaction/commit");
+    curl_easy_setopt(ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_easy_setopt(ch, CURLOPT_HTTPHEADER, headers);
+    curl_easy_setopt(ch, CURLOPT_POSTFIELDS, writer.write(neo4jTrx).c_str());
     curl_easy_setopt(ch, CURLOPT_WRITEFUNCTION, callback);
 
     int rcode = curl_easy_perform(ch);
@@ -209,66 +251,39 @@ void SDNController::AddLink(Ptr<Node> a,
     int idA = a->GetId();
     int idB = b->GetId();
 
-    Json::Value neo4jTrx = Json::Value(Json::objectValue);
-    Json::Value  statements = Json::Value(Json::arrayValue);
-
-    Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
 
+    /*
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
                  "CREATE (a)-[:LINK {faceId:" << getNumberOfFacesForNode(idA) << "} ]->(b) " <<
                  "CREATE (a)<-[:LINK {faceId:" << getNumberOfFacesForNode(idB) << "} ]-(b) RETURN a";
+    */
 
-    statementObject["statement"] = statement.str();
+    statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
+                 "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
+                 "CREATE (a)-[:LINK]->(fa:Face {faceId:" << getNumberOfFacesForNode(idA) << "})-[:LINK]->(fb:Face {faceId:" << getNumberOfFacesForNode(idB) << "})-[:LINK]->(b) RETURN a";
 
-    statements.append(statementObject);
 
-    neo4jTrx["statements"] = statements;
 
-    Json::StyledWriter writer;
-
-    PerformNeo4jTrx(writer.write(neo4jTrx), NULL);
+    PerformNeo4jTrx(statement.str(), NULL);
 }
 
 void SDNController::clearGraphDb()
 {
-    Json::Value neo4jTrx = Json::Value(Json::objectValue);
-    Json::Value  statements = Json::Value(Json::arrayValue);
-
-    Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
-    statement << "MATCH (n:Node)-[r]-(), (p:Prefix)-[r2]-() DELETE n, r, p, r2;";
+    //statement << "MATCH (n:Node)-[r]-(), (p:Prefix)-[r2]-() DELETE n, r, p, r2;";
+    statement << "MATCH (n)-[r]-() DELETE n, r";
 
-    statementObject["statement"] = statement.str();
-
-    statements.append(statementObject);
-
-    neo4jTrx["statements"] = statements;
-
-    Json::StyledWriter writer;
-
-    PerformNeo4jTrx(writer.write(neo4jTrx), NULL);
+    PerformNeo4jTrx(statement.str(), NULL);
 }
 
 int SDNController::getNumberOfFacesForNode(uint32_t nodeId)
 {
-    Json::Value neo4jTrx = Json::Value(Json::objectValue);
-    Json::Value  statements = Json::Value(Json::arrayValue);
-
-    Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
     statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l:LINK]-() RETURN n, count(*)";
 
-    statementObject["statement"] = statement.str();
-
-    statements.append(statementObject);
-
-    neo4jTrx["statements"] = statements;
-
-    Json::StyledWriter writer;
-
-    std::string data = PerformNeo4jTrx(writer.write(neo4jTrx), curlCallback);
+    std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
     std::cout << "result for GetNumberOfFacesForNode(): " << data << "\n";
 
@@ -280,7 +295,8 @@ int SDNController::getNumberOfFacesForNode(uint32_t nodeId)
         return 0;
     }
     Json::Value nrFaces = root["results"][0]["data"][0]["row"][1];
-    return nrFaces.asInt() / 2;
+    //return nrFaces.asInt() / 2;
+    return nrFaces.asInt();
 }
 
 void SDNController::AddLink(Ptr<Node> a,
@@ -290,24 +306,18 @@ void SDNController::AddLink(Ptr<Node> a,
     int idA = a->GetId();
     int idB = b->GetId();
 
-    Json::Value neo4jTrx = Json::Value(Json::objectValue);
-    Json::Value  statements = Json::Value(Json::arrayValue);
-
-    Json::Value statementObject = Json::Value(Json::objectValue);
     std::stringstream statement;
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
                  "CREATE (a)-[l:LINK {faceId:" << faceId <<"}]->(b) RETURN a,l";
 
-    statementObject["statement"] = statement.str();
 
-    statements.append(statementObject);
+    PerformNeo4jTrx(statement.str(), NULL);
+}
 
-    neo4jTrx["statements"] = statements;
+void SDNController::DidReceiveValidNack(int nodeId, int faceId, std::string name)
+{
 
-    Json::StyledWriter writer;
-
-    PerformNeo4jTrx(writer.write(neo4jTrx), NULL);
 }
 
 void SDNController::registerForwarder(SDNControlledStrategy *fwd, uint32_t nodeId)

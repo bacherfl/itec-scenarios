@@ -28,6 +28,15 @@ namespace ns3 {
 namespace ndn {
 namespace fw {
 
+typedef struct flow_entry_t
+{
+    int faceId;
+    int receivedInterests;
+    int satisfiedInterests;
+    int unsatisfiedInterests;
+    int bytesReceived;
+} FlowEntry;
+
 // ns3::ndn::fw::ANYFORWARDINGSTRATEGY::SDNControlledStrategy
 class SDNControlledStrategy: public ForwardingStrategy
 {
@@ -49,6 +58,7 @@ public:
   virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
   //virtual bool TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
   virtual void DidExhaustForwardingOptions(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
+  virtual void OnData(Ptr<Face> face, Ptr<Data> data);
 
   void init();
   void PushRule(const std::string &prefix, int faceId);
@@ -66,11 +76,16 @@ protected:
   std::vector<Ptr<ndn::Face> > faces;
   Ptr<utils::ForwardingEngine> fwEngine;
 
-  std::map<std::string, std::vector<int> > localFib;
+  std::map<std::string, std::vector<int> > localFib; //TODO: replace with flowTable
+
+  std::map<std::string, FlowEntry*> flowTable;
+
 
   unsigned int prefixComponentNum;
   unsigned int useTockenBucket;
   bool initialized;
+
+  double MIN_SAT_RATIO = 0.3;
 };
 
 }

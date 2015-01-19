@@ -59,6 +59,13 @@ void SDNControlledStrategy::PushRule(const std::string &prefix, int faceId)
 {
     std::cout << "new rule: " << prefix << " -> face " << faceId << "\n";
     localFib[prefix].push_back(faceId);
+    FlowEntry *fe = new FlowEntry;
+    fe->bytesReceived = 0;
+    fe->faceId = faceId;
+    fe->receivedInterests = 0;
+    fe->satisfiedInterests = 0;
+    fe->unsatisfiedInterests = 0;
+    flowTable[prefix] = fe;
 }
 
 /* remove face */
@@ -83,7 +90,8 @@ void SDNControlledStrategy::RemoveFace (Ptr<Face> face)
 
 void SDNControlledStrategy::OnInterest (Ptr< Face > inFace, Ptr< Interest > interest)
 {
-  ForwardingStrategy::OnInterest(inFace,interest);
+    ForwardingStrategy::OnInterest(inFace,interest);
+
 
   /*if(interest->GetNack () == Interest::NORMAL_INTEREST)
   {
@@ -145,7 +153,7 @@ Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
 
 Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> interest)
 {
-    std::string prefix = interest->GetName().toUri();
+    std::string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
     Ptr<Node> node = GetObject<Node>();
     //let the controller calculate the route and push the rules to all nodes on the path to the target
     SDNController::CalculateRoutesForPrefix(node->GetId(), prefix);
@@ -156,11 +164,14 @@ Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> in
 
 Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> interest)
 {
-    std::string prefix = interest->GetName().toUri();
+    std::string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
     std::cout << prefix << "\n";
-    if (localFib[prefix].size() > 0)
+    if (flowTable[prefix] != NULL)
     {
-        int faceId = localFib[prefix].at(0);
+        //flowTable[prefix]
+        FlowEntry *fe = flowTable[prefix];
+        int faceId = fe->faceId;
+        fe->receivedInterests++;
 
         for (int i = 0; i < faces.size(); i++)
         {
@@ -174,6 +185,7 @@ Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> inte
             }
         }
     }
+
     std::cout << "no face found in local fib \n";
     return NULL;
 }
@@ -197,6 +209,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
     }
     //we're on the target node where the prefix is available --> forward to app face
     else {
+
         Ptr<Node> node = this->GetObject<Node>();
 
         typedef fib::FaceMetricContainer::type::index<fib::i_metric>::type FacesByMetric;
@@ -224,6 +237,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
             faceIterator ++;
         }
+
     }
     std::cout << "Propagated count: " << propagatedCount << "\n";
 
@@ -240,11 +254,22 @@ void SDNControlledStrategy::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pi
 void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
 {
   if(inFace != 0) // ==0 means data comes from cache
-    fwEngine->logStatisfiedRequest(inFace,pitEntry);
+  {
+      //fwEngine->logStatisfiedRequest(inFace,pitEntry);
+      FlowEntry *fe = flowTable[pitEntry->GetInterest()->GetName().toUri()];
+      if (fe != NULL) {
+          fe->satisfiedInterests++;
+      }
+  }
+
 
   ForwardingStrategy::WillSatisfyPendingInterest(inFace,pitEntry);
 }
 
+void SDNControlledStrategy::OnData(Ptr<Face> face, Ptr<Data> data)
+{
+    ForwardingStrategy::OnData(face, data);
+}
 
 void SDNControlledStrategy::DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
@@ -254,8 +279,21 @@ void SDNControlledStrategy::DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > 
 
 
 void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry)
-{
-  fwEngine->logUnstatisfiedRequest (inFace, pitEntry);
+{   
+    Ptr<Node> node = this->GetObject<Node>();
+    std::string prefix = nack->GetName().toUri();
+    FlowEntry *fe = flowTable[prefix];
+    fe->unsatisfiedInterests++;
+
+    //check if ratio of unsatisfied to satisfied requests exceeds some limit and tell the controller
+    if (((double) fe->receivedInterests) / ((double) fe->unsatisfiedInterests) < MIN_SAT_RATIO )
+    {
+        Ptr<Node> node = this->GetObject<Node>();
+        SDNController::LinkFailure(node->GetId(), fe->faceId, prefix);
+    }
+
+
+    //SDNController::DidReceiveValidNack(node->GetId(), inFace->GetId(), nack->GetName().toUri());
   //ForwardingStrategy::DidReceiveValidNack (inFace, nackCode, nack, pitEntry);
 }
 

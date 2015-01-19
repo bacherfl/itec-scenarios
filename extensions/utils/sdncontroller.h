@@ -58,12 +58,17 @@ public:
     static void RequestForUnknownPrefix(std::string &prefix);
     static void NodeReceivedNackOnFace(Ptr<Node>, Ptr<Face>);
     static std::string PerformNeo4jTrx(std::string requestContent, size_t (*callback)(void*, size_t, size_t, void*));
+    static std::string PerformNeo4jTrx(std::vector<std::string> statements, size_t (*callback)(void*, size_t, size_t, void*));
 
     static void registerForwarder(SDNControlledStrategy *fwd, uint32_t nodeId);
     static void clearGraphDb();
     static int getNumberOfFacesForNode(uint32_t nodeId);
     static size_t curlCallback(void *ptr, size_t size, size_t nmemb, void *stream);
     static void AppFaceAddedToNode(Ptr<Node> node);
+    static void DidReceiveValidNack(int nodeId, int faceId, std::string name);
+    static void LogChosenPath(Path p, const std::string &prefix);
+    static void LinkFailure(int nodeId, int faceId, std::string name);
+    static void InstallBandwidthQueue(int nodeId, int faceId, std::string prefix);
 
 private:
     static void PushPath(Path p, const std::string &prefix);

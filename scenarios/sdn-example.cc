@@ -80,11 +80,27 @@ void init(int argc, char *argv[])
     Ptr<Node> producer = nodes.Get(3);
 
     // Install NDN applications
+    /*
     ndn::AppHelper helperSink ("Sink");
     ndn::AppHelper helperSource ("Source");
     ApplicationContainer sink1 = helperSink.Install(consumer1);
     ApplicationContainer sink2 = helperSink.Install(consumer2);
     ApplicationContainer source = helperSource.Install(producer);
+    */
+
+    ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
+    // Consumer will request /prefix/0, /prefix/1, ...
+    consumerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
+    consumerHelper.SetAttribute("Frequency", StringValue("1")); // 10 interests a second
+    ApplicationContainer sink1 = consumerHelper.Install(consumer1);
+    ApplicationContainer sink2 = consumerHelper.Install(consumer2);
+
+    // Producer
+    ndn::AppHelper producerHelper("ns3::ndn::Producer");
+    // Producer will reply to all requests starting with /prefix
+    producerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
+    producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
+    ApplicationContainer source = producerHelper.Install(producer);
 
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer1);
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer2);
@@ -101,9 +117,9 @@ void init(int argc, char *argv[])
     sink1.Start (Seconds (0.1)); // will send out Interest
     sink2.Start (Seconds (1.0)); // will send out Interest
 
-    ndn::fw::SDNController::CalculateRoutesForPrefix(0, "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
+    //ndn::fw::SDNController::CalculateRoutesForPrefix(0, "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
 
-    Simulator::Stop (Seconds (5.0));
+    Simulator::Stop (Seconds (3.0));
 
     Simulator::Run ();
     Simulator::Destroy ();
