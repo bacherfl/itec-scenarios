@@ -100,7 +100,8 @@ void SDNController::PushPath(Path p, const std::string &prefix)
     {
         PathEntry *pe = p.pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
-        strategy->PushRule(prefix, pe->face);               
+        strategy->PushRule(prefix, pe->face);
+        strategy->AssignBandwidth(prefix, pe->face, 100000);
     }
     //LogChosenPath(p, prefix);
 }
@@ -274,6 +275,14 @@ void SDNController::clearGraphDb()
     std::stringstream statement;
     //statement << "MATCH (n:Node)-[r]-(), (p:Prefix)-[r2]-() DELETE n, r, p, r2;";
     statement << "MATCH (n)-[r]-() DELETE n, r";
+
+    PerformNeo4jTrx(statement.str(), NULL);
+}
+
+void SDNController::SetLinkBitrate(int nodeId, int faceId, uint64_t bitrate)
+{
+    std::stringstream statement;
+    statement << "MATCH (:Node {nodeId:'" << nodeId << "'})-[]-(f:Face{faceId:" << faceId << "}) SET f.bitrate=" << bitrate <<";";
 
     PerformNeo4jTrx(statement.str(), NULL);
 }

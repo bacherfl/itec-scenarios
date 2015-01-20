@@ -44,15 +44,33 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
     if (!initialized)
         this->init();
 
-  // add face to faces vector
-    /*
-  Ptr<Node> node = this->GetObject<Node> ();
-  Ptr<Node> targetNode = face->GetNode();
-  SDNController::AddLink(node, targetNode, face->GetId());
-  */
-  faces.push_back (face);
-  //fwEngine = new utils::ForwardingEngine(faces, SDNControlledStrategy::m_fib, prefixComponentNum);
-  ForwardingStrategy::AddFace(face);
+      // add face to faces vector
+        /*
+      Ptr<Node> node = this->GetObject<Node> ();
+      Ptr<Node> targetNode = face->GetNode();
+      SDNController::AddLink(node, targetNode, face->GetId());
+      */
+      faces.push_back (face);
+      //fwEngine = new utils::ForwardingEngine(faces, SDNControlledStrategy::m_fib, prefixComponentNum);
+      ForwardingStrategy::AddFace(face);
+
+      Ptr<NetDevice> nd = face->GetNode()->GetDevice(face->GetId());
+      if (nd != NULL)
+      {
+          Ptr<PointToPointNetDevice> nd1 = nd->GetObject<PointToPointNetDevice>();
+          DataRateValue dv;
+          nd1->GetAttribute("DataRate", dv);
+          DataRate d = dv.Get();
+          uint64_t bitRate = d.GetBitRate();
+
+          SDNController::SetLinkBitrate(face->GetNode()->GetId(), face->GetId(), bitRate);
+      }
+
+}
+
+void SDNControlledStrategy::AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate)
+{
+    qosQueues[faceId][prefix] = new ns3::ndn::utils::QoSQueue(bitrate);
 }
 
 void SDNControlledStrategy::PushRule(const std::string &prefix, int faceId)
@@ -204,7 +222,17 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
     if (outFace != NULL)
     {
-        if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+        std::string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
+        if (qosQueues[outFace->GetId()].size() > 0 && qosQueues[outFace->GetId()][prefix] != NULL)
+        {
+            if (qosQueues[outFace->GetId()][prefix]->TryForwardInterest())
+            {
+                if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+                    propagatedCount++;
+            }
+        }
+
+        else if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
             propagatedCount ++;
     }
     //we're on the target node where the prefix is available --> forward to app face

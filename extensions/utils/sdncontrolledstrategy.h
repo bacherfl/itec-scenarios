@@ -20,6 +20,8 @@
 
 #include "boost/foreach.hpp"
 
+#include "qosqueue.h"
+
 #include <stdio.h>
 
 #include "forwardingengine.h"
@@ -62,6 +64,7 @@ public:
 
   void init();
   void PushRule(const std::string &prefix, int faceId);
+  void AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate);
 
   Ptr<Face> GetFaceFromSDNController(Ptr<const Interest> interest);
   Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest);
@@ -79,6 +82,8 @@ protected:
   std::map<std::string, std::vector<int> > localFib; //TODO: replace with flowTable
 
   std::map<std::string, FlowEntry*> flowTable;
+
+  std::map<int, std::map<std::string, ns3::ndn::utils::QoSQueue*> > qosQueues;
 
 
   unsigned int prefixComponentNum;

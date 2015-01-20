@@ -77,6 +77,7 @@ void init(int argc, char *argv[])
     // Getting containers for the consumer/producer
     Ptr<Node> consumer1 = nodes.Get(0);
     Ptr<Node> consumer2 = nodes.Get(1);
+    Ptr<Node> consumer3 = nodes.Get(6);
     Ptr<Node> producer = nodes.Get(3);
 
     // Install NDN applications
@@ -91,9 +92,10 @@ void init(int argc, char *argv[])
     ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
     // Consumer will request /prefix/0, /prefix/1, ...
     consumerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
-    consumerHelper.SetAttribute("Frequency", StringValue("1")); // 10 interests a second
+    consumerHelper.SetAttribute("Frequency", StringValue("1"));
     ApplicationContainer sink1 = consumerHelper.Install(consumer1);
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
+    //ApplicationContainer sink3 = consumerHelper.Install(consumer3);
 
     // Producer
     ndn::AppHelper producerHelper("ns3::ndn::Producer");
@@ -116,8 +118,7 @@ void init(int argc, char *argv[])
     source.Start (Seconds (0.0)); // make source ready
     sink1.Start (Seconds (0.1)); // will send out Interest
     sink2.Start (Seconds (1.0)); // will send out Interest
-
-    //ndn::fw::SDNController::CalculateRoutesForPrefix(0, "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
+    //sink3.Start (Seconds(2.0));
 
     Simulator::Stop (Seconds (3.0));
 
