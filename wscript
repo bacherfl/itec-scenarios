@@ -39,6 +39,10 @@ def configure(conf):
     #conf.env.append_value('CPPPATH', conf.env['CPPPATH_LIBDAI'])
     #conf.env.append_value('LIBPATH', conf.env['LIBPATH_LIBDAI'])
 
+    #added by fbacher
+    conf.env['jsoncpp'] = conf.check(mandatory=True, lib='jsoncpp', uselib_store='JSONCPP')
+    conf.env['curl'] = conf.check(mandatory=True, lib='curl', uselib_store='CURL')
+
     #for mcore24 build env 
     conf.env.LIBPATH = ['/local/users/ndnsim/lib/']
     conf.env.INCLUDES = ['/local/users/ndnsim/include/' '/local/users/ndnsim/include/ns3-dev']
@@ -95,14 +99,15 @@ def configure(conf):
 def build (bld):
     deps = 'BOOST BOOST_IOSTREAMS ' + ' '.join (['ns3_'+dep for dep in MANDATORY_NS3_MODULES + OTHER_NS3_MODULES]).upper ()
 
+    #added by fbacher
     common = bld.objects (
-        target = "extensions",
-        features = ["cxx"],
-        source = bld.path.ant_glob(['extensions/**/*.cc']),
-        use = deps,
-        cxxflags = [bld.env.CXX11_CMD],
-        includes = ' libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/ /local/users/ndnsim/include/ /local/users/ndnsim/include/ns3-dev/'
-        )
+            target = "extensions",
+            features = ["cxx"],
+            source = bld.path.ant_glob(['extensions/**/*.cc']),
+            use = deps,
+            cxxflags = [bld.env.CXX11_CMD],
+            includes = ' libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/ /usr/include/jsoncpp /usr/include/curl'
+            )
 
     #framework = bld.objects (
         #target = "libdashframework",
@@ -119,7 +124,8 @@ def build (bld):
             target = name,
             features = ['cxx'],
             source = [scenario],        #added by dposch
-            use = deps + " extensions DASH BRITE",
+            lib=['curl', 'dash', 'jsoncpp'],
+            use = deps + " extensions DASH BRITE JSONCPP CURL",
             includes = " extensions libdash/libdash/qtsampleplayer/libdashframework/ /usr/local/include/libdash/ /local/users/ndnsim/include/ /local/users/ndnsim/include/ns3-dev/"
             )
 
