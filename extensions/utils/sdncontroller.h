@@ -70,6 +70,7 @@ public:
     static void LinkFailure(int nodeId, int faceId, std::string name);
     static void InstallBandwidthQueue(int nodeId, int faceId, std::string prefix);
     static void SetLinkBitrate(int nodeId, int faceId, uint64_t bitrate);
+    static void LinkRecovered(int nodeId, int faceId, std::string prefix);
 
 private:
     static void PushPath(Path p, const std::string &prefix);

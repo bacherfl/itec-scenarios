@@ -106,7 +106,7 @@ void SDNController::PushPath(Path p, const std::string &prefix)
         PathEntry *pe = p.pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
-        strategy->AssignBandwidth(prefix, pe->face, 100000);
+        strategy->AssignBandwidth(prefix, pe->face, 2000000);
     }
     //LogChosenPath(p, prefix);
 }
@@ -114,11 +114,19 @@ void SDNController::PushPath(Path p, const std::string &prefix)
 void SDNController::LinkFailure(int nodeId, int faceId, std::string name)
 {
     std::stringstream statement;
-    statement << "MATCH (n:Node {nodeId='" << nodeId << "'})-[r:ROUTE {prefix:'"<< name <<"'}]->() SET r.status='RED';";
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='RED';";
 
     PerformNeo4jTrx(statement.str(), NULL);
 
     //TODO: find alternative route
+}
+
+void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix)
+{
+    std:stringstream statement;
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='GREEN';";
+
+    PerformNeo4jTrx(statement.str(), NULL);
 }
 
 void SDNController::InstallBandwidthQueue(int nodeId, int faceId, std::string prefix)

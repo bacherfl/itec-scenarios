@@ -30,7 +30,7 @@ void init(int argc, char *argv[])
 
     // Creating nodes
     NodeContainer nodes;
-    nodes.Create(10);
+    nodes.Create(12);
 
     ndn::fw::SDNController::clearGraphDb();
 
@@ -52,6 +52,10 @@ void init(int argc, char *argv[])
     sdnp2p.Install (nodes.Get (8), nodes.Get (5));
     sdnp2p.Install (nodes.Get (8), nodes.Get (7));
     sdnp2p.Install (nodes.Get (9), nodes.Get (4));
+
+    sdnp2p.Install (nodes.Get (0), nodes.Get (10));
+    sdnp2p.Install (nodes.Get (10), nodes.Get (11));
+    sdnp2p.Install (nodes.Get (11), nodes.Get (3));
 
     /*
     for (int i = 0; i < 100; i++)
@@ -79,6 +83,7 @@ void init(int argc, char *argv[])
     Ptr<Node> consumer1 = nodes.Get(0);
     Ptr<Node> consumer2 = nodes.Get(1);
     Ptr<Node> consumer3 = nodes.Get(6);
+    Ptr<Node> consumer4 = nodes.Get(8);
     Ptr<Node> producer = nodes.Get(3);
 
     // Install NDN applications
@@ -93,10 +98,11 @@ void init(int argc, char *argv[])
     ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
     // Consumer will request /prefix/0, /prefix/1, ...
     consumerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
-    consumerHelper.SetAttribute("Frequency", StringValue("1"));
+    consumerHelper.SetAttribute("Frequency", StringValue("50"));
     ApplicationContainer sink1 = consumerHelper.Install(consumer1);
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
     ApplicationContainer sink3 = consumerHelper.Install(consumer3);
+    ApplicationContainer sink4 = consumerHelper.Install(consumer4);
 
     // Producer
     ndn::AppHelper producerHelper("ns3::ndn::Producer");
@@ -120,6 +126,7 @@ void init(int argc, char *argv[])
     sink1.Start (Seconds (0.1)); // will send out Interest
     sink2.Start (Seconds (1.0)); // will send out Interest
     sink3.Start (Seconds(2.0));
+    sink4.Start(Seconds(10));
 
     Simulator::Stop (Seconds (30.0));
 
