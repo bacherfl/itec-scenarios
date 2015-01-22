@@ -7,7 +7,7 @@ namespace fw {
 NS_OBJECT_ENSURE_REGISTERED (SDNControlledStrategy);
 
 LogComponent SDNControlledStrategy::g_log = LogComponent (SDNControlledStrategy::GetLogName ().c_str ());
-const double SDNControlledStrategy::MIN_SAT_RATIO = 0.6;
+const double SDNControlledStrategy::MIN_SAT_RATIO = 0.7;
 const int SDNControlledStrategy::FACE_STATUS_GREEN = 0;
 const int SDNControlledStrategy::FACE_STATUS_YELLOW = 1;
 const int SDNControlledStrategy::FACE_STATUS_RED = 2;
@@ -98,6 +98,7 @@ void SDNControlledStrategy::PushRule(const std::string &prefix, int faceId)
     fe->receivedInterests = 0;
     fe->satisfiedInterests = 0;
     fe->unsatisfiedInterests = 0;
+    fe->status = FACE_STATUS_GREEN;
     flowTable[prefix].push_back(fe);
 }
 
