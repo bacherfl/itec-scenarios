@@ -19,6 +19,7 @@
 #include "sdncontroller.h"
 
 #include "boost/foreach.hpp"
+#include "boost/thread/mutex.hpp"
 
 #include "qosqueue.h"
 
@@ -33,11 +34,11 @@ namespace fw {
 typedef struct flow_entry_t
 {
     int faceId;
-    int receivedInterests;
-    int satisfiedInterests;
-    int unsatisfiedInterests;
-    int bytesReceived;
-    int status;
+    long receivedInterests;
+    long satisfiedInterests;
+    long unsatisfiedInterests;
+    long bytesReceived;
+    long status;
     double probability;
 } FlowEntry;
 
@@ -97,6 +98,8 @@ protected:
     static const int FACE_STATUS_GREEN;
     static const int FACE_STATUS_YELLOW;
     static const int FACE_STATUS_RED;
+
+    boost::mutex mtx_;
 
 };
 

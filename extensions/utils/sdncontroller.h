@@ -67,10 +67,10 @@ public:
     static void AppFaceAddedToNode(Ptr<Node> node);
     static void DidReceiveValidNack(int nodeId, int faceId, std::string name);
     static void LogChosenPath(Path p, const std::string &prefix);
-    static void LinkFailure(int nodeId, int faceId, std::string name);
+    static void LinkFailure(int nodeId, int faceId, std::string name, double failureRate);
     static void InstallBandwidthQueue(int nodeId, int faceId, std::string prefix);
     static void SetLinkBitrate(int nodeId, int faceId, uint64_t bitrate);
-    static void LinkRecovered(int nodeId, int faceId, std::string prefix);
+    static void LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate);
 
 private:
     static void PushPath(Path p, const std::string &prefix);

@@ -7,7 +7,7 @@ namespace fw {
 NS_OBJECT_ENSURE_REGISTERED (SDNControlledStrategy);
 
 LogComponent SDNControlledStrategy::g_log = LogComponent (SDNControlledStrategy::GetLogName ().c_str ());
-const double SDNControlledStrategy::MIN_SAT_RATIO = 0.3;
+const double SDNControlledStrategy::MIN_SAT_RATIO = 0.6;
 const int SDNControlledStrategy::FACE_STATUS_GREEN = 0;
 const int SDNControlledStrategy::FACE_STATUS_YELLOW = 1;
 const int SDNControlledStrategy::FACE_STATUS_RED = 2;
@@ -201,10 +201,21 @@ Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> inte
     std::cout << prefix << "\n";
     if (flowTable[prefix].size() > 0)
     {
+        int idx = rand() % flowTable[prefix].size();
         //flowTable[prefix]
-        FlowEntry *fe = flowTable[prefix].at(0);
+        FlowEntry *fe = flowTable[prefix].at(idx);
         int faceId = fe->faceId;
+
         fe->receivedInterests++;
+
+        if (fe->receivedInterests >= 1000)
+        {
+            mtx_.lock();
+            fe->receivedInterests = 0;
+            fe->satisfiedInterests = 0;
+            fe->unsatisfiedInterests = 0;
+            mtx_.unlock();
+        }
 
         for (int i = 0; i < faces.size(); i++)
         {
@@ -233,13 +244,16 @@ void SDNControlledStrategy::LogDroppedInterest(std::string prefix, Ptr<Face> fac
         FlowEntry *fe = (*it);
         if (fe->faceId == face->GetId())
         {
+            mtx_.lock();
             fe->unsatisfiedInterests++;
             //check if ratio of unsatisfied to satisfied requests exceeds some limit and tell the controller
-            if (((double) fe->satisfiedInterests) / ((double) fe->unsatisfiedInterests) < MIN_SAT_RATIO)
+            double successRate = (double) fe->satisfiedInterests / (double) (fe->satisfiedInterests + fe->unsatisfiedInterests);
+            mtx_.unlock();
+            if (successRate < MIN_SAT_RATIO && fe->status == FACE_STATUS_GREEN)
             {
                 fe->status = FACE_STATUS_RED;
                 Ptr<Node> node = this->GetObject<Node>();
-                SDNController::LinkFailure(node->GetId(), fe->faceId, prefix);
+                SDNController::LinkFailure(node->GetId(), fe->faceId, prefix, 1 - successRate);
             }
         }
     }
@@ -310,7 +324,8 @@ void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pi
 {
     if(inFace != 0) // ==0 means data comes from cache
     {
-        std::string prefix = pitEntry->GetInterest()->GetName().toUri();
+        Name name = pitEntry->GetInterest()->GetName();
+        std::string prefix = name.getPrefix(name.size() - 1).toUri();
         //fwEngine->logStatisfiedRequest(inFace,pitEntry);
         std::vector<FlowEntry* > flowEntries = flowTable[prefix];
 
@@ -319,11 +334,16 @@ void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pi
             FlowEntry *fe = (*it);
             if (fe->faceId == inFace->GetId())
             {
+
+                mtx_.lock();
                 fe->satisfiedInterests++;
-                if ((fe->status == FACE_STATUS_RED) && (((double)fe->satisfiedInterests / (double)fe->unsatisfiedInterests) > MIN_SAT_RATIO))
+                double successRate = (double) fe->satisfiedInterests / (double) (fe->satisfiedInterests + fe->unsatisfiedInterests);
+                mtx_.unlock();
+                std::cout << "satisfied: " << successRate << "\n";
+                if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO))
                 {
                     Ptr<Node> node = this->GetObject<Node>();
-                    SDNController::LinkRecovered(node->GetId(), inFace->GetId(), prefix);
+                    SDNController::LinkRecovered(node->GetId(), inFace->GetId(), prefix, 1 - successRate);
                 }
             }
         }
@@ -332,7 +352,7 @@ void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pi
 }
 
 void SDNControlledStrategy::OnData(Ptr<Face> face, Ptr<Data> data)
-{
+{    
     ForwardingStrategy::OnData(face, data);
 }
 

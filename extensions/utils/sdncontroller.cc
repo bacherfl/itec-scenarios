@@ -111,22 +111,24 @@ void SDNController::PushPath(Path p, const std::string &prefix)
     //LogChosenPath(p, prefix);
 }
 
-void SDNController::LinkFailure(int nodeId, int faceId, std::string name)
+void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double failureRate)
 {
     std::stringstream statement;
-    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='RED';";
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='RED' , f.failureRate=" << failureRate << ";";
 
     PerformNeo4jTrx(statement.str(), NULL);
 
     //TODO: find alternative route
 }
 
-void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix)
+void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate)
 {
     std:stringstream statement;
-    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='GREEN';";
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='GREEN', f.failureRate=" << failureRate << ";";
 
     PerformNeo4jTrx(statement.str(), NULL);
+
+    //TODO: shift traffic to recovered link
 }
 
 void SDNController::InstallBandwidthQueue(int nodeId, int faceId, std::string prefix)
@@ -284,8 +286,12 @@ void SDNController::AddLink(Ptr<Node> a,
 
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
-                 "CREATE (a)-[:LINK {startFace:" << getNumberOfFacesForNode(idA) << ", endFace:" << getNumberOfFacesForNode(idB) << attributes.str() << "} ]->(b) " <<
-                 "CREATE (a)<-[:LINK {startFace:" << getNumberOfFacesForNode(idB) << ", endFace:" << getNumberOfFacesForNode(idA) << attributes.str() << "} ]-(b) RETURN a";
+                 "CREATE (a)-[:LINK {startFace:"
+                    << getNumberOfFacesForNode(idA) << ", endFace:" << getNumberOfFacesForNode(idB) << attributes.str() << ", failureRate: 0.0"
+                    << "} ]->(b) " <<
+                 "CREATE (a)<-[:LINK {startFace:"
+                    << getNumberOfFacesForNode(idB) << ", endFace:" << getNumberOfFacesForNode(idA) << attributes.str() << ", failureRate: 0.0"
+                    << "} ]-(b) RETURN a";
 
 
     /*
