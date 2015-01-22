@@ -46,41 +46,8 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
 {
     if (!initialized)
         this->init();
-
-      // add face to faces vector
-        /*
-      Ptr<Node> node = this->GetObject<Node> ();
-      Ptr<Node> targetNode = face->GetNode();
-      SDNController::AddLink(node, targetNode, face->GetId());
-      */
       faces.push_back (face);
-      //fwEngine = new utils::ForwardingEngine(faces, SDNControlledStrategy::m_fib, prefixComponentNum);
       ForwardingStrategy::AddFace(face);
-      /*
-      Ptr<Node> node = this->GetObject<Node>();
-
-      DataRateValue dv;
-      face->GetAttribute("DataRate", dv);
-      uint64_t bitRate = dv.Get().GetBitRate();
-      SDNController::SetLinkBitrate(node->GetId(), face->GetId(), bitRate);
-    */
-      /*
-      Ptr<Node> node = face->GetNode();
-      if (node != 0)
-      {
-          Ptr<NetDevice> nd = node->GetDevice(face->GetId());
-          if (nd != 0)
-          {
-              Ptr<PointToPointNetDevice> nd1 = nd->GetObject<PointToPointNetDevice>();
-              DataRateValue dv;
-              nd1->GetAttribute("DataRate", dv);
-              DataRate d = dv.Get();
-              uint64_t bitRate = d.GetBitRate();
-
-              SDNController::SetLinkBitrate(face->GetNode()->GetId(), face->GetId(), bitRate);
-          }
-      }
-        */
 }
 
 void SDNControlledStrategy::AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate)
@@ -102,86 +69,32 @@ void SDNControlledStrategy::PushRule(const std::string &prefix, int faceId)
     flowTable[prefix].push_back(fe);
 }
 
-/* remove face */
-
 void SDNControlledStrategy::RemoveFace (Ptr<Face> face)
 {
-  // remove face from faces vector
-  for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
-      it !=  faces.end (); ++it)
-  {
-    if (face->GetId ()== (*it)->GetId())
+    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+         it !=  faces.end (); ++it)
     {
-      faces.erase (it);
-      break;
+        if (face->GetId ()== (*it)->GetId())
+        {
+            faces.erase (it);
+            break;
+        }
     }
-  }
-
-  //fwEngine = new utils::ForwardingEngine(faces, SDNControlledStrategy::m_fib, prefixComponentNum);
-  ForwardingStrategy::RemoveFace(face);
+    ForwardingStrategy::RemoveFace(face);
 }
 
 
 void SDNControlledStrategy::OnInterest (Ptr< Face > inFace, Ptr< Interest > interest)
 {
     ForwardingStrategy::OnInterest(inFace,interest);
-
-
-  /*if(interest->GetNack () == Interest::NORMAL_INTEREST)
-  {
-    ForwardingStrategy::OnInterest(inFace,interest);
-  }
-  else
-  {
-    Ptr<pit::Entry> pitEntry = SDNControlledStrategy::m_pit->Lookup (*interest);
-    if (pitEntry == 0)
-    {
-      SDNControlledStrategy::m_dropNacks (interest, inFace);
-      return;
-    }
-    fwEngine->logUnstatisfiedRequest (pitEntry);
-    // we dont call ForwardingStrategy::NACK(), since we skip looking for other sources.
-
-    // set all outgoing faces to useless (in vain)
-    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
-        it !=  faces.end (); ++it)
-    {
-        if ((*it)->GetId() != inFace->GetId())
-        {
-          pitEntry->AddOutgoing ((*it));
-          pitEntry->SetWaitingInVain ((*it));
-        }
-    }
-
-    //forward nack
-    Ptr<Interest> nack = Create<Interest> (*interest);
-    nack->SetNack (interest->GetNack ());
-    BOOST_FOREACH (const pit::IncomingFace &incoming, pitEntry->GetIncoming ())
-    {
-      incoming.m_face->SendInterest (nack);
-      SDNControlledStrategy::m_outNacks (nack, incoming.m_face);
-    }
-
-    pitEntry->RemoveIncoming (inFace);
-    pitEntry->ClearOutgoing ();
-  }*/
-
 }
 
 
 Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
 {
-  Ptr<Interest> nack = Create<Interest> (*interest);
-
-  //nack->SetNack (ndn::Interest::NACK_CONGESTION);
-  nack->SetNack (ndn::Interest::NACK_CONGESTION); // set this since ndn changes it anyway to this.
-
-  /*SVCLevelTag levelTag; // this causes loops together with limits on the clients be careful
-  levelTag.Set (-1); // means packet dropped on purpose
-  nack->GetPayload ()->AddPacketTag (levelTag);*/
-
-  //fprintf(stderr, "NACK %s prepared at time: %f\n", interest->GetName ().toUri ().c_str (), Simulator::Now ().ToDouble (Time::S));
-  return nack;
+    Ptr<Interest> nack = Create<Interest> (*interest);
+    nack->SetNack (ndn::Interest::NACK_CONGESTION); // set this since ndn changes it anyway to this.
+    return nack;
 }
 
 
@@ -359,33 +272,14 @@ void SDNControlledStrategy::OnData(Ptr<Face> face, Ptr<Data> data)
 
 void SDNControlledStrategy::DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
-  //fprintf(stderr, "SendOut %s on Face %d\n", interest->GetName ().toUri().c_str(), outFace->GetId ());
-  ForwardingStrategy::DidSendOutInterest(inFace,outFace,interest,pitEntry);
+    ForwardingStrategy::DidSendOutInterest(inFace,outFace,interest,pitEntry);
 }
-
 
 void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry)
 {   
     std::string prefix = nack->GetName().toUri();
     LogDroppedInterest(prefix, inFace);
-
-  //ForwardingStrategy::DidReceiveValidNack (inFace, nackCode, nack, pitEntry);
 }
-
-/*
-bool SDNControlledStrategy::TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
-{
-
-  if(useTockenBucket > 0)
-  {
-    if(!fwEngine->tryForwardInterest (outFace, interest))
-      return false;
-  }
-
-  return ForwardingStrategy::TrySendOutInterest(inFace,outFace, interest, pitEntry);
-}
-*/
-
 
 void SDNControlledStrategy::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
