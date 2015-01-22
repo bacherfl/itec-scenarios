@@ -40,13 +40,13 @@ NetDeviceContainer SDNP2PHelper::Install (std::string aNode, std::string bNode)
 
 void SDNP2PHelper::SetDeviceAttribute (std::string name, std::string value)
 {
-    channelAttributes[name] = value;
+    deviceAttributes[name] = value;
     m_p2p.SetDeviceAttribute(name, StringValue(value));
 }
 
 void SDNP2PHelper::SetChannelAttribute (std::string name, std::string value)
 {
-    deviceAttributes[name] = value;
+    channelAttributes[name] = value;
     m_p2p.SetChannelAttribute(name, StringValue(value));
 }
 

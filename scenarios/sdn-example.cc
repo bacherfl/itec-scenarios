@@ -37,6 +37,7 @@ void init(int argc, char *argv[])
     // Connecting nodes using two links
     PointToPointHelper p2p;
     SDNP2PHelper sdnp2p(p2p);
+    sdnp2p.SetDeviceAttribute("DataRate", "3Mbps");
 
     sdnp2p.Install (nodes.Get (0), nodes.Get (2));
     sdnp2p.Install (nodes.Get (1), nodes.Get (2));
@@ -95,7 +96,7 @@ void init(int argc, char *argv[])
     consumerHelper.SetAttribute("Frequency", StringValue("1"));
     ApplicationContainer sink1 = consumerHelper.Install(consumer1);
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
-    //ApplicationContainer sink3 = consumerHelper.Install(consumer3);
+    ApplicationContainer sink3 = consumerHelper.Install(consumer3);
 
     // Producer
     ndn::AppHelper producerHelper("ns3::ndn::Producer");
@@ -118,9 +119,9 @@ void init(int argc, char *argv[])
     source.Start (Seconds (0.0)); // make source ready
     sink1.Start (Seconds (0.1)); // will send out Interest
     sink2.Start (Seconds (1.0)); // will send out Interest
-    //sink3.Start (Seconds(2.0));
+    sink3.Start (Seconds(2.0));
 
-    Simulator::Stop (Seconds (3.0));
+    Simulator::Stop (Seconds (30.0));
 
     Simulator::Run ();
     Simulator::Destroy ();

@@ -53,19 +53,31 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
       faces.push_back (face);
       //fwEngine = new utils::ForwardingEngine(faces, SDNControlledStrategy::m_fib, prefixComponentNum);
       ForwardingStrategy::AddFace(face);
+      /*
+      Ptr<Node> node = this->GetObject<Node>();
 
-      Ptr<NetDevice> nd = face->GetNode()->GetDevice(face->GetId());
-      if (nd != NULL)
+      DataRateValue dv;
+      face->GetAttribute("DataRate", dv);
+      uint64_t bitRate = dv.Get().GetBitRate();
+      SDNController::SetLinkBitrate(node->GetId(), face->GetId(), bitRate);
+    */
+      /*
+      Ptr<Node> node = face->GetNode();
+      if (node != 0)
       {
-          Ptr<PointToPointNetDevice> nd1 = nd->GetObject<PointToPointNetDevice>();
-          DataRateValue dv;
-          nd1->GetAttribute("DataRate", dv);
-          DataRate d = dv.Get();
-          uint64_t bitRate = d.GetBitRate();
+          Ptr<NetDevice> nd = node->GetDevice(face->GetId());
+          if (nd != 0)
+          {
+              Ptr<PointToPointNetDevice> nd1 = nd->GetObject<PointToPointNetDevice>();
+              DataRateValue dv;
+              nd1->GetAttribute("DataRate", dv);
+              DataRate d = dv.Get();
+              uint64_t bitRate = d.GetBitRate();
 
-          SDNController::SetLinkBitrate(face->GetNode()->GetId(), face->GetId(), bitRate);
+              SDNController::SetLinkBitrate(face->GetNode()->GetId(), face->GetId(), bitRate);
+          }
       }
-
+        */
 }
 
 void SDNControlledStrategy::AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate)
@@ -244,8 +256,6 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
         FacesByMetric &faces = pitEntry->GetFibEntry ()->m_faces.get<fib::i_metric> ();
         FacesByMetric::iterator faceIterator = faces.begin ();
 
-        int propagatedCount = 0;
-
         // forward to best-metric face
         if (faceIterator != faces.end ())
         {
@@ -256,16 +266,6 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
             faceIterator++;
 
         }
-        // forward to second-best-metric face
-        if (faceIterator != faces.end ())
-        {
-            std::cout << node->GetId() << " forwarding interest to face " << faceIterator->GetFace()->GetId() << "\n";
-            if (TrySendOutInterest (inFace, faceIterator->GetFace (), interest, pitEntry))
-                propagatedCount ++;
-
-            faceIterator ++;
-        }
-
     }
     std::cout << "Propagated count: " << propagatedCount << "\n";
 

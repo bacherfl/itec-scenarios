@@ -60,19 +60,24 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     if (!path.isNull())
     {
 
-        for (int i = 0; i < path.size() - 3; i += 6)
+        for (int i = 0; i < path.size() - 3; i += 2)
         {
             pe = new PathEntry;
             Json::Value startNode = path[i];
-            Json::Value face = path[i+2];
-            Json::Value endNode = path[i+6];
+            Json::Value face = path[i+1];
+            Json::Value endNode = path[i+2];
             pe->start = atoi(startNode["nodeId"].asCString());
-            pe->face = face["faceId"].asInt();
+            pe->face = face["startFace"].asInt();
             pe->end = atoi(endNode["nodeId"].asCString());
             p.pathEntries.push_back(pe);
         }
-
+        pe = new PathEntry;
+        pe->start = p.pathEntries.at(p.pathEntries.size() - 1)->end;
+        pe->face = getNumberOfFacesForNode(pe->start);
+        pe->end = -1;   //App Face
+        p.pathEntries.push_back(pe);
     }
+
     std::stringstream str;
     str << "\n" << p.pathEntries.size() << "\n";
     fprintf(stderr, "%s", str.str().c_str());
@@ -253,19 +258,34 @@ void SDNController::AddLink(Ptr<Node> a,
     int idB = b->GetId();
 
     std::stringstream statement;
+    std::stringstream attributes;
+    for (std::map<std::string, std::string>::iterator it = deviceAttributes.begin(); it != deviceAttributes.end(); it++)
+    {
+        if (it->first.compare("DataRate") == 0)
+        {
+            std::string dataRateInMbps = it->second.substr(0, it->second.length() - 4);
+            int bitrate = atoi(dataRateInMbps.c_str()) * 1000000;
+            attributes << "," << it->first << ":" << bitrate;
+        }
+        else {
+            attributes << "," << it->first << ":'" << it->second << "'";
+        }
+
+    }
+
+
+    statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
+                 "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
+                 "CREATE (a)-[:LINK {startFace:" << getNumberOfFacesForNode(idA) << ", endFace:" << getNumberOfFacesForNode(idB) << attributes.str() << "} ]->(b) " <<
+                 "CREATE (a)<-[:LINK {startFace:" << getNumberOfFacesForNode(idB) << ", endFace:" << getNumberOfFacesForNode(idA) << attributes.str() << "} ]-(b) RETURN a";
+
 
     /*
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
-                 "CREATE (a)-[:LINK {faceId:" << getNumberOfFacesForNode(idA) << "} ]->(b) " <<
-                 "CREATE (a)<-[:LINK {faceId:" << getNumberOfFacesForNode(idB) << "} ]-(b) RETURN a";
+                 "CREATE (a)-[:LINK]->(fa:Face {faceId:" << getNumberOfFacesForNode(idA) << attributes.str() << "})-[:LINK]->(fb:Face {faceId:" << getNumberOfFacesForNode(idB) << attributes.str() << "})-[:LINK]->(b) RETURN a";
+
     */
-
-    statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
-                 "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
-                 "CREATE (a)-[:LINK]->(fa:Face {faceId:" << getNumberOfFacesForNode(idA) << "})-[:LINK]->(fb:Face {faceId:" << getNumberOfFacesForNode(idB) << "})-[:LINK]->(b) RETURN a";
-
-
 
     PerformNeo4jTrx(statement.str(), NULL);
 }
@@ -304,8 +324,8 @@ int SDNController::getNumberOfFacesForNode(uint32_t nodeId)
         return 0;
     }
     Json::Value nrFaces = root["results"][0]["data"][0]["row"][1];
-    //return nrFaces.asInt() / 2;
-    return nrFaces.asInt();
+    return nrFaces.asInt() / 2;
+    //return nrFaces.asInt();
 }
 
 void SDNController::AddLink(Ptr<Node> a,
