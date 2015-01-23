@@ -27,27 +27,24 @@ void SDNControlledStrategy::init()
 
 TypeId SDNControlledStrategy::GetTypeId (void)
 {
-  static TypeId tid = TypeId ("ns3::ndn::fw::SDNControlledStrategy")
-      .SetGroupName ("Ndn")
-      .SetParent <ForwardingStrategy> ()
-      .AddConstructor <SDNControlledStrategy> ();
-  return tid;
+    static TypeId tid = TypeId ("ns3::ndn::fw::SDNControlledStrategy")
+        .SetGroupName ("Ndn")
+        .SetParent <ForwardingStrategy> ()
+        .AddConstructor <SDNControlledStrategy> ();
+    return tid;
 }
-
 
 std::string SDNControlledStrategy::GetLogName ()
 {
   return ForwardingStrategy::GetLogName () + ".SDNControlledStrategy";
 }
 
-/* add face */
-
 void SDNControlledStrategy::AddFace (Ptr<Face> face)
 {
     if (!initialized)
         this->init();
-      faces.push_back (face);
-      ForwardingStrategy::AddFace(face);
+    faces.push_back (face);
+    ForwardingStrategy::AddFace(face);
 }
 
 void SDNControlledStrategy::AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate)
@@ -83,12 +80,10 @@ void SDNControlledStrategy::RemoveFace (Ptr<Face> face)
     ForwardingStrategy::RemoveFace(face);
 }
 
-
 void SDNControlledStrategy::OnInterest (Ptr< Face > inFace, Ptr< Interest > interest)
 {
     ForwardingStrategy::OnInterest(inFace,interest);
 }
-
 
 Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
 {
@@ -96,7 +91,6 @@ Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
     nack->SetNack (ndn::Interest::NACK_CONGESTION); // set this since ndn changes it anyway to this.
     return nack;
 }
-
 
 Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> interest)
 {
@@ -108,11 +102,9 @@ Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> in
     return SelectFaceFromLocalFib(interest);
 }
 
-
 Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> interest)
 {
     std::string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
-    std::cout << prefix << "\n";
     if (flowTable[prefix].size() > 0)
     {
         int idx = rand() % flowTable[prefix].size();
@@ -134,20 +126,15 @@ Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> inte
         for (int i = 0; i < faces.size(); i++)
         {
             Ptr<Face> face = faces.at(i);
-            std::cout << "FaceID = " << face->GetId() << "\n";
             if (face->GetId() == faceId)
             {
                 Ptr<Node> node = this->GetObject<Node>();
-                std::cout << node->GetId() << " forwarding interest via face " << faceId << "\n";
                 return face;
             }
         }
     }
-
-    std::cout << "no face found in local fib \n";
     return NULL;
 }
-
 
 void SDNControlledStrategy::LogDroppedInterest(std::string prefix, Ptr<Face> face)
 {
@@ -203,6 +190,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
             propagatedCount ++;
     }
     //we're on the target node where the prefix is available --> forward to app face
+    //TODO: shouldn't be necessary anymore
     else {
 
         Ptr<Node> node = this->GetObject<Node>();
@@ -214,7 +202,6 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
         // forward to best-metric face
         if (faceIterator != faces.end ())
         {
-            std::cout << node->GetId() << " forwarding interest to face " << faceIterator->GetFace()->GetId() << "\n";
             if (TrySendOutInterest (inFace, faceIterator->GetFace (), interest, pitEntry))
                 propagatedCount ++;
 
@@ -222,17 +209,14 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
         }
     }
-    std::cout << "Propagated count: " << propagatedCount << "\n";
 
     return propagatedCount > 0;
 }
 
-
 void SDNControlledStrategy::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry)
 {
-  ForwardingStrategy::WillEraseTimedOutPendingInterest(pitEntry);
+    ForwardingStrategy::WillEraseTimedOutPendingInterest(pitEntry);
 }
-
 
 void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
 {
@@ -248,12 +232,11 @@ void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pi
             FlowEntry *fe = (*it);
             if (fe->faceId == inFace->GetId())
             {
-
                 mtx_.lock();
                 fe->satisfiedInterests++;
                 double successRate = (double) fe->satisfiedInterests / (double) (fe->satisfiedInterests + fe->unsatisfiedInterests);
                 mtx_.unlock();
-                std::cout << "satisfied: " << successRate << "\n";
+                //std::cout << "satisfied: " << successRate << "\n";
                 if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO))
                 {
                     Ptr<Node> node = this->GetObject<Node>();
@@ -283,7 +266,7 @@ void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nack
 
 void SDNControlledStrategy::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
-  return ForwardingStrategy::DidExhaustForwardingOptions (inFace, interest, pitEntry);
+    return ForwardingStrategy::DidExhaustForwardingOptions (inFace, interest, pitEntry);
 }
 
 } // namespace fw

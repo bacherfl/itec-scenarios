@@ -44,6 +44,8 @@ public:
     SDNController();
 
     static void CalculateRoutesForPrefix(int startNodeId, const std::string &prefix);
+    static void FindAlternativePathBasedOnSatRate(int startNodeId, const std::string &prefix);
+    static Path* ParsePath(std::string data);
     static void AddOrigins(std::string &prefix, Ptr<Node> producer);
 
     static void AddLink(Ptr<Node> a,
@@ -73,7 +75,7 @@ public:
     static void LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate);
 
 private:
-    static void PushPath(Path p, const std::string &prefix);
+    static void PushPath(Path *p, const std::string &prefix);
 
 
     typedef std::map<std::string, std::string > ChannelAttributes;

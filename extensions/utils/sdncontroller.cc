@@ -35,11 +35,30 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
 
     std::stringstream statement;
-    statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (content:Prefix{name:'" << prefix << "'})," <<
-                 "p = shortestPath((requester)-[*]->(content)) return p;";
+
+    statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node)," <<
+                 "p = shortestPath((requester)-[*]->(server)) WHERE '" << prefix << "' IN server.prefixes return p;";
 
     std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
+    Path *p = ParsePath(data);
+
+    if (p != NULL)
+    {
+        std::stringstream str;
+        str << "\n" << p->pathEntries.size() << "\n";
+        fprintf(stderr, "%s", str.str().c_str());
+        for (int i = 0; i < p->pathEntries.size(); i++)
+        {
+            std::cout << "[" << p->pathEntries.at(i)->start << ", " << p->pathEntries.at(i)->face << ", " << p->pathEntries.at(i)->end << "] \n";
+        }
+        PushPath(p, prefix);
+    }
+
+}
+
+Path* SDNController::ParsePath(std::string data)
+{
     Json::Reader reader;
     Json::Value root;
 
@@ -47,7 +66,7 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     bool parsingSuccessful = reader.parse(data, root);
     if (!parsingSuccessful) {
         std::cout << "could not parse data" << data <<  "\n";
-        return;
+        return NULL;
     }
 
     Json::Value path = root["results"][0]["data"][0]["row"][0];
@@ -56,11 +75,11 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
 
     bool firstNode = true;
     PathEntry *pe;
-    Path p;
+    Path *p = new Path;
     if (!path.isNull())
     {
 
-        for (int i = 0; i < path.size() - 3; i += 2)
+        for (int i = 0; i < path.size() - 1; i += 2)
         {
             pe = new PathEntry;
             Json::Value startNode = path[i];
@@ -69,41 +88,39 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
             pe->start = atoi(startNode["nodeId"].asCString());
             pe->face = face["startFace"].asInt();
             pe->end = atoi(endNode["nodeId"].asCString());
-            p.pathEntries.push_back(pe);
+            p->pathEntries.push_back(pe);
         }
         pe = new PathEntry;
-        pe->start = p.pathEntries.at(p.pathEntries.size() - 1)->end;
+        pe->start = p->pathEntries.at(p->pathEntries.size() - 1)->end;
         pe->face = getNumberOfFacesForNode(pe->start);
         pe->end = -1;   //App Face
-        p.pathEntries.push_back(pe);
+        p->pathEntries.push_back(pe);
     }
-
-    std::stringstream str;
-    str << "\n" << p.pathEntries.size() << "\n";
-    fprintf(stderr, "%s", str.str().c_str());
-    for (int i = 0; i < p.pathEntries.size(); i++)
-    {
-        std::cout << "[" << p.pathEntries.at(i)->start << ", " << p.pathEntries.at(i)->face << ", " << p.pathEntries.at(i)->end << "] \n";
-    }
-    PushPath(p, prefix);
+    return p;
 }
 
 void SDNController::AddOrigins(std::string &prefix, Ptr<Node> producer)
 {
     int prodId = producer->GetId();
     std::stringstream statement;
+    /*
     statement << "MATCH (n:Node) where n.nodeId = '" << prodId
                  << "' CREATE UNIQUE (n)-[:PROVIDES]->(p:Prefix {name:'" << prefix << "'}) RETURN p";
-
+    */
+    statement << "MATCH (n:Node) WHERE n.nodeId='" << prodId << "' "
+                 << "SET n.prefixes = CASE WHEN NOT (HAS (n.prefixes)) "
+                     << "THEN ['" << prefix << "'] "
+                     << "ELSE n.prefixes + ['" << prefix << "'] "
+                 << "END;";
     PerformNeo4jTrx(statement.str(), NULL);
 }
 
-void SDNController::PushPath(Path p, const std::string &prefix)
+void SDNController::PushPath(Path *p, const std::string &prefix)
 {
     std::stringstream statement;
-    for (int i = 0; i < p.pathEntries.size(); i++)
+    for (int i = 0; i < p->pathEntries.size(); i++)
     {
-        PathEntry *pe = p.pathEntries.at(i);
+        PathEntry *pe = p->pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
         strategy->AssignBandwidth(prefix, pe->face, 2000000);
@@ -119,6 +136,7 @@ void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double
     PerformNeo4jTrx(statement.str(), NULL);
 
     //TODO: find alternative route
+    FindAlternativePathBasedOnSatRate(nodeId, name);
 }
 
 void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate)
@@ -129,6 +147,30 @@ void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, do
     PerformNeo4jTrx(statement.str(), NULL);
 
     //TODO: shift traffic to recovered link
+}
+
+void SDNController::FindAlternativePathBasedOnSatRate(int startNodeId, const std::string &prefix)
+{
+    std::stringstream statement;
+    statement << "MATCH (n:Node{nodeId:'" << startNodeId << "'}), (m:Node), "
+                 << "p = (n)-[*..5]->(m) "
+                 << "WHERE '" << prefix << "' IN m.prefixes AND all (l in relationships(p) where l.failureRate < 0.3) "
+                 << "AND ALL(n in nodes(p) WHERE "
+                           << "1=length(filter(m in nodes(p) WHERE m=n))) "
+                 << "RETURN p, length(p) as length, "
+                 << "REDUCE(totalSatRate=1, l in relationships(p) | totalSatRate*(1-l.failureRate)) AS satRate "
+                 << "ORDER BY satRate/length(p) DESC "
+                 << "LIMIT 1;";
+
+    std::cout << statement.str() << "\n";
+    std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
+    std::cout << data << "\n";
+
+    Path *p = ParsePath(data);
+    if (p != NULL)
+    {
+        PushPath(p, prefix);
+    }
 }
 
 void SDNController::InstallBandwidthQueue(int nodeId, int faceId, std::string prefix)
