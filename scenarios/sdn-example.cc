@@ -37,7 +37,7 @@ void init(int argc, char *argv[])
     // Connecting nodes using two links
     PointToPointHelper p2p;
     SDNP2PHelper sdnp2p(p2p);
-    sdnp2p.SetDeviceAttribute("DataRate", "3Mbps");
+    sdnp2p.SetDeviceAttribute("DataRate", "1Mbps");
 
     sdnp2p.Install (nodes.Get (0), nodes.Get (2));
     sdnp2p.Install (nodes.Get (1), nodes.Get (2));
@@ -74,6 +74,7 @@ void init(int argc, char *argv[])
     ndnHelper.SetDefaultRoutes (true);
     ndnHelper.SetContentStore("ns3::ndn::cs::Random");
     ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy");
+    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
     ndnHelper.Install(nodes);
 
     ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
@@ -95,7 +96,7 @@ void init(int argc, char *argv[])
     ApplicationContainer source = helperSource.Install(producer);
     */
 
-    ndn::AppHelper consumerHelper("ns3::ndn::ConsumerCbr");
+    ndn::AppHelper consumerHelper("ns3::ndn::StatisticsConsumer");
     // Consumer will request /prefix/0, /prefix/1, ...
     consumerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
     consumerHelper.SetAttribute("Frequency", StringValue("50"));
@@ -128,7 +129,12 @@ void init(int argc, char *argv[])
     sink3.Start (Seconds(2.0));
     sink4.Start(Seconds(10));
 
-    Simulator::Stop (Seconds (30.0));
+    sink1.Stop(Seconds(60.0));
+    sink2.Stop(Seconds(60.0));
+    sink3.Stop(Seconds(60.0));
+    sink4.Stop(Seconds(60.0));
+
+    Simulator::Stop (Seconds (60.1));
 
     Simulator::Run ();
     Simulator::Destroy ();

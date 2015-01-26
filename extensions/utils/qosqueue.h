@@ -15,7 +15,7 @@
 #define DATA_PACKET_SIZE 4096
 #define INTEREST_PACKET_SIZE 50
 #define TOKEN_FILL_INTERVALL 10 //ms
-#define BUCKET_SIZE 25.0
+#define BUCKET_SIZE 100.0
 
 namespace ns3 {
 namespace ndn {
@@ -35,6 +35,7 @@ private:
     EventId newTokenEvent;
 
     void  newToken();
+    uint64_t bitrate;
 };
 
 }

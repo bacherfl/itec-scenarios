@@ -63,7 +63,7 @@ public:
     virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
     //virtual bool TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
     virtual void DidExhaustForwardingOptions(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
-    virtual void OnData(Ptr<Face> face, Ptr<Data> data);
+    virtual void OnData(Ptr<Face> face, Ptr<Data> data);    
 
     void init();
     void PushRule(const std::string &prefix, int faceId);
@@ -74,7 +74,7 @@ public:
 
     Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 
-    void LogDroppedInterest(std::string prefix, Ptr<Face> face);
+    void LogDroppedInterest(std::string prefix, int faceId);
 protected:
 
     int m_maxLevel;
@@ -88,6 +88,7 @@ protected:
     std::map<std::string, std::vector<FlowEntry* > > flowTable;
 
     std::map<int, std::map<std::string, ns3::ndn::utils::QoSQueue*> > qosQueues;
+    std::map<std::string, int> pitTable;
 
 
     unsigned int prefixComponentNum;

@@ -83,7 +83,7 @@ void StatisticsConsumer::OnData(Ptr<const Data> contentObject)
 void StatisticsConsumer::StopApplication()
 {
     //NS_LOG_DEBUG ("Sent interests: " << nrSentInterests << ", timeouts: " << nrTimeouts << ", NACKS: " << nrNacks);
-    fprintf(stderr, "Sent = %lu ; Statisfied = %lu ; Nacks = %lu ; Timeouts = %lu\n", nrSentInterests, nrSatisfiedInterests, nrNacks, nrTimeouts);
+    fprintf(stderr, "Sent = %lu ; Satisfied = %lu ; Nacks = %lu ; Timeouts = %lu\n", nrSentInterests, nrSatisfiedInterests, nrNacks, nrTimeouts);
     fprintf(stderr, "Last i_seq0=%lu\n",m_seq);
 
     fprintf(stderr, "rmap.size()=%d\n", rmap.size ());

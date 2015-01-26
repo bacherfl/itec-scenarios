@@ -123,7 +123,7 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
         PathEntry *pe = p->pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
-        strategy->AssignBandwidth(prefix, pe->face, 2000000);
+        strategy->AssignBandwidth(prefix, pe->face, 1500000);
     }
     //LogChosenPath(p, prefix);
 }
@@ -133,9 +133,8 @@ void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double
     std::stringstream statement;
     statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='RED' , f.failureRate=" << failureRate << ";";
 
-    PerformNeo4jTrx(statement.str(), NULL);
+    PerformNeo4jTrx(statement.str(), curlCallback);
 
-    //TODO: find alternative route
     FindAlternativePathBasedOnSatRate(nodeId, name);
 }
 
@@ -144,7 +143,7 @@ void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, do
     std:stringstream statement;
     statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='GREEN', f.failureRate=" << failureRate << ";";
 
-    PerformNeo4jTrx(statement.str(), NULL);
+    PerformNeo4jTrx(statement.str(), curlCallback);
 
     //TODO: shift traffic to recovered link
 }

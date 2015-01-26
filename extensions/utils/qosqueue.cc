@@ -4,7 +4,8 @@ namespace ns3 {
 namespace ndn {
 namespace utils {
 
-QoSQueue::QoSQueue(uint64_t bitrate)
+QoSQueue::QoSQueue(uint64_t bitrate):
+    bitrate(bitrate)
 {
     tokenBucket = new TokenBucket(BUCKET_SIZE);
     double packets_per_sec = bitrate / 8 ;
@@ -32,9 +33,9 @@ void  QoSQueue::newToken()
 
 bool QoSQueue::TryForwardInterest()
 {
-    bool res = tokenBucket->tryConsumeToken();
-    std::cout << "TryForwardInterest: " << res << "\n";
-    return res;
+    if (bitrate > 0)
+        return tokenBucket->tryConsumeToken();
+    else return true;
 }
 
 }
