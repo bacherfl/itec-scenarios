@@ -37,7 +37,7 @@ void init(int argc, char *argv[])
     // Connecting nodes using two links
     PointToPointHelper p2p;
     SDNP2PHelper sdnp2p(p2p);
-    sdnp2p.SetDeviceAttribute("DataRate", "1Mbps");
+    sdnp2p.SetDeviceAttribute("DataRate", "200kbps");
 
     sdnp2p.Install (nodes.Get (0), nodes.Get (2));
     sdnp2p.Install (nodes.Get (1), nodes.Get (2));
@@ -86,6 +86,7 @@ void init(int argc, char *argv[])
     Ptr<Node> consumer3 = nodes.Get(6);
     Ptr<Node> consumer4 = nodes.Get(8);
     Ptr<Node> producer = nodes.Get(3);
+    Ptr<Node> producer2 = nodes.Get(7);
 
     // Install NDN applications
     /*
@@ -99,7 +100,7 @@ void init(int argc, char *argv[])
     ndn::AppHelper consumerHelper("ns3::ndn::StatisticsConsumer");
     // Consumer will request /prefix/0, /prefix/1, ...
     consumerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
-    consumerHelper.SetAttribute("Frequency", StringValue("50"));
+    consumerHelper.SetAttribute("Frequency", StringValue("10"));
     ApplicationContainer sink1 = consumerHelper.Install(consumer1);
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
     ApplicationContainer sink3 = consumerHelper.Install(consumer3);
@@ -111,6 +112,7 @@ void init(int argc, char *argv[])
     producerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
     producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
     ApplicationContainer source = producerHelper.Install(producer);
+    ApplicationContainer source2 = producerHelper.Install(producer2);
 
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer1);
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer2);
@@ -119,7 +121,9 @@ void init(int argc, char *argv[])
     //Add /prefix origins to ndn::GlobalRouter
     std::string prefix = "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s";
     ndnGlobalRoutingHelper.AddOrigins(prefix, producer);
+    ndnGlobalRoutingHelper.AddOrigins(prefix, producer2);
     ndn::fw::SDNController::AddOrigins(prefix, producer);
+    ndn::fw::SDNController::AddOrigins(prefix, producer2);
     // Calculate and install FIBs
     ndn::GlobalRoutingHelper::CalculateRoutes ();
 

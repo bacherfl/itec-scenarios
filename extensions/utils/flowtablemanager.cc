@@ -1,0 +1,230 @@
+#include "flowtablemanager.h"
+
+namespace ns3 {
+namespace ndn {
+namespace fw {
+
+using namespace std;
+
+const double FlowTableManager::MIN_SAT_RATIO = 0.7;
+const int FlowTableManager::FACE_STATUS_GREEN = 0;
+const int FlowTableManager::FACE_STATUS_YELLOW = 1;
+const int FlowTableManager::FACE_STATUS_RED = 2;
+
+FlowTableManager::FlowTableManager()
+{
+}
+
+void FlowTableManager::AddFace(Ptr<Face> face)
+{
+    faces.push_back(face);
+}
+
+void FlowTableManager::PushRule(const string &prefix, int faceId)
+{
+    vector<FlowEntry* > flowEntries = flowTable[prefix];
+
+    bool found = false;
+    for (vector<FlowEntry *>::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    {
+        FlowEntry *fe = (*it);
+        if (fe->faceId == faceId)
+            found = true;
+        break;
+    }
+    if (!found)
+    {
+        FlowEntry *fe = new FlowEntry;
+        fe->bytesReceived = 0;
+        fe->faceId = faceId;
+        fe->receivedInterests = 0;
+        fe->satisfiedInterests = 0;
+        fe->unsatisfiedInterests = 0;
+        fe->status = FACE_STATUS_GREEN;
+        fe->probability = 0.0;
+        AddFlowEntry(prefix, fe);
+        //flowTable[prefix].push_back(fe);
+    }
+}
+
+void FlowTableManager::AddFlowEntry(const string &prefix, FlowEntry *fe)
+{
+    vector <FlowEntry *> flowEntries = flowTable[prefix];
+    flowEntries.push_back(fe);
+    double shift = 1.0 / flowEntries.size();
+    for (vector<FlowEntry *>::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    {
+        FlowEntry *tmp = (*it);
+        if (tmp->faceId != fe->faceId)
+        {
+            tmp->probability = max(tmp->probability - shift, 0.0);
+        }
+        else {
+            tmp->probability += shift;
+        }
+    }
+    flowTable[prefix] = flowEntries;
+}
+
+bool FlowTableManager::TryUpdateFaceProbabilities(const string &prefix)
+{
+    vector<FlowEntry *> flowEntries = flowTable[prefix];
+    double fractionToShift;
+    double shifted;
+    bool success = true;
+    for (vector<FlowEntry *>::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    {
+        FlowEntry *fe = (*it);
+        double successRate = CalculateSuccessRate(fe);
+        if (successRate < MIN_SAT_RATIO)
+        {
+            fractionToShift = MIN_SAT_RATIO - successRate;
+            shifted = 0;
+            for (vector<FlowEntry *>::iterator it2 = flowEntries.begin(); it2 != flowEntries.end(); it2++)
+            {
+                FlowEntry *fe2 = (*it);
+                double successRate2 = CalculateSuccessRate(fe2);
+
+                if (successRate2 > MIN_SAT_RATIO)
+                {
+                    double shift = min(fractionToShift, successRate2 - MIN_SAT_RATIO);
+                    shift = min(shift, 1 - fe2->probability);
+                    fe->probability -= shift;
+                    fe2->probability += shift;
+                    fractionToShift -= shift;
+                    shifted += shift;
+                }
+            }
+            if (fractionToShift - shifted > 0)
+                success = false;
+        }
+    }
+    return success;
+}
+
+double FlowTableManager::CalculateSuccessRate(FlowEntry *fe)
+{
+    double successRate =
+            fe->satisfiedInterests + fe->unsatisfiedInterests == 0 ? 1 : (double)fe->satisfiedInterests / (fe->satisfiedInterests + fe->unsatisfiedInterests);
+
+    return successRate;
+}
+
+LinkRepairAction* FlowTableManager::InterestUnsatisfied(const string &prefix, int faceId)
+{
+    vector<FlowEntry* > flowEntries = flowTable[prefix];
+    LinkRepairAction *action = new LinkRepairAction;
+    for (vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    {
+        FlowEntry *fe = (*it);
+        if (fe->faceId == faceId)
+        {
+            mtx_.lock();
+            fe->unsatisfiedInterests++;
+            //check if ratio of unsatisfied to satisfied requests exceeds some limit and tell the controller
+            double successRate = CalculateSuccessRate(fe);
+            mtx_.unlock();
+            if (successRate < MIN_SAT_RATIO && fe->status == FACE_STATUS_GREEN)
+            {
+                fe->status = FACE_STATUS_RED;
+                action->repair = true;
+                action->failRate = 1 - successRate;
+            }
+            else {
+                action->repair = false;
+            }
+        }
+        return action;
+    }
+}
+
+LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix, int faceId)
+{
+    LinkRepairAction *action = new LinkRepairAction;
+
+    vector<FlowEntry* > flowEntries = flowTable[prefix];
+
+    for (vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    {
+        FlowEntry *fe = (*it);
+        if (fe->faceId == faceId)
+        {
+            mtx_.lock();
+            fe->satisfiedInterests++;
+            double successRate = CalculateSuccessRate(fe);
+            mtx_.unlock();
+            //cout << "satisfied: " << successRate << "\n";
+            if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO + 0.1))
+            {
+                action->repair = true;
+                action->failRate = 1 -successRate;
+            }
+            else {
+                action->repair = false;
+            }
+        }
+    }
+    return action;
+}
+
+Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix)
+{
+    if (flowTable[prefix].size() > 0)
+    {
+        /*
+        double p = (double)rand() / RAND_MAX;
+        double tmp = 0.0;
+        int faceId;
+        for (vector<FlowEntry *>::iterator it = flowTable[prefix].begin(); it != flowTable[prefix].end(); it++)
+        {
+            FlowEntry *fe = (*it);
+            if (p <= tmp + fe->probability)
+            {
+                faceId = fe->faceId;
+                fe->receivedInterests++;
+                if (fe->receivedInterests >= 1000)
+                {
+                    mtx_.lock();
+                    fe->receivedInterests = 0;
+                    fe->satisfiedInterests = 0;
+                    fe->unsatisfiedInterests = 0;
+                    mtx_.unlock();
+                }
+                break;
+            } else {
+                tmp += fe->probability;
+            }
+        }
+        */
+        //TODO: make separate methods for selection of face Id (uniformly distr. and based on calculated probabilities)
+
+        int idx = rand() % flowTable[prefix].size();
+        //flowTable[prefix]
+        FlowEntry *fe = flowTable[prefix].at(idx);
+        int faceId = fe->faceId;
+
+        fe->receivedInterests++;
+        if (fe->receivedInterests >= 100)
+        {
+            mtx_.lock();
+            fe->receivedInterests = 0;
+            fe->satisfiedInterests = 0;
+            fe->unsatisfiedInterests = 0;
+            mtx_.unlock();
+        }
+
+        for (int i = 0; i < faces.size(); i++)
+        {
+            Ptr<Face> face = faces.at(i);
+            if (face->GetId() == faceId)
+            {
+                return face;
+            }
+        }
+    }
+    return NULL;
+}
+
+}
+}
+}

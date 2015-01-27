@@ -4,6 +4,8 @@ namespace ns3 {
 namespace ndn {
 namespace fw {
 
+using namespace std;
+
 NS_OBJECT_ENSURE_REGISTERED (SDNControlledStrategy);
 
 LogComponent SDNControlledStrategy::g_log = LogComponent (SDNControlledStrategy::GetLogName ().c_str ());
@@ -34,7 +36,7 @@ TypeId SDNControlledStrategy::GetTypeId (void)
     return tid;
 }
 
-std::string SDNControlledStrategy::GetLogName ()
+string SDNControlledStrategy::GetLogName ()
 {
   return ForwardingStrategy::GetLogName () + ".SDNControlledStrategy";
 }
@@ -43,25 +45,29 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
 {
     if (!initialized)
         this->init();
-    faces.push_back (face);
+    flowTableManager.AddFace(face);
+
+
+    faces.push_back (face);//TODO: obsolete
     ForwardingStrategy::AddFace(face);
 }
 
-void SDNControlledStrategy::AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate)
+void SDNControlledStrategy::AssignBandwidth(const string &prefix, int faceId, uint64_t bitrate)
 {
     qosQueues[faceId][prefix] = new ns3::ndn::utils::QoSQueue(bitrate);
 }
 
-void SDNControlledStrategy::PushRule(const std::string &prefix, int faceId)
+void SDNControlledStrategy::PushRule(const string &prefix, int faceId)
 {
-    std::cout << "new rule: " << prefix << " -> face " << faceId << "\n";
+    cout << "new rule: " << prefix << " -> face " << faceId << "\n";
 
-    localFib[prefix].push_back(faceId);
+    flowTableManager.PushRule(prefix, faceId);
+    /*
 
-    std::vector<FlowEntry* > flowEntries = flowTable[prefix];
+    vector<FlowEntry* > flowEntries = flowTable[prefix];
 
     bool found = false;
-    for (std::vector<FlowEntry *>::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    for (vector<FlowEntry *>::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
     {
         FlowEntry *fe = (*it);
         if (fe->faceId == faceId)
@@ -77,13 +83,74 @@ void SDNControlledStrategy::PushRule(const std::string &prefix, int faceId)
         fe->satisfiedInterests = 0;
         fe->unsatisfiedInterests = 0;
         fe->status = FACE_STATUS_GREEN;
-        flowTable[prefix].push_back(fe);
+        fe->probability = 0.0;
+        AddFlowEntry(prefix, fe);
+        //flowTable[prefix].push_back(fe);
     }
+    */
 }
 
+/*
+void SDNControlledStrategy::AddFlowEntry(const string &prefix, FlowEntry *fe)
+{
+    vector <FlowEntry *> flowEntries = flowTable[prefix];
+    flowEntries.push_back(fe);
+    double shift = 1.0 / flowEntries.size();
+    for (vector<FlowEntry *>::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    {
+        FlowEntry *tmp = (*it);
+        if (tmp->faceId != fe->faceId)
+        {
+            tmp->probability = max(tmp->probability - shift, 0.0);
+        }
+        else {
+            tmp->probability += shift;
+        }
+    }
+    flowTable[prefix] = flowEntries;
+}
+*/
+
+/*
+bool SDNControlledStrategy::TryUpdateFaceProbabilities(vector<FlowEntry *> flowEntries)
+{
+    double fractionToShift;
+    double shifted;
+    bool success = true;
+    for (vector<FlowEntry *>::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    {
+        FlowEntry *fe = (*it);
+        double successRate =
+                fe->satisfiedInterests + fe->unsatisfiedInterests == 0 ? 1 : (double)fe->satisfiedInterests / (fe->satisfiedInterests + fe->unsatisfiedInterests);
+        if (successRate < MIN_SAT_RATIO)
+        {
+            fractionToShift = MIN_SAT_RATIO - successRate;
+            shifted = 0;
+            for (vector<FlowEntry *>::iterator it2 = flowEntries.begin(); it2 != flowEntries.end(); it2++)
+            {
+                FlowEntry *fe2 = (*it);
+                double successRate2 = fe2->satisfiedInterests + fe2->unsatisfiedInterests == 0 ? 1 : (double)fe2->satisfiedInterests / (fe2->satisfiedInterests + fe2->unsatisfiedInterests);
+
+                if (successRate2 > MIN_SAT_RATIO)
+                {
+                    double shift = min(fractionToShift, successRate2 - MIN_SAT_RATIO);
+                    shift = min(shift, 1 - fe2->probability);
+                    fe->probability -= shift;
+                    fe2->probability += shift;
+                    fractionToShift -= shift;
+                    shifted += shift;
+                }
+            }
+            if (fractionToShift - shifted > 0)
+                success = false;
+        }
+    }
+    return success;
+}
+*/
 void SDNControlledStrategy::RemoveFace (Ptr<Face> face)
 {
-    for (std::vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
+    for (vector<Ptr<ndn::Face> >::iterator it = faces.begin ();
          it !=  faces.end (); ++it)
     {
         if (face->GetId ()== (*it)->GetId())
@@ -109,7 +176,7 @@ Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
 
 Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> interest)
 {
-    std::string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
+    string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
     Ptr<Node> node = GetObject<Node>();
     //let the controller calculate the route and push the rules to all nodes on the path to the target
     SDNController::CalculateRoutesForPrefix(node->GetId(), prefix);
@@ -119,60 +186,18 @@ Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> in
 
 Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> interest)
 {
-    std::string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
-    if (flowTable[prefix].size() > 0)
-    {
-        int idx = rand() % flowTable[prefix].size();
-        //flowTable[prefix]
-        FlowEntry *fe = flowTable[prefix].at(idx);
-        int faceId = fe->faceId;
-        if (faceId != -1)
-        {
-            if (fe->receivedInterests >= 1000)
-            {
-                mtx_.lock();
-                fe->receivedInterests = 0;
-                fe->satisfiedInterests = 0;
-                fe->unsatisfiedInterests = 0;
-                mtx_.unlock();
-            }
-
-            for (int i = 0; i < faces.size(); i++)
-            {
-                Ptr<Face> face = faces.at(i);
-                if (face->GetId() == faceId)
-                {
-                    Ptr<Node> node = this->GetObject<Node>();
-                    return face;
-                }
-            }
-            fe->receivedInterests++;
-        }
-    }
-    return NULL;
+    string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
+    return flowTableManager.GetFaceForPrefix(prefix);
 }
 
-void SDNControlledStrategy::LogDroppedInterest(std::string prefix, int faceId)
+void SDNControlledStrategy::LogDroppedInterest(string prefix, int faceId)
 {
-    std::vector<FlowEntry* > flowEntries = flowTable[prefix];
+    LinkRepairAction *action = flowTableManager.InterestUnsatisfied(prefix, faceId);
 
-    for (std::vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    if (action->repair)
     {
-        FlowEntry *fe = (*it);
-        if (fe->faceId == faceId)
-        {
-            mtx_.lock();
-            fe->unsatisfiedInterests++;
-            //check if ratio of unsatisfied to satisfied requests exceeds some limit and tell the controller
-            double successRate = (double) fe->satisfiedInterests / (double) (fe->satisfiedInterests + fe->unsatisfiedInterests);
-            mtx_.unlock();
-            if (successRate < MIN_SAT_RATIO && fe->status == FACE_STATUS_GREEN)
-            {
-                fe->status = FACE_STATUS_RED;
-                Ptr<Node> node = this->GetObject<Node>();
-                SDNController::LinkFailure(node->GetId(), fe->faceId, prefix, 1 - successRate);
-            }
-        }
+        Ptr<Node> node = this->GetObject<Node>();
+        SDNController::LinkFailure(node->GetId(), faceId, prefix, action->failRate);
     }
 }
 
@@ -189,7 +214,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
     if (outFace != NULL)
     {
-        std::string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
+        string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
         if (outFace->GetId() == faces.size() - 1)
         {
             if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
@@ -243,7 +268,6 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
                 propagatedCount ++;
 
             faceIterator++;
-
         }
     }
 
@@ -252,13 +276,14 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
 void SDNControlledStrategy::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pitEntry)
 {
+    /*
     int faceId = pitTable[pitEntry->GetInterest()->GetName().toUri()];
     Name name = pitEntry->GetInterest()->GetName();
-    std::string prefix = name.getPrefix(name.size() - 1).toUri();
+    string prefix = name.getPrefix(name.size() - 1).toUri();
 
-    std::vector<FlowEntry* > flowEntries = flowTable[prefix];
+    vector<FlowEntry* > flowEntries = flowTable[prefix];
 
-    for (std::vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+    for (vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
     {
         FlowEntry *fe = (*it);
         if (fe->faceId == faceId)
@@ -266,35 +291,22 @@ void SDNControlledStrategy::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pi
             LogDroppedInterest(prefix, faceId);
         }
     }
-
+    */
     ForwardingStrategy::WillEraseTimedOutPendingInterest(pitEntry);
 }
 
 void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
 {
+
     if(inFace != 0) // ==0 means data comes from cache
     {
         Name name = pitEntry->GetInterest()->GetName();
-        std::string prefix = name.getPrefix(name.size() - 1).toUri();
-        //fwEngine->logStatisfiedRequest(inFace,pitEntry);
-        std::vector<FlowEntry* > flowEntries = flowTable[prefix];
-
-        for (std::vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
+        string prefix = name.getPrefix(name.size() - 1).toUri();
+        LinkRepairAction *action = flowTableManager.InterestSatisfied(prefix, inFace->GetId());
+        if (action->repair)
         {
-            FlowEntry *fe = (*it);
-            if (fe->faceId == inFace->GetId())
-            {
-                mtx_.lock();
-                fe->satisfiedInterests++;
-                double successRate = (double) fe->satisfiedInterests / (double) (fe->satisfiedInterests + fe->unsatisfiedInterests);
-                mtx_.unlock();
-                //std::cout << "satisfied: " << successRate << "\n";
-                if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO))
-                {
-                    Ptr<Node> node = this->GetObject<Node>();
-                    SDNController::LinkRecovered(node->GetId(), inFace->GetId(), prefix, 1 - successRate);
-                }
-            }
+            Ptr<Node> node = this->GetObject<Node>();
+            SDNController::LinkRecovered(node->GetId(), inFace->GetId(), prefix, action->failRate);
         }
     }
     ForwardingStrategy::WillSatisfyPendingInterest(inFace,pitEntry);
@@ -312,7 +324,7 @@ void SDNControlledStrategy::DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > 
 
 void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry)
 {   
-    std::string prefix = nack->GetName().toUri();
+    string prefix = nack->GetName().toUri();
     LogDroppedInterest(prefix, inFace->GetId());
 }
 

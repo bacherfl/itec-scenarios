@@ -123,7 +123,7 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
         PathEntry *pe = p->pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
-        strategy->AssignBandwidth(prefix, pe->face, 1500000);
+        strategy->AssignBandwidth(prefix, pe->face, 500000);
     }
     //LogChosenPath(p, prefix);
 }

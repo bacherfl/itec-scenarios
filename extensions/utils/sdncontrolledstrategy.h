@@ -26,21 +26,11 @@
 #include <stdio.h>
 
 #include "forwardingengine.h"
+#include "flowtablemanager.h"
 
 namespace ns3 {
 namespace ndn {
 namespace fw {
-
-typedef struct flow_entry_t
-{
-    int faceId;
-    long receivedInterests;
-    long satisfiedInterests;
-    long unsatisfiedInterests;
-    long bytesReceived;
-    long status;
-    double probability;
-} FlowEntry;
 
 // ns3::ndn::fw::ANYFORWARDINGSTRATEGY::SDNControlledStrategy
 class SDNControlledStrategy: public ForwardingStrategy
@@ -68,6 +58,8 @@ public:
     void init();
     void PushRule(const std::string &prefix, int faceId);
     void AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate);
+    //bool TryUpdateFaceProbabilities(std::vector<FlowEntry* > flowEntries);
+    //void AddFlowEntry(const std::string &prefix, FlowEntry *fe);
 
     Ptr<Face> GetFaceFromSDNController(Ptr<const Interest> interest);
     Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest);
@@ -84,6 +76,8 @@ protected:
     Ptr<utils::ForwardingEngine> fwEngine;
 
     std::map<std::string, std::vector<int> > localFib; //TODO: replace with flowTable
+
+    FlowTableManager flowTableManager;
 
     std::map<std::string, std::vector<FlowEntry* > > flowTable;
 
