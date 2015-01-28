@@ -6,7 +6,7 @@ namespace fw {
 
 using namespace std;
 
-const double FlowTableManager::MIN_SAT_RATIO = 0.7;
+const double FlowTableManager::MIN_SAT_RATIO = 0.85;
 const int FlowTableManager::FACE_STATUS_GREEN = 0;
 const int FlowTableManager::FACE_STATUS_YELLOW = 1;
 const int FlowTableManager::FACE_STATUS_RED = 2;
@@ -22,6 +22,7 @@ void FlowTableManager::AddFace(Ptr<Face> face)
 
 void FlowTableManager::PushRule(const string &prefix, int faceId)
 {
+    mtx_.lock();
     vector<FlowEntry* > flowEntries = flowTable[prefix];
 
     bool found = false;
@@ -30,7 +31,6 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         FlowEntry *fe = (*it);
         if (fe->faceId == faceId)
             found = true;
-        break;
     }
     if (!found)
     {
@@ -45,6 +45,14 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         AddFlowEntry(prefix, fe);
         //flowTable[prefix].push_back(fe);
     }
+    mtx_.unlock();
+    cout << "Flow Table for " << prefix << ": \n";
+
+    for (int i = 0; i < flowEntries.size(); i++)
+    {
+        cout << " " << flowEntries.at(i)->faceId << " ";
+    }
+    cout << "\n";
 }
 
 void FlowTableManager::AddFlowEntry(const string &prefix, FlowEntry *fe)
@@ -63,7 +71,7 @@ void FlowTableManager::AddFlowEntry(const string &prefix, FlowEntry *fe)
             tmp->probability += shift;
         }
     }
-    flowTable[prefix] = flowEntries;
+    flowTable[prefix] = flowEntries;    
 }
 
 bool FlowTableManager::TryUpdateFaceProbabilities(const string &prefix)
@@ -156,6 +164,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
             //cout << "satisfied: " << successRate << "\n";
             if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO + 0.1))
             {
+                fe->status = FACE_STATUS_GREEN;
                 action->repair = true;
                 action->failRate = 1 -successRate;
             }
@@ -167,7 +176,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
     return action;
 }
 
-Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix)
+Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFaceId)
 {
     if (flowTable[prefix].size() > 0)
     {
@@ -197,11 +206,31 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix)
         }
         */
         //TODO: make separate methods for selection of face Id (uniformly distr. and based on calculated probabilities)
+        bool faceFound = false;
+        int cnt = 0;
+        int faceId;
+        FlowEntry *fe;
+        vector<FlowEntry *> candidates;
+        for (int i = 0; i < flowTable[prefix].size(); i++)
+        {
+            candidates.push_back(flowTable[prefix].at(i));
+        }
+        while (!faceFound)
+        {
+            int idx = rand() % candidates.size();
+            //flowTable[prefix]
+            fe = candidates.at(idx);
+            if (fe->faceId != inFaceId)
+            {
+                faceId = fe->faceId;
+                faceFound = true;
+            } else {
+                candidates.erase(candidates.begin() + idx);
+            }
+            if (cnt++ == flowTable[prefix].size())
+                return NULL;
+        }
 
-        int idx = rand() % flowTable[prefix].size();
-        //flowTable[prefix]
-        FlowEntry *fe = flowTable[prefix].at(idx);
-        int faceId = fe->faceId;
 
         fe->receivedInterests++;
         if (fe->receivedInterests >= 100)

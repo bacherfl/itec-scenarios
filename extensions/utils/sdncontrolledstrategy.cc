@@ -31,14 +31,14 @@ TypeId SDNControlledStrategy::GetTypeId (void)
 {
     static TypeId tid = TypeId ("ns3::ndn::fw::SDNControlledStrategy")
         .SetGroupName ("Ndn")
-        .SetParent <ForwardingStrategy> ()
+        .SetParent <Nacks> ()
         .AddConstructor <SDNControlledStrategy> ();
     return tid;
 }
 
 string SDNControlledStrategy::GetLogName ()
 {
-  return ForwardingStrategy::GetLogName () + ".SDNControlledStrategy";
+  return Nacks::GetLogName () + ".SDNControlledStrategy";
 }
 
 void SDNControlledStrategy::AddFace (Ptr<Face> face)
@@ -49,7 +49,7 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
 
 
     faces.push_back (face);//TODO: obsolete
-    ForwardingStrategy::AddFace(face);
+    Nacks::AddFace(face);
 }
 
 void SDNControlledStrategy::AssignBandwidth(const string &prefix, int faceId, uint64_t bitrate)
@@ -159,12 +159,12 @@ void SDNControlledStrategy::RemoveFace (Ptr<Face> face)
             break;
         }
     }
-    ForwardingStrategy::RemoveFace(face);
+    Nacks::RemoveFace(face);
 }
 
 void SDNControlledStrategy::OnInterest (Ptr< Face > inFace, Ptr< Interest > interest)
 {
-    ForwardingStrategy::OnInterest(inFace,interest);
+    Nacks::OnInterest(inFace,interest);
 }
 
 Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
@@ -174,20 +174,20 @@ Ptr<Interest> SDNControlledStrategy::prepareNack(Ptr<const Interest> interest)
     return nack;
 }
 
-Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> interest)
+Ptr<Face> SDNControlledStrategy::GetFaceFromSDNController(Ptr<const Interest> interest, int inFaceId)
 {
     string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
     Ptr<Node> node = GetObject<Node>();
     //let the controller calculate the route and push the rules to all nodes on the path to the target
     SDNController::CalculateRoutesForPrefix(node->GetId(), prefix);
 
-    return SelectFaceFromLocalFib(interest);
+    return SelectFaceFromLocalFib(interest, inFaceId);
 }
 
-Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> interest)
+Ptr<Face> SDNControlledStrategy::SelectFaceFromLocalFib(Ptr<const Interest> interest, int inFaceId)
 {
     string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
-    return flowTableManager.GetFaceForPrefix(prefix);
+    return flowTableManager.GetFaceForPrefix(prefix, inFaceId);
 }
 
 void SDNControlledStrategy::LogDroppedInterest(string prefix, int faceId)
@@ -203,13 +203,13 @@ void SDNControlledStrategy::LogDroppedInterest(string prefix, int faceId)
 
 bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
-    Ptr<Face> outFace = SelectFaceFromLocalFib(interest);
+    Ptr<Face> outFace = SelectFaceFromLocalFib(interest, inFace->GetId());
 
     int propagatedCount = 0;
 
     if (outFace == NULL)
     {
-        outFace = GetFaceFromSDNController(interest);
+        outFace = GetFaceFromSDNController(interest, inFace->GetId());
     }
 
     if (outFace != NULL)
@@ -242,8 +242,8 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
                     propagatedCount++;
             }
             else {
-                if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
-                    propagatedCount++;
+                //if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+                  //  propagatedCount++;
                 LogDroppedInterest(prefix, outFace->GetId());
             }
             //===============================================================
@@ -292,7 +292,7 @@ void SDNControlledStrategy::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pi
         }
     }
     */
-    ForwardingStrategy::WillEraseTimedOutPendingInterest(pitEntry);
+    Nacks::WillEraseTimedOutPendingInterest(pitEntry);
 }
 
 void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
@@ -309,28 +309,30 @@ void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pi
             SDNController::LinkRecovered(node->GetId(), inFace->GetId(), prefix, action->failRate);
         }
     }
-    ForwardingStrategy::WillSatisfyPendingInterest(inFace,pitEntry);
+    Nacks::WillSatisfyPendingInterest(inFace,pitEntry);
 }
 
 void SDNControlledStrategy::OnData(Ptr<Face> face, Ptr<Data> data)
 {    
-    ForwardingStrategy::OnData(face, data);
+    Nacks::OnData(face, data);
 }
 
 void SDNControlledStrategy::DidSendOutInterest (Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry)
 {
-    ForwardingStrategy::DidSendOutInterest(inFace,outFace,interest,pitEntry);
+    Nacks::DidSendOutInterest(inFace,outFace,interest,pitEntry);
 }
 
 void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry)
 {   
-    string prefix = nack->GetName().toUri();
+    cout << "Received NACK \n";
+    Name name = pitEntry->GetInterest()->GetName();
+    string prefix = name.getPrefix(name.size() - 1).toUri();
     LogDroppedInterest(prefix, inFace->GetId());
 }
 
 void SDNControlledStrategy::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
-    ForwardingStrategy::DidExhaustForwardingOptions (inFace, interest, pitEntry);
+    Nacks::DidExhaustForwardingOptions (inFace, interest, pitEntry);
 }
 
 } // namespace fw

@@ -33,7 +33,7 @@ namespace ndn {
 namespace fw {
 
 // ns3::ndn::fw::ANYFORWARDINGSTRATEGY::SDNControlledStrategy
-class SDNControlledStrategy: public ForwardingStrategy
+class SDNControlledStrategy: public Nacks
 {
 
 public:
@@ -61,8 +61,8 @@ public:
     //bool TryUpdateFaceProbabilities(std::vector<FlowEntry* > flowEntries);
     //void AddFlowEntry(const std::string &prefix, FlowEntry *fe);
 
-    Ptr<Face> GetFaceFromSDNController(Ptr<const Interest> interest);
-    Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest);
+    Ptr<Face> GetFaceFromSDNController(Ptr<const Interest> interest, int inFaceId);
+    Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest, int inFaceId);
 
     Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 

@@ -47,6 +47,7 @@ public:
     static void FindAlternativePathBasedOnSatRate(int startNodeId, const std::string &prefix);
     static Path* ParsePath(std::string data);
     static void AddOrigins(std::string &prefix, Ptr<Node> producer);
+    static std::vector<std::string> GetPrefixOrigins(const std::string &prefix);
 
     static void AddLink(Ptr<Node> a,
                         Ptr<Node> b,

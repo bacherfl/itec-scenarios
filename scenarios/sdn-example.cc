@@ -39,6 +39,7 @@ void init(int argc, char *argv[])
     SDNP2PHelper sdnp2p(p2p);
     sdnp2p.SetDeviceAttribute("DataRate", "200kbps");
 
+
     sdnp2p.Install (nodes.Get (0), nodes.Get (2));
     sdnp2p.Install (nodes.Get (1), nodes.Get (2));
     sdnp2p.Install (nodes.Get (2), nodes.Get (3));
@@ -73,7 +74,7 @@ void init(int argc, char *argv[])
     ndn::StackHelper ndnHelper;
     ndnHelper.SetDefaultRoutes (true);
     ndnHelper.SetContentStore("ns3::ndn::cs::Random");
-    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy");
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
     //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
     ndnHelper.Install(nodes);
 
@@ -112,7 +113,7 @@ void init(int argc, char *argv[])
     producerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
     producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
     ApplicationContainer source = producerHelper.Install(producer);
-    ApplicationContainer source2 = producerHelper.Install(producer2);
+    //ApplicationContainer source2 = producerHelper.Install(producer2);
 
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer1);
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer2);
@@ -121,9 +122,9 @@ void init(int argc, char *argv[])
     //Add /prefix origins to ndn::GlobalRouter
     std::string prefix = "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s";
     ndnGlobalRoutingHelper.AddOrigins(prefix, producer);
-    ndnGlobalRoutingHelper.AddOrigins(prefix, producer2);
+    //ndnGlobalRoutingHelper.AddOrigins(prefix, producer2);
     ndn::fw::SDNController::AddOrigins(prefix, producer);
-    ndn::fw::SDNController::AddOrigins(prefix, producer2);
+    //ndn::fw::SDNController::AddOrigins(prefix, producer2);
     // Calculate and install FIBs
     ndn::GlobalRoutingHelper::CalculateRoutes ();
 

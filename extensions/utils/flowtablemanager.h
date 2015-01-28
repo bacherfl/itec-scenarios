@@ -38,7 +38,7 @@ public:
     LinkRepairAction* InterestUnsatisfied(const std::string &prefix, int faceId);
     LinkRepairAction* InterestSatisfied(const std::string &prefix, int faceId);
 
-    Ptr<Face> GetFaceForPrefix(const std::string &prefix);
+    Ptr<Face> GetFaceForPrefix(const std::string &prefix, int inFaceId);
 
 private:
 
