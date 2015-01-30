@@ -30,7 +30,7 @@ void init(int argc, char *argv[])
 
     // Creating nodes
     NodeContainer nodes;
-    nodes.Create(12);
+    nodes.Create(19);
 
     ndn::fw::SDNController::clearGraphDb();
 
@@ -57,6 +57,15 @@ void init(int argc, char *argv[])
     sdnp2p.Install (nodes.Get (0), nodes.Get (10));
     sdnp2p.Install (nodes.Get (10), nodes.Get (11));
     sdnp2p.Install (nodes.Get (11), nodes.Get (3));
+    sdnp2p.Install (nodes.Get (11), nodes.Get(12));
+    sdnp2p.Install (nodes.Get (12), nodes.Get(13));
+    sdnp2p.Install (nodes.Get (13), nodes.Get(14));
+    sdnp2p.Install (nodes.Get (14), nodes.Get(15));
+    sdnp2p.Install (nodes.Get (15), nodes.Get(13));
+    sdnp2p.Install (nodes.Get (15), nodes.Get(16));
+    sdnp2p.Install (nodes.Get (15), nodes.Get(17));
+    sdnp2p.Install (nodes.Get (17), nodes.Get(14));
+    sdnp2p.Install (nodes.Get (17), nodes.Get(18));
 
     /*
     for (int i = 0; i < 100; i++)
@@ -86,6 +95,8 @@ void init(int argc, char *argv[])
     Ptr<Node> consumer2 = nodes.Get(1);
     Ptr<Node> consumer3 = nodes.Get(6);
     Ptr<Node> consumer4 = nodes.Get(8);
+    Ptr<Node> consumer5 = nodes.Get(18);
+    Ptr<Node> consumer6 = nodes.Get(16);
     Ptr<Node> producer = nodes.Get(3);
     Ptr<Node> producer2 = nodes.Get(7);
 
@@ -106,6 +117,8 @@ void init(int argc, char *argv[])
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
     ApplicationContainer sink3 = consumerHelper.Install(consumer3);
     ApplicationContainer sink4 = consumerHelper.Install(consumer4);
+    ApplicationContainer sink5 = consumerHelper.Install(consumer5);
+    ApplicationContainer sink6 = consumerHelper.Install(consumer6);
 
     // Producer
     ndn::AppHelper producerHelper("ns3::ndn::Producer");
@@ -123,8 +136,8 @@ void init(int argc, char *argv[])
     std::string prefix = "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s";
     ndnGlobalRoutingHelper.AddOrigins(prefix, producer);
     //ndnGlobalRoutingHelper.AddOrigins(prefix, producer2);
-    ndn::fw::SDNController::AddOrigins(prefix, producer);
-    //ndn::fw::SDNController::AddOrigins(prefix, producer2);
+    ndn::fw::SDNController::AddOrigins(prefix, producer->GetId());
+    //ndn::fw::SDNController::AddOrigins(prefix, producer2->GetId());
     // Calculate and install FIBs
     ndn::GlobalRoutingHelper::CalculateRoutes ();
 
@@ -133,6 +146,8 @@ void init(int argc, char *argv[])
     sink2.Start (Seconds (1.0)); // will send out Interest
     sink3.Start (Seconds(2.0));
     sink4.Start(Seconds(10));
+    sink5.Start(Seconds(3.0));
+    sink6.Start(Seconds(2.0));
 
     sink1.Stop(Seconds(60.0));
     sink2.Stop(Seconds(60.0));
@@ -140,6 +155,9 @@ void init(int argc, char *argv[])
     sink4.Stop(Seconds(60.0));
 
     Simulator::Stop (Seconds (60.1));
+
+    ndn::L3AggregateTracer::InstallAll ("aggregate-trace.txt", Seconds (0.5));
+    ndn::L3RateTracer::InstallAll ("rate-trace.txt", Seconds (0.5));
 
     Simulator::Run ();
     Simulator::Destroy ();

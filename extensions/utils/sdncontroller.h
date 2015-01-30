@@ -45,8 +45,9 @@ public:
 
     static void CalculateRoutesForPrefix(int startNodeId, const std::string &prefix);
     static void FindAlternativePathBasedOnSatRate(int startNodeId, const std::string &prefix);
+    static std::vector<Path *> ParsePaths(std::string data);
     static Path* ParsePath(std::string data);
-    static void AddOrigins(std::string &prefix, Ptr<Node> producer);
+    static void AddOrigins(std::string prefix, int prodId);
     static std::vector<std::string> GetPrefixOrigins(const std::string &prefix);
 
     static void AddLink(Ptr<Node> a,
@@ -75,6 +76,8 @@ public:
     static void SetLinkBitrate(int nodeId, int faceId, uint64_t bitrate);
     static void LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate);
 
+    static bool isLargeNetwork;
+
 private:
     static void PushPath(Path *p, const std::string &prefix);
 
@@ -96,7 +99,6 @@ private:
     static std::stringstream recv_data;
 
     static CURL *ch;
-
 
 };
 }

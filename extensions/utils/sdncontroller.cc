@@ -13,6 +13,7 @@ std::map<std::string, std::vector<Ptr<Node> > > SDNController::contentOrigins;
 std::map<uint32_t, SDNControlledStrategy*> SDNController::forwarders;
 std::stringstream SDNController::recv_data;
 CURL* SDNController::ch;
+bool SDNController::isLargeNetwork = false;
 
 SDNController::SDNController()
 {
@@ -33,58 +34,62 @@ void SDNController::AppFaceAddedToNode(Ptr<Node> node)
 void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string &prefix)
 {
     std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
-
-
-    //vector<string> origins = GetPrefixOrigins(prefix);
-
     std::stringstream statement;
-
-    statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
-                 << "p = allShortestPaths((requester)-[*]->(server)) WHERE"
-                 << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.15) return p, "
-                 << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate *(1-l.failureRate)) as satRate ORDER BY satRate/length(p) DESC;";
-
-    std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
-
-    Path *p = ParsePath(data);
-
-    /*
-    vector<Path *> paths;
-    int minLength = INT_MAX;
-    for (int i = 0; i < origins.size(); i++)
+    if (isLargeNetwork)
     {
-        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
-                     "p = shortestPath((requester)-[*]->(server)) return p;";
+        vector<string> origins = GetPrefixOrigins(prefix);
+
+        vector<Path *> paths;
+        int minLength = INT_MAX;
+        for (int i = 0; i < origins.size(); i++)
+        {
+            statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
+                         "p = allShortestPaths((requester)-[*]->(server)) return p;";
+
+            std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
+
+            vector<Path *> paths = ParsePaths(data);
+
+            for (int i = 0; i < paths.size(); i++)
+            {
+                PushPath(paths.at(i), prefix);
+            }
+        }
+    }
+    else {
+        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
+                     << "p = allShortestPaths((requester)-[*]->(server)) WHERE"
+                     << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.15) return p, "
+                     << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate *(1-l.failureRate)) as satRate ORDER BY satRate/length(p) DESC LIMIT 3;";
+        /*
+        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
+                     << "p = allShortestPaths((requester)-[*]->(server)) WHERE"
+                     << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.15) return p, "
+                     << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate *(1-l.failureRate)) as satRate LIMIT 3;";
+        */
+        cout << statement.str() << "\n";
 
         std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
         Path *p = ParsePath(data);
-        if (p->pathEntries.size() < minLength)
+
+        /*
+        FindAlternativePathBasedOnSatRate(startNodeId, prefix);
+        */
+
+
+        if (p != NULL)
         {
-            minLength = p->pathEntries.size();
-            paths.push_back(p);
+            std::stringstream str;
+            str << "\n" << p->pathEntries.size() << "\n";
+            fprintf(stderr, "%s", str.str().c_str());
+            for (int i = 0; i < p->pathEntries.size(); i++)
+            {
+                std::cout << "[" << p->pathEntries.at(i)->start << ", " << p->pathEntries.at(i)->face << ", " << p->pathEntries.at(i)->end << "] \n";
+            }
+            PushPath(p, prefix);
         }
-
     }
-
-
-
-    FindAlternativePathBasedOnSatRate(startNodeId, prefix);
-    */
-
-
-    if (p != NULL)
-    {
-        std::stringstream str;
-        str << "\n" << p->pathEntries.size() << "\n";
-        fprintf(stderr, "%s", str.str().c_str());
-        for (int i = 0; i < p->pathEntries.size(); i++)
-        {
-            std::cout << "[" << p->pathEntries.at(i)->start << ", " << p->pathEntries.at(i)->face << ", " << p->pathEntries.at(i)->end << "] \n";
-        }
-        PushPath(p, prefix);
-    }
-
 }
 
 vector<string> SDNController::GetPrefixOrigins(const string &prefix)
@@ -116,6 +121,54 @@ vector<string> SDNController::GetPrefixOrigins(const string &prefix)
     }
 
     return origins;
+}
+
+vector<Path *> SDNController::ParsePaths(string data)
+{
+    vector<Path *> ret;
+    Json::Reader reader;
+    Json::Value root;
+
+    std::cout << data << "\n";
+    bool parsingSuccessful = reader.parse(data, root);
+    if (!parsingSuccessful) {
+        std::cout << "could not parse data" << data <<  "\n";
+        return ret;
+    }
+
+    Json::Value paths = root["results"][0]["data"][0]["row"];
+
+    for (int i = 0; i < paths.size(); i++)
+    {
+        Json::Value path = paths[i];
+        std::cout << "path length: " << path.size() << "\n";
+
+        bool firstNode = true;
+        PathEntry *pe;
+        Path *p = new Path;
+        if (!path.isNull())
+        {
+
+            for (int i = 0; i < path.size() - 1; i += 2)
+            {
+                pe = new PathEntry;
+                Json::Value startNode = path[i];
+                Json::Value face = path[i+1];
+                Json::Value endNode = path[i+2];
+                pe->start = atoi(startNode["nodeId"].asCString());
+                pe->face = face["startFace"].asInt();
+                pe->end = atoi(endNode["nodeId"].asCString());
+                p->pathEntries.push_back(pe);
+            }
+            pe = new PathEntry;
+            pe->start = p->pathEntries.at(p->pathEntries.size() - 1)->end;
+            pe->face = getNumberOfFacesForNode(pe->start);
+            pe->end = -1;   //App Face
+            p->pathEntries.push_back(pe);
+            ret.push_back(p);
+        }
+    }
+    return ret;
 }
 
 Path* SDNController::ParsePath(std::string data)
@@ -160,9 +213,8 @@ Path* SDNController::ParsePath(std::string data)
     return p;
 }
 
-void SDNController::AddOrigins(std::string &prefix, Ptr<Node> producer)
+void SDNController::AddOrigins(std::string prefix, int prodId)
 {
-    int prodId = producer->GetId();
     std::stringstream statement;
     /*
     statement << "MATCH (n:Node) where n.nodeId = '" << prodId
@@ -184,7 +236,7 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
         PathEntry *pe = p->pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
-        strategy->AssignBandwidth(prefix, pe->face, 400000);
+        strategy->AssignBandwidth(prefix, pe->face, 300000);
     }
     //LogChosenPath(p, prefix);
 }
@@ -195,8 +247,8 @@ void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double
     statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='RED' , f.failureRate=" << failureRate << ";";
 
     PerformNeo4jTrx(statement.str(), curlCallback);
-
-    FindAlternativePathBasedOnSatRate(nodeId, name);
+    if (!isLargeNetwork)
+        FindAlternativePathBasedOnSatRate(nodeId, name);    //currently takes way too long for larger networks
 }
 
 void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate)
@@ -213,6 +265,7 @@ void SDNController::FindAlternativePathBasedOnSatRate(int startNodeId, const std
 {
     std::stringstream statement;
 
+    /*
     statement << "MATCH (n:Node{nodeId:'" << startNodeId << "'}), (m:Node), "
                  << "p = (n)-[*..6]->(m) "
                  << "WHERE '" << prefix << "' IN m.prefixes AND all (l in relationships(p) where l.failureRate < 0.3) "
@@ -221,6 +274,15 @@ void SDNController::FindAlternativePathBasedOnSatRate(int startNodeId, const std
                  << "RETURN p, length(p) as length, "
                  << "REDUCE(totalSatRate=1, l in relationships(p) | totalSatRate*(1-l.failureRate)) AS satRate "
                  << "ORDER BY satRate/length(p) DESC "
+                 << "LIMIT 1;";
+    */
+    statement << "MATCH (n:Node{nodeId:'" << startNodeId << "'}), (m:Node), "
+                 << "p = (n)-[*..6]->(m) "
+                 << "WHERE '" << prefix << "' IN m.prefixes AND all (l in relationships(p) where l.failureRate < 0.3) "
+                 << "AND ALL(n in nodes(p) WHERE "
+                           << "1=length(filter(m in nodes(p) WHERE m=n))) "
+                 << "RETURN p, length(p) as length, "
+                 << "REDUCE(totalSatRate=1, l in relationships(p) | totalSatRate*(1-l.failureRate)) AS satRate "
                  << "LIMIT 1;";
 
     std::cout << statement.str() << "\n";
@@ -385,7 +447,12 @@ void SDNController::AddLink(Ptr<Node> a,
         }
 
     }
+    //cout << "Adding Link (" << idA << ")--(" << idB << "); \n";
+    statement << "MATCH (a:Node {nodeId:'" << idA << "'}), (b:Node {nodeId:'" << idB << "'}), (a)-[l]-(b) DELETE l;";
 
+    PerformNeo4jTrx(statement.str(), curlCallback);
+
+    statement.str("");
 
     statement << "MERGE (a:Node {nodeId:'" << idA << "'}) " <<
                  "MERGE (b:Node {nodeId:'" << idB << "'}) " <<
@@ -404,7 +471,7 @@ void SDNController::AddLink(Ptr<Node> a,
 
     */
 
-    PerformNeo4jTrx(statement.str(), NULL);
+    PerformNeo4jTrx(statement.str(), curlCallback);
 }
 
 void SDNController::clearGraphDb()
@@ -430,8 +497,6 @@ int SDNController::getNumberOfFacesForNode(uint32_t nodeId)
     statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l:LINK]-() RETURN n, count(*)";
 
     std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
-
-    std::cout << "result for GetNumberOfFacesForNode(): " << data << "\n";
 
     //result of curl call is in recv_data
     Json::Reader reader;

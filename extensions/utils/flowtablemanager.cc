@@ -32,6 +32,7 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         if (fe->faceId == faceId)
             found = true;
     }
+    cout << "FOUND: " << found << "\n";
     if (!found)
     {
         FlowEntry *fe = new FlowEntry;
@@ -46,12 +47,14 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         //flowTable[prefix].push_back(fe);
     }
     mtx_.unlock();
+    /*
     cout << "Flow Table for " << prefix << ": \n";
 
     for (int i = 0; i < flowEntries.size(); i++)
     {
         cout << " " << flowEntries.at(i)->faceId << " ";
     }
+    */
     cout << "\n";
 }
 
@@ -122,6 +125,7 @@ LinkRepairAction* FlowTableManager::InterestUnsatisfied(const string &prefix, in
 {
     vector<FlowEntry* > flowEntries = flowTable[prefix];
     LinkRepairAction *action = new LinkRepairAction;
+    action->repair = false;
     for (vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
     {
         FlowEntry *fe = (*it);
@@ -132,7 +136,7 @@ LinkRepairAction* FlowTableManager::InterestUnsatisfied(const string &prefix, in
             //check if ratio of unsatisfied to satisfied requests exceeds some limit and tell the controller
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
-            if (successRate < MIN_SAT_RATIO && fe->status == FACE_STATUS_GREEN)
+            if ((successRate < MIN_SAT_RATIO) && (fe->status == FACE_STATUS_GREEN))
             {
                 fe->status = FACE_STATUS_RED;
                 action->repair = true;
@@ -141,15 +145,15 @@ LinkRepairAction* FlowTableManager::InterestUnsatisfied(const string &prefix, in
             else {
                 action->repair = false;
             }
-        }
-        return action;
+        }        
     }
+    return action;
 }
 
 LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix, int faceId)
 {
     LinkRepairAction *action = new LinkRepairAction;
-
+    action->repair = false;
     vector<FlowEntry* > flowEntries = flowTable[prefix];
 
     for (vector<FlowEntry* >::iterator it = flowEntries.begin(); it != flowEntries.end(); it++)
@@ -162,7 +166,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
             //cout << "satisfied: " << successRate << "\n";
-            if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO + 0.1))
+            if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO + 0.2))
             {
                 fe->status = FACE_STATUS_GREEN;
                 action->repair = true;
@@ -180,6 +184,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
 {
     if (flowTable[prefix].size() > 0)
     {
+
         /*
         double p = (double)rand() / RAND_MAX;
         double tmp = 0.0;
@@ -206,6 +211,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
         }
         */
         //TODO: make separate methods for selection of face Id (uniformly distr. and based on calculated probabilities)
+
         bool faceFound = false;
         int cnt = 0;
         int faceId;
@@ -215,7 +221,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
         {
             candidates.push_back(flowTable[prefix].at(i));
         }
-        while (!faceFound)
+        while ((!faceFound) && (candidates.size() > 0))
         {
             int idx = rand() % candidates.size();
             //flowTable[prefix]
@@ -227,8 +233,10 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
             } else {
                 candidates.erase(candidates.begin() + idx);
             }
-            if (cnt++ == flowTable[prefix].size())
+            if (candidates.size() == 0)
+            {
                 return NULL;
+            }
         }
 
 
@@ -241,12 +249,12 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
             fe->unsatisfiedInterests = 0;
             mtx_.unlock();
         }
-
         for (int i = 0; i < faces.size(); i++)
         {
             Ptr<Face> face = faces.at(i);
             if (face->GetId() == faceId)
             {
+
                 return face;
             }
         }

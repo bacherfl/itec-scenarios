@@ -13,7 +13,7 @@ QoSQueue::QoSQueue(uint64_t bitrate):
     tokenGenRate = packets_per_sec / 1000; // tokens per ms
     tokenGenRate *= TOKEN_FILL_INTERVALL; // tokens per intervall
 
-    std::cout << "token gen rate = " << tokenGenRate << "\n";
+    //std::cout << "token gen rate = " << tokenGenRate << "\n";
 
     this->newTokenEvent = Simulator::Schedule(Seconds(0), &QoSQueue::newToken, this);
 }

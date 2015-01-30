@@ -59,7 +59,7 @@ void SDNControlledStrategy::AssignBandwidth(const string &prefix, int faceId, ui
 
 void SDNControlledStrategy::PushRule(const string &prefix, int faceId)
 {
-    cout << "new rule: " << prefix << " -> face " << faceId << "\n";
+    //cout << "new rule: " << prefix << " -> face " << faceId << "\n";
 
     flowTableManager.PushRule(prefix, faceId);
     /*
@@ -254,7 +254,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
     }
     //we're on the target node where the prefix is available --> forward to app face
     else {
-
+        /*
         Ptr<Node> node = this->GetObject<Node>();
 
         typedef fib::FaceMetricContainer::type::index<fib::i_metric>::type FacesByMetric;
@@ -269,6 +269,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
             faceIterator++;
         }
+        */
     }
 
     return propagatedCount > 0;
