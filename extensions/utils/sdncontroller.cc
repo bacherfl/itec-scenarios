@@ -59,8 +59,8 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     else {
         statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
                      << "p = allShortestPaths((requester)-[*]->(server)) WHERE"
-                     << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.15) return p, "
-                     << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate *(1-l.failureRate)) as satRate ORDER BY satRate/length(p) DESC LIMIT 3;";
+                     << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.3) return p, "
+                     << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate * (1-l.failureRate)) as satRate ORDER BY satRate/length(p) DESC LIMIT 3;";
         /*
         statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
                      << "p = allShortestPaths((requester)-[*]->(server)) WHERE"
@@ -249,6 +249,9 @@ void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double
     PerformNeo4jTrx(statement.str(), curlCallback);
     if (!isLargeNetwork)
         FindAlternativePathBasedOnSatRate(nodeId, name);    //currently takes way too long for larger networks
+    else {
+        CalculateRoutesForPrefix(nodeId, name);
+    }
 }
 
 void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate)

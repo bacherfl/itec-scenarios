@@ -15,6 +15,7 @@
 #include "ns3/Brite.h"
 #include "ns3/Graph.h"
 #include "ns3/node.h"
+#include "../utils/sdnp2phelper.h"
 
 namespace ns3
 {
@@ -216,6 +217,11 @@ private:
     * \internal
     */
   void ConstructTopology (void);
+
+  /**
+    * \internal
+    */
+  void ConstructSDNTopology (void);
 
   /**
     * \internal

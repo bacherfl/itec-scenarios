@@ -32,7 +32,7 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         if (fe->faceId == faceId)
             found = true;
     }
-    cout << "FOUND: " << found << "\n";
+
     if (!found)
     {
         FlowEntry *fe = new FlowEntry;
@@ -166,7 +166,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
             //cout << "satisfied: " << successRate << "\n";
-            if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO + 0.2))
+            if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO + 0.1))
             {
                 fe->status = FACE_STATUS_GREEN;
                 action->repair = true;

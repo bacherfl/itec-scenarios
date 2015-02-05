@@ -366,7 +366,7 @@ NDNBriteHelper::BuildBriteTopology ()
 
   //stack.Install (m_nodes);
 
-  ConstructTopology ();
+  ConstructSDNTopology ();
 }
 
 void
@@ -422,6 +422,49 @@ NDNBriteHelper::ConstructTopology ()
                                                     DataRateValue (DataRate ((*it).bandwidth * mbpsToBps)));
 
       m_netDevices.push_back ( new NetDeviceContainer ( m_britePointToPointHelper.Install (m_nodes.Get ((*it).srcId), m_nodes.Get ((*it).destId))));
+
+      m_numEdges++;
+
+    }
+
+  NS_LOG_INFO ("Created " << m_numEdges << " edges in BRITE topology");
+
+  //iterate through all nodes and add leaf nodes for each AS
+  for (NDNBriteHelper::BriteNodeInfoList::iterator it = m_briteNodeInfoList.begin (); it != m_briteNodeInfoList.end (); ++it)
+    {
+      m_nodesByAs[(*it).asId]->Add (m_nodes.Get ((*it).nodeId));
+
+      if ((*it).type == "RT_LEAF ")
+        {
+          m_asLeafNodes[(*it).asId]->Add (m_nodes.Get ((*it).nodeId));
+        }
+    }
+}
+
+void
+NDNBriteHelper::ConstructSDNTopology ()
+{
+  NS_LOG_FUNCTION (this);
+  //create one node container to hold leaf nodes for attaching
+  for (uint32_t i = 0; i < m_numAs; ++i)
+    {
+      m_asLeafNodes.push_back (new NodeContainer ());
+      m_nodesByAs.push_back (new NodeContainer ());
+    }
+
+  for (NDNBriteHelper::BriteEdgeInfoList::iterator it = m_briteEdgeInfoList.begin (); it != m_briteEdgeInfoList.end (); ++it)
+    {
+      SDNP2PHelper sdnp2p(m_britePointToPointHelper);
+      // Set the link delay
+      // The brite value for delay is given in milliseconds
+      m_britePointToPointHelper.SetChannelAttribute ("Delay",
+                                                     TimeValue (Seconds ((*it).delay/1000.0)));
+
+      // The brite value for data rate is given in Mbps
+      m_britePointToPointHelper.SetDeviceAttribute ("DataRate",
+                                                    DataRateValue (DataRate ((*it).bandwidth * mbpsToBps)));
+
+      m_netDevices.push_back ( new NetDeviceContainer ( sdnp2p.Install (m_nodes.Get ((*it).srcId), m_nodes.Get ((*it).destId))));
 
       m_numEdges++;
 

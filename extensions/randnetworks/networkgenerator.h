@@ -14,6 +14,8 @@
 #include "ns3/log.h"
 #include "boost/lexical_cast.hpp"
 
+#include "../utils/sdnp2phelper.h"
+
 namespace ns3
 {
 namespace  ndn
@@ -33,9 +35,16 @@ public:
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, PointToPointHelper *p2p);
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, PointToPointHelper *p2p, std::vector<int> ASnumbers);
 
+  void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p);
+  void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p, std::vector<int> ASnumbers);
+
   void randomlyAddConnectionsBetweenAllAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay, int maxDelay);
   void randomlyAddConnectionsBetweenTwoAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay, int maxDelay);
   void randomlyAddConnectionsBetweenTwoNodesPerAS(int numberOfConnectionsPerAs, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms);
+
+  void randomlyAddSDNConnectionsBetweenAllAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms);
+  void randomlyAddSDNConnectionsBetweenTwoAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms);
+  void randomlyAddSDNConnectionsBetweenTwoNodesPerAS(int numberOfConnectionsPerAs, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms);
 
   double calculateConnectivity();
 
