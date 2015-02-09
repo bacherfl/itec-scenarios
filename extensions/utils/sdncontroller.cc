@@ -44,7 +44,7 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
         for (int i = 0; i < origins.size(); i++)
         {
             statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
-                         "p = allShortestPaths((requester)-[*]->(server)) return p;";
+                         "p = allShortestPaths((requester)-[:LINK*]->(server)) return p;";
 
             std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
@@ -58,7 +58,7 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     }
     else {
         statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
-                     << "p = allShortestPaths((requester)-[*]->(server)) WHERE"
+                     << "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE"
                      << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.3) return p, "
                      << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate * (1-l.failureRate)) as satRate ORDER BY satRate/length(p) DESC LIMIT 3;";
         /*
@@ -236,19 +236,35 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
         PathEntry *pe = p->pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
-        strategy->AssignBandwidth(prefix, pe->face, 300000);
+        if (i < p->pathEntries.size() - 1)
+            strategy->AssignBandwidth(prefix, pe->face, 300000);
     }
     //LogChosenPath(p, prefix);
 }
 
 void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double failureRate)
 {
+    std::vector<string> statements;
     std::stringstream statement;
-    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='RED' , f.failureRate=" << failureRate << ";";
 
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->(m) CREATE (n)-[f2:RED_LINK]->(m) SET f2 = f;";
+    statements.push_back(statement.str());
+
+    statement.str("");
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK]->() WHERE f.startFace = " << faceId << " DELETE f;";
+    statements.push_back(statement.str());
+
+    PerformNeo4jTrx(statements, curlCallback);
+
+    /*
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='RED' , f.failureRate=" << failureRate << ";";
+    */
     PerformNeo4jTrx(statement.str(), curlCallback);
     if (!isLargeNetwork)
-        FindAlternativePathBasedOnSatRate(nodeId, name);    //currently takes way too long for larger networks
+    {
+        CalculateRoutesForPrefix(nodeId, name);
+        //FindAlternativePathBasedOnSatRate(nodeId, name);    //currently takes way too long for larger networks
+    }
     else {
         CalculateRoutesForPrefix(nodeId, name);
     }
@@ -256,10 +272,17 @@ void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double
 
 void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate)
 {
-    std:stringstream statement;
-    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:LINK {startFace:"<< faceId <<"}]->() SET f.status='GREEN', f.failureRate=" << failureRate << ";";
+    std::vector<string> statements;
+    std::stringstream statement;
 
-    PerformNeo4jTrx(statement.str(), curlCallback);
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:RED_LINK {startFace:"<< faceId <<"}]->(m) CREATE (n)-[f2:LINK]->(m) SET f2 = f;";
+    statements.push_back(statement.str());
+
+    statement.str("");
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[f:RED_LINK {startFace:"<< faceId <<"}]->(m) DELETE f;";
+    statements.push_back(statement.str());
+
+    PerformNeo4jTrx(statements, curlCallback);
 
     //TODO: shift traffic to recovered link
 }
@@ -497,7 +520,7 @@ void SDNController::SetLinkBitrate(int nodeId, int faceId, uint64_t bitrate)
 int SDNController::getNumberOfFacesForNode(uint32_t nodeId)
 {
     std::stringstream statement;
-    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l:LINK]-() RETURN n, count(*)";
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'})-[l]-() RETURN n, count(*)";
 
     std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
