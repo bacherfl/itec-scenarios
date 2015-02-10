@@ -33,61 +33,29 @@ void SDNController::AppFaceAddedToNode(Ptr<Node> node)
 
 void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string &prefix)
 {
+    if (startNodeId == 83)
+        return;
     std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
     std::stringstream statement;
-    if (isLargeNetwork)
+
+    vector<string> origins = GetPrefixOrigins(prefix);
+
+    vector<Path *> paths;
+    int minLength = INT_MAX;
+    for (int i = 0; i < origins.size(); i++)
     {
-        vector<string> origins = GetPrefixOrigins(prefix);
+        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
+                     "p = allShortestPaths((requester)-[:LINK*]->(server)) return p;";
 
-        vector<Path *> paths;
-        int minLength = INT_MAX;
-        for (int i = 0; i < origins.size(); i++)
-        {
-            statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
-                         "p = allShortestPaths((requester)-[:LINK*]->(server)) return p;";
-
-            std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
-
-            vector<Path *> paths = ParsePaths(data);
-
-            for (int i = 0; i < paths.size(); i++)
-            {
-                PushPath(paths.at(i), prefix);
-            }
-        }
-    }
-    else {
-        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
-                     << "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE"
-                     << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.3) return p, "
-                     << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate * (1-l.failureRate)) as satRate ORDER BY satRate/length(p) DESC LIMIT 3;";
-        /*
-        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node),"
-                     << "p = allShortestPaths((requester)-[*]->(server)) WHERE"
-                     << "'" << prefix <<"' IN server.prefixes AND all (l in relationships(p) where l.failureRate < 0.15) return p, "
-                     << "reduce(totalSatRate=1, l in relationships(p) | totalSatRate *(1-l.failureRate)) as satRate LIMIT 3;";
-        */
-        cout << statement.str() << "\n";
+        std::cout << statement.str() << "\n";
 
         std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
-        Path *p = ParsePath(data);
+        vector<Path *> paths = ParsePaths(data);
 
-        /*
-        FindAlternativePathBasedOnSatRate(startNodeId, prefix);
-        */
-
-
-        if (p != NULL)
+        for (int i = 0; i < paths.size(); i++)
         {
-            std::stringstream str;
-            str << "\n" << p->pathEntries.size() << "\n";
-            fprintf(stderr, "%s", str.str().c_str());
-            for (int i = 0; i < p->pathEntries.size(); i++)
-            {
-                std::cout << "[" << p->pathEntries.at(i)->start << ", " << p->pathEntries.at(i)->face << ", " << p->pathEntries.at(i)->end << "] \n";
-            }
-            PushPath(p, prefix);
+            PushPath(paths.at(i), prefix);
         }
     }
 }
@@ -158,6 +126,7 @@ vector<Path *> SDNController::ParsePaths(string data)
                 pe->start = atoi(startNode["nodeId"].asCString());
                 pe->face = face["startFace"].asInt();
                 pe->end = atoi(endNode["nodeId"].asCString());
+                pe->bandwidth = face["DataRate"].asInt();
                 p->pathEntries.push_back(pe);
             }
             pe = new PathEntry;
@@ -202,6 +171,7 @@ Path* SDNController::ParsePath(std::string data)
             pe->start = atoi(startNode["nodeId"].asCString());
             pe->face = face["startFace"].asInt();
             pe->end = atoi(endNode["nodeId"].asCString());
+            pe->bandwidth = face["DataRate"].asInt();
             p->pathEntries.push_back(pe);
         }
         pe = new PathEntry;
@@ -237,13 +207,14 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
         if (i < p->pathEntries.size() - 1)
-            strategy->AssignBandwidth(prefix, pe->face, 300000);
+            strategy->AssignBandwidth(prefix, pe->face, pe->bandwidth);
     }
     //LogChosenPath(p, prefix);
 }
 
 void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double failureRate)
 {
+    std::cout << "Link failure \n";
     std::vector<string> statements;
     std::stringstream statement;
 
@@ -272,6 +243,7 @@ void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double
 
 void SDNController::LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate)
 {
+    std::cout << "Link recovered \n";
     std::vector<string> statements;
     std::stringstream statement;
 
@@ -464,8 +436,11 @@ void SDNController::AddLink(Ptr<Node> a,
     {
         if (it->first.compare("DataRate") == 0)
         {
-            std::string dataRateInMbps = it->second.substr(0, it->second.length() - 4);
-            int bitrate = atoi(dataRateInMbps.c_str()) * 1000000;
+            int mult = 1000;
+            if (it->second.find("Mbps") != std::string::npos)
+                mult = 1000000;
+            std::string dataRate = it->second.substr(0, it->second.length() - 4);
+            int bitrate = atoi(dataRate.c_str()) * mult;
             attributes << "," << it->first << ":" << bitrate;
         }
         else {

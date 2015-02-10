@@ -31,6 +31,7 @@ typedef struct path_entry_t {
     int start;
     int face;
     int end;
+    int bandwidth;
 } PathEntry;
 
 typedef struct path_t {

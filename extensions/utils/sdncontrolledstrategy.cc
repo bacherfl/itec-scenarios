@@ -242,8 +242,8 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
                     propagatedCount++;
             }
             else {
-                //if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
-                  //  propagatedCount++;
+                if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+                    propagatedCount++;
                 LogDroppedInterest(prefix, outFace->GetId());
             }
             //===============================================================

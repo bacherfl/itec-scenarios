@@ -66,6 +66,7 @@ void init(int argc, char *argv[])
     sdnp2p.Install (nodes.Get (15), nodes.Get(17));
     sdnp2p.Install (nodes.Get (17), nodes.Get(14));
     sdnp2p.Install (nodes.Get (17), nodes.Get(18));
+    sdnp2p.Install (nodes.Get (16), nodes.Get(10));
 
     /*
     for (int i = 0; i < 100; i++)
@@ -84,7 +85,7 @@ void init(int argc, char *argv[])
     ndnHelper.SetDefaultRoutes (true);
     ndnHelper.SetContentStore("ns3::ndn::cs::Random");
     ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
-    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute");
+    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
     ndnHelper.Install(nodes);
 
     ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
@@ -117,8 +118,8 @@ void init(int argc, char *argv[])
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
     ApplicationContainer sink3 = consumerHelper.Install(consumer3);
     ApplicationContainer sink4 = consumerHelper.Install(consumer4);
-    ApplicationContainer sink5 = consumerHelper.Install(consumer5);
-    ApplicationContainer sink6 = consumerHelper.Install(consumer6);
+    //ApplicationContainer sink5 = consumerHelper.Install(consumer5);
+    //ApplicationContainer sink6 = consumerHelper.Install(consumer6);
 
     // Producer
     ndn::AppHelper producerHelper("ns3::ndn::Producer");
@@ -146,13 +147,15 @@ void init(int argc, char *argv[])
     sink2.Start (Seconds (1.0)); // will send out Interest
     sink3.Start (Seconds(2.0));
     sink4.Start(Seconds(10));
-    sink5.Start(Seconds(3.0));
-    sink6.Start(Seconds(2.0));
+    //sink5.Start(Seconds(3.0));
+    //sink6.Start(Seconds(2.0));
 
     sink1.Stop(Seconds(60.0));
     sink2.Stop(Seconds(60.0));
     sink3.Stop(Seconds(60.0));
     sink4.Stop(Seconds(60.0));
+    //sink5.Stop(Seconds(60.0));
+    //sink6.Stop(Seconds(60.0));
 
     Simulator::Stop (Seconds (60.1));
 
