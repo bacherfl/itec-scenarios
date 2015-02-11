@@ -158,7 +158,7 @@ main (int argc, char *argv[])
 
   PointToPointHelper *p2p = new PointToPointHelper;
   SDNP2PHelper *sdnp2p = new SDNP2PHelper(*p2p);
-  sdnp2p->SetDeviceAttribute ("DataRate", "5Mbps");
+  sdnp2p->SetDeviceAttribute ("DataRate", "2Mbps");
   sdnp2p->SetChannelAttribute ("Delay", "2ms");
 
   int min_bw_as = -1;

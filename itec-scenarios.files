@@ -64,6 +64,8 @@ extensions/utils/itracer.h
 extensions/utils/itracer.cc
 extensions/utils/ndntracer.h
 extensions/utils/ndntracer.cc
+extensions/utils/qosqueue.h
+extensions/utils/qosqueue.cc
 extensions/svc/svcwindowndndownloader.h
 extensions/svc/svcwindowndndownloader.cc
 scenarios/largescenario.cc
@@ -189,3 +191,6 @@ extensions/utils/sdncontroller.cc
 scenarios/sdn-example.cc
 extensions/utils/sdnp2phelper.h
 extensions/utils/sdnp2phelper.cc
+extensions/utils/flowtablemanager.h
+extensions/utils/flowtablemanager.cc
+scenarios/sdn-brite.cc

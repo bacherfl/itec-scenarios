@@ -84,8 +84,8 @@ void init(int argc, char *argv[])
     ndn::StackHelper ndnHelper;
     ndnHelper.SetDefaultRoutes (true);
     ndnHelper.SetContentStore("ns3::ndn::cs::Random");
-    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
-    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
+    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
     ndnHelper.Install(nodes);
 
     ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
