@@ -46,6 +46,10 @@ public:
   void randomlyAddSDNConnectionsBetweenTwoAS(int numberOfConnectionsPerAsPair, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms);
   void randomlyAddSDNConnectionsBetweenTwoNodesPerAS(int numberOfConnectionsPerAs, int minBW_kbits, int maxBw_kbits, int minDelay_ms, int maxDelay_ms);
 
+  bool nodesConnected(Ptr<Node> n1, Ptr<Node> n2);
+  NodeContainer getPairOfUnconnectedNodes(int as1, int as2);
+  NodeContainer removeNode(NodeContainer container, Ptr<Node> node);
+
   double calculateConnectivity();
 
   int getNumberOfAS();

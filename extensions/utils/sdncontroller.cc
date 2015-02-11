@@ -207,7 +207,7 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
         if (i < p->pathEntries.size() - 1)
-            strategy->AssignBandwidth(prefix, pe->face, pe->bandwidth);
+            strategy->AssignBandwidth(prefix, pe->face, pe->bandwidth / 5); //TODO: set bandwidth based on number of active flows
     }
     //LogChosenPath(p, prefix);
 }
