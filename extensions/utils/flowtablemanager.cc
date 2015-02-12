@@ -6,7 +6,7 @@ namespace fw {
 
 using namespace std;
 
-const double FlowTableManager::MIN_SAT_RATIO = 0.9;
+const double FlowTableManager::MIN_SAT_RATIO = 0.8;
 const int FlowTableManager::FACE_STATUS_GREEN = 0;
 const int FlowTableManager::FACE_STATUS_YELLOW = 1;
 const int FlowTableManager::FACE_STATUS_RED = 2;
@@ -259,7 +259,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnUniformDistribution(const std
 
 
     fe->receivedInterests++;
-    if (fe->receivedInterests >= 100)
+    if (fe->receivedInterests >= 30)
     {
         mtx_.lock();
         fe->receivedInterests = 0;

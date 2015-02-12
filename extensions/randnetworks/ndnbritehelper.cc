@@ -464,6 +464,10 @@ NDNBriteHelper::ConstructSDNTopology ()
       m_britePointToPointHelper.SetDeviceAttribute ("DataRate",
                                                     DataRateValue (DataRate ((*it).bandwidth * mbpsToBps)));
 
+      std::stringstream dr;
+      dr << (*it).bandwidth << "Mbps";
+      sdnp2p.SetDeviceAttribute("DataRate", dr.str());
+
       m_netDevices.push_back ( new NetDeviceContainer ( sdnp2p.Install (m_nodes.Get ((*it).srcId), m_nodes.Get ((*it).destId))));
 
       m_numEdges++;
