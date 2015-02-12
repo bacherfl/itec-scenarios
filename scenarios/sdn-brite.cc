@@ -66,7 +66,7 @@ main (int argc, char *argv[])
   std::string confFile = "brite_configs/brite_low_bw.conf";
   std::string strategy = "sdn";
   //std::string strategy = "bestRoute";
-  std::string route = "all";
+  std::string route = "single";
   std::string outputFolder = "output/";
   std::string conectivity = "high";
 
@@ -158,7 +158,7 @@ main (int argc, char *argv[])
 
   PointToPointHelper *p2p = new PointToPointHelper;
   SDNP2PHelper *sdnp2p = new SDNP2PHelper(*p2p);
-  sdnp2p->SetDeviceAttribute ("DataRate", "2Mbps");
+  sdnp2p->SetDeviceAttribute ("DataRate", "10Mbps");
   sdnp2p->SetChannelAttribute ("Delay", "2ms");
 
   int min_bw_as = -1;
@@ -296,7 +296,7 @@ main (int argc, char *argv[])
   }
 
   ndn::AppHelper consumerHelper ("ns3::ndn::StatisticsConsumer");
-  consumerHelper.SetAttribute ("Frequency", StringValue ("30")); // X interests a second roughly 1 MBIT
+  consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second roughly 1 MBIT
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
 
   NodeContainer client = gen.getCustomNodes ("Client");

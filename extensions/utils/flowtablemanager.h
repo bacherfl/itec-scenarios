@@ -38,6 +38,8 @@ public:
     LinkRepairAction* InterestUnsatisfied(const std::string &prefix, int faceId);
     LinkRepairAction* InterestSatisfied(const std::string &prefix, int faceId);
 
+    std::vector<std::string> getFlowsOfFace(int faceId);
+
     Ptr<Face> GetFaceForPrefix(const std::string &prefix, int inFaceId);
 
 private:

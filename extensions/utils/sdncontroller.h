@@ -45,6 +45,7 @@ public:
     SDNController();
 
     static void CalculateRoutesForPrefix(int startNodeId, const std::string &prefix);
+    static void CalculateAlternativeRoutesForPrefix(int startNodeId, const std::string &prefix, std::vector<std::string> origins);
     static void FindAlternativePathBasedOnSatRate(int startNodeId, const std::string &prefix);
     static std::vector<Path *> ParsePaths(std::string data);
     static Path* ParsePath(std::string data);
@@ -76,6 +77,7 @@ public:
     static void InstallBandwidthQueue(int nodeId, int faceId, std::string prefix);
     static void SetLinkBitrate(int nodeId, int faceId, uint64_t bitrate);
     static void LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate);
+    static void RecordFlow(int nodeId, int faceId, const std::string & name);
 
     static bool isLargeNetwork;
 

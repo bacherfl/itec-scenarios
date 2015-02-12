@@ -213,13 +213,14 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
     }
 
     if (outFace != NULL)
-    {
+    {        
         string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
         if (outFace->GetId() == faces.size() - 1)
         {
             if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
                 propagatedCount++;
         }
+
         else if (qosQueues[outFace->GetId()].size() > 0 && qosQueues[outFace->GetId()][prefix] != NULL)
         {
             pitTable[interest->GetName().toUri()] = outFace->GetId();
@@ -297,8 +298,7 @@ void SDNControlledStrategy::WillEraseTimedOutPendingInterest (Ptr<pit::Entry> pi
 }
 
 void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pit::Entry> pitEntry)
-{
-
+{    
     if(inFace != 0) // ==0 means data comes from cache
     {
         Name name = pitEntry->GetInterest()->GetName();
@@ -334,6 +334,11 @@ void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nack
 void SDNControlledStrategy::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
     Nacks::DidExhaustForwardingOptions (inFace, interest, pitEntry);
+}
+
+std::vector<std::string> SDNControlledStrategy::getFlowsOfFace(int faceId)
+{
+    return flowTableManager.getFlowsOfFace(faceId);
 }
 
 } // namespace fw

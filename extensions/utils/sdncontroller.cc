@@ -44,8 +44,27 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     int minLength = INT_MAX;
     for (int i = 0; i < origins.size(); i++)
     {
+        stringstream exclStr;
+        if (origins.size() > 1) {
+            vector<string> excl;
+            for (int j = 0; j < origins.size(); j++) {
+                if (origins.at(j).compare(origins.at(i)) != 0) {
+                    excl.push_back(origins.at(j));
+                }
+            }
+
+            exclStr << "[";
+            for (int i = 0; i < excl.size(); i++) {
+                exclStr << "'" << excl.at(i) << "'";
+                if (i < excl.size() -1)
+                    exclStr << ",";
+            }
+            exclStr << "]";
+        }
+
+        statement.str("");
         statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
-                     "p = allShortestPaths((requester)-[:LINK*]->(server)) return p;";
+                     "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE ALL (n IN nodes(p) WHERE NOT n.nodeId IN " << exclStr.str() << ") return p;";
 
         std::cout << statement.str() << "\n";
 
@@ -53,11 +72,25 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
 
         vector<Path *> paths = ParsePaths(data);
 
+        if (paths.size() == 0) {
+            //start advanced route search
+            //CalculateAlternativeRoutesForPrefix(startNodeId, prefix, origins);
+        }
         for (int i = 0; i < paths.size(); i++)
         {
             PushPath(paths.at(i), prefix);
         }
     }
+}
+
+void SDNController::CalculateAlternativeRoutesForPrefix(int startNodeId, const std::string &prefix, std::vector<std::string> origins)
+{
+    /*
+    for (int i = 0; i < origins.size(); i++) {
+        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
+                     "p = allShortestPaths((requester)-[*]->(server)) return p;";
+    }
+    */
 }
 
 vector<string> SDNController::GetPrefixOrigins(const string &prefix)
@@ -116,7 +149,6 @@ vector<Path *> SDNController::ParsePaths(string data)
         Path *p = new Path;
         if (!path.isNull())
         {
-
             for (int i = 0; i < path.size() - 1; i += 2)
             {
                 pe = new PathEntry;
@@ -200,16 +232,31 @@ void SDNController::AddOrigins(std::string prefix, int prodId)
 
 void SDNController::PushPath(Path *p, const std::string &prefix)
 {
-    std::stringstream statement;
     for (int i = 0; i < p->pathEntries.size(); i++)
     {
         PathEntry *pe = p->pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
-        if (i < p->pathEntries.size() - 1)
-            strategy->AssignBandwidth(prefix, pe->face, pe->bandwidth / 5); //TODO: set bandwidth based on number of active flows
+        if (i < p->pathEntries.size() - 1) {
+            if (pe->bandwidth > 0)
+                strategy->AssignBandwidth(
+                        prefix,
+                        pe->face,
+                        pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
+            );
+
+        }
     }
     //LogChosenPath(p, prefix);
+}
+
+void SDNController::RecordFlow(int nodeId, int faceId, const std::string & name)
+{
+    std::stringstream statement;
+
+    statement << "MATCH (n:Node {nodeId:'" << nodeId << "'}) CREATE (n)-[:FLOW]->(f:FaceFlow {faceId: " << faceId << ", name:'" << name << "'});";
+
+    PerformNeo4jTrx(statement.str(), curlCallback);
 }
 
 void SDNController::LinkFailure(int nodeId, int faceId, std::string name, double failureRate)

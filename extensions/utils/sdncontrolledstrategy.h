@@ -58,6 +58,7 @@ public:
     void init();
     void PushRule(const std::string &prefix, int faceId);
     void AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate);
+    std::vector<std::string> getFlowsOfFace(int faceId);
     //bool TryUpdateFaceProbabilities(std::vector<FlowEntry* > flowEntries);
     //void AddFlowEntry(const std::string &prefix, FlowEntry *fe);
 

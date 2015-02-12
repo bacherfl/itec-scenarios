@@ -130,9 +130,10 @@ LinkRepairAction* FlowTableManager::InterestUnsatisfied(const string &prefix, in
     {
         FlowEntry *fe = (*it);
         if (fe->faceId == faceId)
-        {
+        {            
             mtx_.lock();
             fe->unsatisfiedInterests++;
+            TryUpdateFaceProbabilities(prefix);
             //check if ratio of unsatisfied to satisfied requests exceeds some limit and tell the controller
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
@@ -163,6 +164,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
         {
             mtx_.lock();
             fe->satisfiedInterests++;
+            TryUpdateFaceProbabilities(prefix);
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
             //cout << "satisfied: " << successRate << "\n";
@@ -249,6 +251,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
             fe->unsatisfiedInterests = 0;
             mtx_.unlock();
         }
+
         for (int i = 0; i < faces.size(); i++)
         {
             Ptr<Face> face = faces.at(i);
@@ -260,6 +263,22 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
         }
     }
     return NULL;
+}
+std::vector<std::string> FlowTableManager::getFlowsOfFace(int faceId)
+{
+    typedef std::map<std::string, std::vector<FlowEntry* > > FlowTable;
+    vector<string> flows;
+    for (FlowTable::iterator it = flowTable.begin(); it != flowTable.end(); it++) {
+        std::vector<FlowEntry *> flowEntries = it->second;
+        for (std::vector<FlowEntry *>::iterator it2 = flowEntries.begin(); it2 != flowEntries.end(); it2++) {
+            FlowEntry *fe = (*it2);
+            if (fe->faceId == faceId) {
+                flows.push_back(it->first);
+            }
+        }
+    }
+
+    return flows;
 }
 
 }

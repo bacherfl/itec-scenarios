@@ -84,8 +84,8 @@ void init(int argc, char *argv[])
     ndn::StackHelper ndnHelper;
     ndnHelper.SetDefaultRoutes (true);
     ndnHelper.SetContentStore("ns3::ndn::cs::Random");
-    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
-    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
+    ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
+    //ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
     ndnHelper.Install(nodes);
 
     ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
@@ -99,7 +99,7 @@ void init(int argc, char *argv[])
     Ptr<Node> consumer5 = nodes.Get(18);
     Ptr<Node> consumer6 = nodes.Get(16);
     Ptr<Node> producer = nodes.Get(3);
-    Ptr<Node> producer2 = nodes.Get(7);
+    Ptr<Node> producer2 = nodes.Get(18);
 
     // Install NDN applications
     /*
@@ -113,7 +113,7 @@ void init(int argc, char *argv[])
     ndn::AppHelper consumerHelper("ns3::ndn::StatisticsConsumer");
     // Consumer will request /prefix/0, /prefix/1, ...
     consumerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
-    consumerHelper.SetAttribute("Frequency", StringValue("10"));
+    consumerHelper.SetAttribute("Frequency", StringValue("30"));
     ApplicationContainer sink1 = consumerHelper.Install(consumer1);
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
     ApplicationContainer sink3 = consumerHelper.Install(consumer3);
@@ -127,7 +127,7 @@ void init(int argc, char *argv[])
     producerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
     producerHelper.SetAttribute("PayloadSize", StringValue("1024"));
     ApplicationContainer source = producerHelper.Install(producer);
-    //ApplicationContainer source2 = producerHelper.Install(producer2);
+    ApplicationContainer source2 = producerHelper.Install(producer2);
 
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer1);
     //ndn::fw::SDNController::AppFaceAddedToNode(consumer2);
@@ -136,13 +136,14 @@ void init(int argc, char *argv[])
     //Add /prefix origins to ndn::GlobalRouter
     std::string prefix = "/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s";
     ndnGlobalRoutingHelper.AddOrigins(prefix, producer);
-    //ndnGlobalRoutingHelper.AddOrigins(prefix, producer2);
+    ndnGlobalRoutingHelper.AddOrigins(prefix, producer2);
     ndn::fw::SDNController::AddOrigins(prefix, producer->GetId());
-    //ndn::fw::SDNController::AddOrigins(prefix, producer2->GetId());
+    ndn::fw::SDNController::AddOrigins(prefix, producer2->GetId());
     // Calculate and install FIBs
-    ndn::GlobalRoutingHelper::CalculateRoutes ();
+    ndn::GlobalRoutingHelper::CalculateAllPossibleRoutes();
 
     source.Start (Seconds (0.0)); // make source ready
+    source2.Start (Seconds (0.0)); // make source ready
     sink1.Start (Seconds (0.1)); // will send out Interest
     sink2.Start (Seconds (1.0)); // will send out Interest
     sink3.Start (Seconds(2.0));
