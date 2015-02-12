@@ -6,7 +6,7 @@ namespace fw {
 
 using namespace std;
 
-const double FlowTableManager::MIN_SAT_RATIO = 0.85;
+const double FlowTableManager::MIN_SAT_RATIO = 0.9;
 const int FlowTableManager::FACE_STATUS_GREEN = 0;
 const int FlowTableManager::FACE_STATUS_YELLOW = 1;
 const int FlowTableManager::FACE_STATUS_RED = 2;
@@ -168,7 +168,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
             //cout << "satisfied: " << successRate << "\n";
-            if ((fe->status == FACE_STATUS_RED) && (successRate > MIN_SAT_RATIO + 0.1))
+            if ((fe->status == FACE_STATUS_RED) && (successRate >= MIN_SAT_RATIO + 0.05))
             {
                 fe->status = FACE_STATUS_GREEN;
                 action->repair = true;
@@ -186,84 +186,99 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
 {
     if (flowTable[prefix].size() > 0)
     {
-
-        /*
-        double p = (double)rand() / RAND_MAX;
-        double tmp = 0.0;
-        int faceId;
-        for (vector<FlowEntry *>::iterator it = flowTable[prefix].begin(); it != flowTable[prefix].end(); it++)
-        {
-            FlowEntry *fe = (*it);
-            if (p <= tmp + fe->probability)
-            {
-                faceId = fe->faceId;
-                fe->receivedInterests++;
-                if (fe->receivedInterests >= 1000)
-                {
-                    mtx_.lock();
-                    fe->receivedInterests = 0;
-                    fe->satisfiedInterests = 0;
-                    fe->unsatisfiedInterests = 0;
-                    mtx_.unlock();
-                }
-                break;
-            } else {
-                tmp += fe->probability;
-            }
-        }
-        */
-        //TODO: make separate methods for selection of face Id (uniformly distr. and based on calculated probabilities)
-
-        bool faceFound = false;
-        int cnt = 0;
-        int faceId;
-        FlowEntry *fe;
-        vector<FlowEntry *> candidates;
-        for (int i = 0; i < flowTable[prefix].size(); i++)
-        {
-            candidates.push_back(flowTable[prefix].at(i));
-        }
-        while ((!faceFound) && (candidates.size() > 0))
-        {
-            int idx = rand() % candidates.size();
-            //flowTable[prefix]
-            fe = candidates.at(idx);
-            if (fe->faceId != inFaceId)
-            {
-                faceId = fe->faceId;
-                faceFound = true;
-            } else {
-                candidates.erase(candidates.begin() + idx);
-            }
-            if (candidates.size() == 0)
-            {
-                return NULL;
-            }
-        }
-
-
-        fe->receivedInterests++;
-        if (fe->receivedInterests >= 100)
-        {
-            mtx_.lock();
-            fe->receivedInterests = 0;
-            fe->satisfiedInterests = 0;
-            fe->unsatisfiedInterests = 0;
-            mtx_.unlock();
-        }
-
-        for (int i = 0; i < faces.size(); i++)
-        {
-            Ptr<Face> face = faces.at(i);
-            if (face->GetId() == faceId)
-            {
-
-                return face;
-            }
-        }
+        //return GetFaceForPrefixBasedOnReliability(prefix, inFaceId);
+        return GetFaceForPrefixBasedOnUniformDistribution(prefix, inFaceId);
     }
     return NULL;
 }
+
+Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnReliability(const std::string &prefix, int inFaceId)
+{
+    double p = (double)rand() / RAND_MAX;
+    double tmp = 0.0;
+    int faceId;
+    for (vector<FlowEntry *>::iterator it = flowTable[prefix].begin(); it != flowTable[prefix].end(); it++)
+    {
+        FlowEntry *fe = (*it);
+        if (p <= tmp + fe->probability)
+        {
+            faceId = fe->faceId;
+            fe->receivedInterests++;
+            if (fe->receivedInterests >= 1000)
+            {
+                mtx_.lock();
+                fe->receivedInterests = 0;
+                fe->satisfiedInterests = 0;
+                fe->unsatisfiedInterests = 0;
+                mtx_.unlock();
+            }
+            break;
+        } else {
+            tmp += fe->probability;
+        }
+    }
+    for (int i = 0; i < faces.size(); i++)
+    {
+        Ptr<Face> face = faces.at(i);
+        if (face->GetId() == faceId)
+        {
+
+            return face;
+        }
+    }
+}
+
+Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnUniformDistribution(const std::string &prefix, int inFaceId)
+{
+    bool faceFound = false;
+    int cnt = 0;
+    int faceId;
+    FlowEntry *fe;
+    vector<FlowEntry *> candidates;
+    for (int i = 0; i < flowTable[prefix].size(); i++)
+    {
+        candidates.push_back(flowTable[prefix].at(i));
+    }
+    while ((!faceFound) && (candidates.size() > 0))
+    {
+        int idx = rand() % candidates.size();
+        //flowTable[prefix]
+        fe = candidates.at(idx);
+        if (fe->faceId != inFaceId)
+        {
+            faceId = fe->faceId;
+            faceFound = true;
+        } else {
+            candidates.erase(candidates.begin() + idx);
+        }
+        if (candidates.size() == 0)
+        {
+            return NULL;
+        }
+    }
+
+
+    fe->receivedInterests++;
+    if (fe->receivedInterests >= 100)
+    {
+        mtx_.lock();
+        fe->receivedInterests = 0;
+        fe->satisfiedInterests = 0;
+        fe->unsatisfiedInterests = 0;
+        mtx_.unlock();
+    }
+
+    for (int i = 0; i < faces.size(); i++)
+    {
+        Ptr<Face> face = faces.at(i);
+        if (face->GetId() == faceId)
+        {
+
+            return face;
+        }
+    }
+}
+
 std::vector<std::string> FlowTableManager::getFlowsOfFace(int faceId)
 {
     typedef std::map<std::string, std::vector<FlowEntry* > > FlowTable;

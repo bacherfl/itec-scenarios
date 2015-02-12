@@ -99,7 +99,7 @@ void init(int argc, char *argv[])
     Ptr<Node> consumer5 = nodes.Get(18);
     Ptr<Node> consumer6 = nodes.Get(16);
     Ptr<Node> producer = nodes.Get(3);
-    Ptr<Node> producer2 = nodes.Get(18);
+    Ptr<Node> producer2 = nodes.Get(17);
 
     // Install NDN applications
     /*

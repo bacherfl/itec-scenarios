@@ -41,7 +41,8 @@ public:
     std::vector<std::string> getFlowsOfFace(int faceId);
 
     Ptr<Face> GetFaceForPrefix(const std::string &prefix, int inFaceId);
-
+    Ptr<Face> GetFaceForPrefixBasedOnReliability(const std::string &prefix, int inFaceId);
+    Ptr<Face> GetFaceForPrefixBasedOnUniformDistribution(const std::string &prefix, int inFaceId);
 private:
 
     std::vector<Ptr<Face> > faces;

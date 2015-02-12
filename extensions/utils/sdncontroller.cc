@@ -63,8 +63,15 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
         }
 
         statement.str("");
-        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
-                     "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE ALL (n IN nodes(p) WHERE NOT n.nodeId IN " << exclStr.str() << ") return p;";
+        if (origins.size() > 1) {
+            statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
+                         "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE ALL (n IN nodes(p) WHERE NOT n.nodeId IN " << exclStr.str() << ") return p;";
+        }
+        else {
+            statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
+                         "p = allShortestPaths((requester)-[:LINK*]->(server)) return p;";
+        }
+
 
         std::cout << statement.str() << "\n";
 
@@ -238,12 +245,19 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
         SDNControlledStrategy *strategy = forwarders[pe->start];
         strategy->PushRule(prefix, pe->face);
         if (i < p->pathEntries.size() - 1) {
-            if (pe->bandwidth > 0)
+            if (pe->bandwidth > 0) {
                 strategy->AssignBandwidth(
                         prefix,
                         pe->face,
                         pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
-            );
+                );
+            }
+            else {
+                strategy->AssignBandwidth(
+                        prefix,
+                        pe->face,
+                        1000000);
+            }
 
         }
     }
