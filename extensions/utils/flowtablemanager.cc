@@ -6,7 +6,7 @@ namespace fw {
 
 using namespace std;
 
-const double FlowTableManager::MIN_SAT_RATIO = 0.8;
+const double FlowTableManager::MIN_SAT_RATIO = 0.5;
 const int FlowTableManager::FACE_STATUS_GREEN = 0;
 const int FlowTableManager::FACE_STATUS_YELLOW = 1;
 const int FlowTableManager::FACE_STATUS_RED = 2;
@@ -47,6 +47,7 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         //flowTable[prefix].push_back(fe);
     }
     mtx_.unlock();
+    TryUpdateFaceProbabilities(prefix);
     /*
     cout << "Flow Table for " << prefix << ": \n";
 
@@ -197,14 +198,34 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnReliability(const std::string
     double p = (double)rand() / RAND_MAX;
     double tmp = 0.0;
     int faceId;
-    for (vector<FlowEntry *>::iterator it = flowTable[prefix].begin(); it != flowTable[prefix].end(); it++)
+
+    vector<FlowEntry *> candidates;
+    for (int i = 0; i < flowTable[prefix].size(); i++)
+    {
+        FlowEntry *fe = flowTable[prefix].at(i);
+        if (fe->faceId != inFaceId)
+            candidates.push_back(flowTable[prefix].at(i));
+    }
+
+    //normalise candidate probabilities
+    double sum = 0.0;
+    for (vector<FlowEntry *>::iterator it = candidates.begin(); it != candidates.end(); it++) {
+        FlowEntry *fe = (*it);
+        sum += fe->probability;
+    }
+    for (vector<FlowEntry *>::iterator it = candidates.begin(); it != candidates.end(); it++) {
+        FlowEntry *fe = (*it);
+        fe->probability = fe->probability / sum;
+    }
+
+    for (vector<FlowEntry *>::iterator it = candidates.begin(); it != candidates.end(); it++)
     {
         FlowEntry *fe = (*it);
         if (p <= tmp + fe->probability)
         {
             faceId = fe->faceId;
             fe->receivedInterests++;
-            if (fe->receivedInterests >= 1000)
+            if (fe->receivedInterests >= 10)
             {
                 mtx_.lock();
                 fe->receivedInterests = 0;
@@ -259,7 +280,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnUniformDistribution(const std
 
 
     fe->receivedInterests++;
-    if (fe->receivedInterests >= 30)
+    if (fe->receivedInterests >= 10)
     {
         mtx_.lock();
         fe->receivedInterests = 0;

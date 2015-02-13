@@ -33,8 +33,6 @@ void SDNController::AppFaceAddedToNode(Ptr<Node> node)
 
 void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string &prefix)
 {
-    if (startNodeId == 83)
-        return;
     std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
     std::stringstream statement;
 
@@ -88,6 +86,7 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
             PushPath(paths.at(i), prefix);
         }
     }
+    //AddOrigins(prefix, startNodeId);
 }
 
 void SDNController::CalculateAlternativeRoutesForPrefix(int startNodeId, const std::string &prefix, std::vector<std::string> origins)
