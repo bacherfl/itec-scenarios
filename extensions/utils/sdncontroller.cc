@@ -2,6 +2,7 @@
 #include <curl/curl.h>
 #include <jsoncpp/json/json.h>
 #include "sdncontrolledstrategy.h"
+#include "../sdnapp.h"
 
 namespace ns3 {
 namespace ndn {
@@ -11,6 +12,7 @@ using namespace std;
 
 std::map<std::string, std::vector<Ptr<Node> > > SDNController::contentOrigins;
 std::map<uint32_t, SDNControlledStrategy*> SDNController::forwarders;
+std::map<uint32_t, ns3::SDNApp*> SDNController::apps;
 std::stringstream SDNController::recv_data;
 CURL* SDNController::ch;
 bool SDNController::isLargeNetwork = false;
@@ -42,6 +44,8 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     int minLength = INT_MAX;
     for (int i = 0; i < origins.size(); i++)
     {
+        if (atoi(origins.at(i).c_str()) == startNodeId)
+            continue;
         stringstream exclStr;
         if (origins.size() > 1) {
             vector<string> excl;
@@ -595,6 +599,13 @@ void SDNController::DidReceiveValidNack(int nodeId, int faceId, std::string name
 void SDNController::registerForwarder(SDNControlledStrategy *fwd, uint32_t nodeId)
 {
     forwarders[nodeId] = fwd;
+}
+
+void SDNController::RegisterApp(ns3::SDNApp *app, uint32_t nodeId)
+{
+    apps[nodeId] = app;
+    app->RequestContent("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s", 1000000);
+    AddOrigins("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s", nodeId);
 }
 
 void SDNController::RequestForUnknownPrefix(std::string &prefix)

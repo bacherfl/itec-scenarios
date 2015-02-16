@@ -63,9 +63,9 @@ main (int argc, char *argv[])
     ndn::fw::SDNController::isLargeNetwork = false;
 
   // BRITE needs a configuration file to build its graph.
-  std::string confFile = "brite_configs/brite_low_bw.conf";
-  std::string strategy = "sdn";
-  //std::string strategy = "bestRoute";
+  std::string confFile = "brite_configs/brite_high_bw.conf";
+  //std::string strategy = "sdn";
+  std::string strategy = "bestRoute";
   std::string route = "single";
   std::string outputFolder = "output/";
   std::string conectivity = "high";
@@ -296,7 +296,7 @@ main (int argc, char *argv[])
   }
 
   ndn::AppHelper consumerHelper ("ns3::ndn::StatisticsConsumer");
-  consumerHelper.SetAttribute ("Frequency", StringValue ("60")); // X interests a second roughly 1 MBIT
+  consumerHelper.SetAttribute ("Frequency", StringValue ("100")); // X interests a second roughly 1 MBIT
   consumerHelper.SetAttribute ("Randomize", StringValue ("uniform"));
 
   NodeContainer client = gen.getCustomNodes ("Client");

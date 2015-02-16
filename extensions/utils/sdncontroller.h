@@ -20,6 +20,9 @@
 #include <curl/curl.h>
 
 namespace ns3 {
+
+class SDNApp;
+
 namespace ndn {
 namespace fw {
 
@@ -67,6 +70,7 @@ public:
     static std::string PerformNeo4jTrx(std::vector<std::string> statements, size_t (*callback)(void*, size_t, size_t, void*));
 
     static void registerForwarder(SDNControlledStrategy *fwd, uint32_t nodeId);
+    static void RegisterApp(ns3::SDNApp *app, uint32_t nodeId);
     static void clearGraphDb();
     static int getNumberOfFacesForNode(uint32_t nodeId);
     static size_t curlCallback(void *ptr, size_t size, size_t nmemb, void *stream);
@@ -91,6 +95,7 @@ private:
     Ptr<GlobalRouter> globalRouter;
 
     static std::map<uint32_t, SDNControlledStrategy*> forwarders;
+    static std::map<uint32_t, ns3::SDNApp*> apps;
 
     static std::map<std::string, std::vector<Ptr<Node> > > contentOrigins;
     static std::vector<IncidencyListEntry> incidencyList;

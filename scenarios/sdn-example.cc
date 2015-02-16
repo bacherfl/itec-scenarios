@@ -99,7 +99,8 @@ void init(int argc, char *argv[])
     Ptr<Node> consumer5 = nodes.Get(18);
     Ptr<Node> consumer6 = nodes.Get(16);
     Ptr<Node> producer = nodes.Get(3);
-    Ptr<Node> producer2 = nodes.Get(17);
+    Ptr<Node> producer2 = nodes.Get(17);   
+    Ptr<Node> sdnNode = nodes.Get(11);
 
     // Install NDN applications
     /*
@@ -114,12 +115,16 @@ void init(int argc, char *argv[])
     // Consumer will request /prefix/0, /prefix/1, ...
     consumerHelper.SetPrefix("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s");
     consumerHelper.SetAttribute("Frequency", StringValue("30"));
+    consumerHelper.SetAttribute("StartSeq", IntegerValue(0));
     ApplicationContainer sink1 = consumerHelper.Install(consumer1);
     ApplicationContainer sink2 = consumerHelper.Install(consumer2);
     ApplicationContainer sink3 = consumerHelper.Install(consumer3);
     ApplicationContainer sink4 = consumerHelper.Install(consumer4);
     //ApplicationContainer sink5 = consumerHelper.Install(consumer5);
     //ApplicationContainer sink6 = consumerHelper.Install(consumer6);
+
+    ndn::AppHelper sdnAppHelper("SDNApp");
+    ApplicationContainer sdnApp1 = sdnAppHelper.Install(sdnNode);
 
     // Producer
     ndn::AppHelper producerHelper("ns3::ndn::Producer");
@@ -144,10 +149,11 @@ void init(int argc, char *argv[])
 
     source.Start (Seconds (0.0)); // make source ready
     source2.Start (Seconds (0.0)); // make source ready
-    sink1.Start (Seconds (0.1)); // will send out Interest
-    sink2.Start (Seconds (1.0)); // will send out Interest
-    sink3.Start (Seconds(2.0));
-    sink4.Start(Seconds(10));
+    sink1.Start (Seconds (10.1)); // will send out Interest
+    sink2.Start (Seconds (11.0)); // will send out Interest
+    sink3.Start (Seconds(12.0));
+    sink4.Start(Seconds(15));
+    sdnApp1.Start(Seconds(0.0));
     //sink5.Start(Seconds(3.0));
     //sink6.Start(Seconds(2.0));
 
@@ -155,6 +161,7 @@ void init(int argc, char *argv[])
     sink2.Stop(Seconds(60.0));
     sink3.Stop(Seconds(60.0));
     sink4.Stop(Seconds(60.0));
+    sdnApp1.Stop(Seconds(60.0));
     //sink5.Stop(Seconds(60.0));
     //sink6.Stop(Seconds(60.0));
 
