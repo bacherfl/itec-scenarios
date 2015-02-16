@@ -31,9 +31,10 @@ void SDNApp::StopApplication()
     ndn::App::StopApplication();
 }
 
-void SDNApp::SendInterest(std::string name)
+void SDNApp::SendInterest(std::string name, uint32_t seqNum)
 {
     Ptr<ndn::Name> prefix = Create<ndn::Name> (name);
+    prefix->appendSeqNum(seqNum);
 
     UniformVariable rand(0, std::numeric_limits<uint32_t>::max());
 

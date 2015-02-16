@@ -15,13 +15,9 @@ SDNContentRequester::SDNContentRequester(ns3::SDNApp *app, std::string name, int
 
 void SDNContentRequester::SendNextInterest()
 {
-    std::cout << chunkNr << std::endl;
     std::stringstream nameStr;
-    if (chunkNr < 10)
-        nameStr << name << "/%0" << chunkNr;
-    else
-        nameStr << name << "/%" << chunkNr;
-    app->SendInterest(nameStr.str());
+    nameStr << name;
+    app->SendInterest(nameStr.str(), chunkNr);
     chunkNr++;
 
     Simulator::Schedule(MilliSeconds(interestInterval), &SDNContentRequester::SendNextInterest, this);

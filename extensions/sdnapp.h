@@ -20,7 +20,7 @@ public:
     virtual void OnData(Ptr<const ndn::Data> contentObject);
 
     void RequestContent(const std::string &name, int dataRate);
-    void SendInterest(std::string name);
+    void SendInterest(std::string name, uint32_t seqNum);
 
 protected:
     void RegisterAtController();
