@@ -13,6 +13,7 @@ const int FlowTableManager::FACE_STATUS_RED = 2;
 
 FlowTableManager::FlowTableManager()
 {
+
 }
 
 void FlowTableManager::AddFace(Ptr<Face> face)
@@ -44,6 +45,7 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         fe->status = FACE_STATUS_GREEN;
         fe->probability = 0.0;
         AddFlowEntry(prefix, fe);
+        Simulator::Schedule(Seconds(10.0), &FlowTableManager::ClearTimedOutFlowEntry, this, prefix, fe);
         //flowTable[prefix].push_back(fe);
     }
     mtx_.unlock();
@@ -76,6 +78,22 @@ void FlowTableManager::AddFlowEntry(const string &prefix, FlowEntry *fe)
         }
     }
     flowTable[prefix] = flowEntries;    
+}
+
+void FlowTableManager::ClearTimedOutFlowEntry(std::string prefix, FlowEntry *fe)
+{
+    typedef std::map<std::string, std::vector<FlowEntry *> > FlowTable;
+    typedef std::vector<FlowEntry *> Flows;
+    Flows flows = flowTable[prefix];
+    int idx = -1;
+    for (Flows::iterator it = flows.begin(); it != flows.end(); it++) {
+        FlowEntry *f = (*it);
+        if (f->faceId == fe->faceId)
+            break;
+        idx++;
+    }
+    if (idx > -1)
+        flows.erase(flows.begin() + idx);
 }
 
 bool FlowTableManager::TryUpdateFaceProbabilities(const string &prefix)
@@ -280,7 +298,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnUniformDistribution(const std
 
 
     fe->receivedInterests++;
-    if (fe->receivedInterests >= 10)
+    if (fe->receivedInterests >= 50)
     {
         mtx_.lock();
         fe->receivedInterests = 0;

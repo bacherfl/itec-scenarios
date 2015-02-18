@@ -18,6 +18,7 @@ typedef struct flow_entry_t
     long bytesReceived;
     long status;
     double probability;
+    Time timeout;
 } FlowEntry;
 
 typedef struct link_repair_action {
@@ -37,6 +38,8 @@ public:
     void AddFace(Ptr<Face> face);
     LinkRepairAction* InterestUnsatisfied(const std::string &prefix, int faceId);
     LinkRepairAction* InterestSatisfied(const std::string &prefix, int faceId);
+
+    void ClearTimedOutFlowEntry(std::string prefix, FlowEntry *fe);
 
     std::vector<std::string> getFlowsOfFace(int faceId);
 
