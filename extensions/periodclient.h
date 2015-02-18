@@ -33,6 +33,7 @@ private:
     Periods periods;
     int currentPeriod;
     int periodLength;
+    ns3::EventId nextEvent;
 
     std::string currentContentName;
     int currentSeqNr;

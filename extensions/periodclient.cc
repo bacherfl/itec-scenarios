@@ -77,9 +77,9 @@ void PeriodClient::init()
                     double popularity = stats[x]["popularity"].asDouble();
                     p->popularities[name] = popularity;
                 }
-            }
-            this->periods.push_back(p);
+            }            
         }
+        this->periods.push_back(p);
     }
     int i = 0;
     for (Periods::iterator it = this->periods.begin(); it != this->periods.end(); it++) {
@@ -111,7 +111,7 @@ void PeriodClient::StartNextPeriod()
     requester = new SDNContentRequester(this, currentContentName, 1000000); //TODO make download rate configurable
     requester->RequestContent();
 
-    Simulator::Schedule(Seconds(periodLength), &PeriodClient::StartNextPeriod, this);
+    nextEvent = Simulator::Schedule(Seconds(periodLength), &PeriodClient::StartNextPeriod, this);
 }
 
 void PeriodClient::DetermineContentNameForPeriod(Period *p)
@@ -131,6 +131,7 @@ void PeriodClient::DetermineContentNameForPeriod(Period *p)
 
 void PeriodClient::StopApplication()
 {
+    Simulator::Cancel(nextEvent);
     if (requester != NULL)
         requester->Stop();
     ndn::App::StopApplication();
