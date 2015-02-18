@@ -194,3 +194,10 @@ extensions/utils/sdnp2phelper.cc
 extensions/utils/flowtablemanager.h
 extensions/utils/flowtablemanager.cc
 scenarios/sdn-brite.cc
+extensions/sdnapp.h
+extensions/sdnapp.cc
+extensions/utils/sdncontentrequester.h
+extensions/utils/sdncontentrequester.cc
+extensions/periodclient.h
+extensions/periodclient.cc
+extensions/idownloader.h
