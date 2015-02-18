@@ -1,22 +1,25 @@
 #ifndef SDNCONTENTREQUESTER_H
 #define SDNCONTENTREQUESTER_H
 
-#include "../sdnapp.h"
+#include "../idownloader.h"
+#include "ns3/simulator.h"
 
 class SDNContentRequester
 {
 public:
-    SDNContentRequester(ns3::SDNApp *app, std::string name, int dataRate);
+    SDNContentRequester(IDownLoader *app, std::string name, int dataRate);
 
-    void RequestContent(const std::string &name, int dataRate);
+    void RequestContent();
+    void Stop();
 
 private:
     void SendNextInterest();
 
-    ns3::SDNApp *app;
+    IDownLoader *app;
     std::string name;
     double interestInterval;
     int chunkNr;
+    ns3::EventId nextInterestEvent;
 };
 
 #endif // SDNCONTENTREQUESTER_H

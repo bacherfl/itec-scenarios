@@ -29,6 +29,30 @@ void NetworkGenerator::randomlyPlaceNodes(int nodeCount, std::string setIdentifi
     randomlyPlaceNodes(nodeCount,setIdentifier,place,p2p,allAS);
 }
 
+int NetworkGenerator::getASNumberOfCustomNode(Ptr<Node> n)
+{
+    int asNumber = 0;
+
+    std::vector<int> allAS;
+
+    for (int i=0; i < getNumberOfAS (); i++)
+      allAS.push_back (i);
+
+    NodeContainer asNodes;
+    for (std::vector<int>::iterator it = allAS.begin(); it != allAS.end(); it++) {
+        asNodes = getAllASNodesFromAS(*it);
+
+        for (int i = 0; i < asNodes.size(); i++) {
+            if (customNodeNeighbours[n->GetId()] == asNodes.Get(i)->GetId()) {
+                asNumber = *it;
+                break;
+            }
+        }
+    }
+
+    return asNumber;
+}
+
 void NetworkGenerator::randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p, std::vector<int> ASnumbers)
 {
     NodeContainer container;
@@ -63,6 +87,8 @@ void NetworkGenerator::randomlyPlaceNodes(int nodeCount, std::string setIdentifi
       int rand = rvariable->GetInteger (0,container.size ()-1);
 
       p2p->Install (customNodes.Get (i), container.Get (rand));
+
+      customNodeNeighbours[customNodes.Get(i)->GetId()] = container.Get(rand)->GetId();
     }
 
     nodeContainerMap[setIdentifier] = customNodes;
@@ -112,6 +138,8 @@ void NetworkGenerator::randomlyPlaceNodes (int nodeCount, std::string setIdentif
     int rand = rvariable->GetInteger (0,container.size ()-1);
 
     p2p->Install (customNodes.Get (i), container.Get (rand));
+
+    customNodeNeighbours[customNodes.Get(i)->GetId()] = container.Get(rand)->GetId();
   }
 
   nodeContainerMap[setIdentifier] = customNodes;

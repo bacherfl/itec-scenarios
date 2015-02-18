@@ -71,7 +71,7 @@ void SDNApp::RequestContent(const std::string &name, int dataRate)
     SDNContentRequester *requester = new SDNContentRequester(this, nameCpy, dataRate);
 
     contentRequesters.push_back(requester);
-    requester->RequestContent(name, dataRate);
+    requester->RequestContent();
 }
 
 }

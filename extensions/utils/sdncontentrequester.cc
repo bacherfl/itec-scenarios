@@ -4,7 +4,7 @@
 using namespace ns3;
 using namespace ns3::ndn;
 
-SDNContentRequester::SDNContentRequester(ns3::SDNApp *app, std::string name, int dataRate):
+SDNContentRequester::SDNContentRequester(IDownLoader *app, std::string name, int dataRate):
     app(app),
     name(name)
 {
@@ -20,10 +20,15 @@ void SDNContentRequester::SendNextInterest()
     app->SendInterest(nameStr.str(), chunkNr);
     chunkNr++;
 
-    Simulator::Schedule(MilliSeconds(interestInterval), &SDNContentRequester::SendNextInterest, this);
+    nextInterestEvent = Simulator::Schedule(MilliSeconds(interestInterval), &SDNContentRequester::SendNextInterest, this);
 }
 
-void SDNContentRequester::RequestContent(const std::string &name, int dataRate)
-{
+void SDNContentRequester::RequestContent()
+{    
     SendNextInterest();
+}
+
+void SDNContentRequester::Stop()
+{
+    Simulator::Cancel(nextInterestEvent);
 }

@@ -63,10 +63,10 @@ main (int argc, char *argv[])
     ndn::fw::SDNController::isLargeNetwork = false;
 
   // BRITE needs a configuration file to build its graph.
-  std::string confFile = "brite_configs/brite_high_bw.conf";
+  std::string confFile = "brite_configs/brite_low_bw.conf";
   //std::string strategy = "sdn";
   std::string strategy = "bestRoute";
-  std::string route = "single";
+  std::string route = "all";
   std::string outputFolder = "output/";
   std::string conectivity = "high";
 
@@ -221,8 +221,8 @@ main (int argc, char *argv[])
   //calculaute network connectivity be careful when u call this all nodes/edges are considered
   fprintf(stderr, "connectivity = %f\n",gen.calculateConnectivity());
 
-  gen.randomlyPlaceNodes (3, "Server", ndn::NetworkGenerator::ASNode, sdnp2p);
-  gen.randomlyPlaceNodes (10, "Client", ndn::NetworkGenerator::LeafNode, sdnp2p);
+  gen.randomlyPlaceNodes (10, "Server", ndn::NetworkGenerator::ASNode, sdnp2p);
+  gen.randomlyPlaceNodes (20, "Client", ndn::NetworkGenerator::LeafNode, sdnp2p);
   //gen.randomlyAddSDNConnectionsBetweenAllAS (number_of_connections_between_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddSDNConnectionsBetweenTwoAS (additional_random_connections_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddSDNConnectionsBetweenTwoNodesPerAS(additional_random_connections_leaf,min_bw_leaf,max_bw_leaf,5,20);
@@ -273,7 +273,7 @@ main (int argc, char *argv[])
   // Installing global routing interface on all routing nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.Install (gen.getAllASNodes ());
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "2500"); // all entities can store up to 1k chunks in cache (about 10MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 1k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
   //ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
 
@@ -304,15 +304,22 @@ main (int argc, char *argv[])
   ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 25k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
   //ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
+  ndn::AppHelper periodHelper ("PeriodClient");
 
   for(int i=0; i<client.size (); i++)
   {
+    periodHelper.SetAttribute("Region", IntegerValue(gen.getASNumberOfCustomNode(client.Get(i))));
+    ApplicationContainer c = periodHelper.Install(client.Get(i));
+
+    int asNumber = gen.getASNumberOfCustomNode(client.Get(i));
+    std::cout << "AS Number of Client_" << client.Get(i)->GetId() << ": " << asNumber << std::endl;
+    /*
     consumerHelper.SetPrefix (std::string("/Server_" + boost::lexical_cast<std::string>(i%server.size ()) + "/layer0"));
 
     ApplicationContainer c = consumerHelper.Install (Names::Find<Node>(std::string("Client_" + boost::lexical_cast<std::string>(i))));
 
     //fprintf(stderr, "outputFolder=%s\n", std::string(outputFolder + "/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt").c_str());
-
+    */
     ndn::L3AggregateTracer::Install (Names::Find<Node>(std::string("Client_") + boost::lexical_cast<std::string>(i)),
                                      std::string(outputFolder + "/aggregate-trace_"  + boost::lexical_cast<std::string>(i)).append(".txt"), Seconds (simTime));
 
@@ -341,7 +348,7 @@ main (int argc, char *argv[])
   }
 
   // Run the simulator
-  Simulator::Stop (Seconds (simTime+0.001)); // 10 min
+  Simulator::Stop (Seconds (simTime+0.001));
   Simulator::Run ();
   Simulator::Destroy ();
 

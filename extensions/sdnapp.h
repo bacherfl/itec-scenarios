@@ -2,13 +2,14 @@
 #define SDNAPP_H
 
 #include "ns3/ndn-app.h"
+#include "idownloader.h"
 #include <vector>
 
 class SDNContentRequester;
 
 namespace ns3 {
 
-class SDNApp : public ndn::App
+class SDNApp : public ndn::App, public IDownLoader
 {
 public:
     static TypeId GetTypeId();
@@ -20,7 +21,7 @@ public:
     virtual void OnData(Ptr<const ndn::Data> contentObject);
 
     void RequestContent(const std::string &name, int dataRate);
-    void SendInterest(std::string name, uint32_t seqNum);
+    virtual void SendInterest(std::string name, uint32_t seqNum);
 
 protected:
     void RegisterAtController();

@@ -85,6 +85,8 @@ public:
 
   void creatRandomLinkFailure(double minTimestamp, double maxTimestamp, double minDuration, double maxDuration);
 
+  int getASNumberOfCustomNode(Ptr<Node> n);
+
 
 private:
   NDNBriteHelper *briteHelper;
@@ -96,6 +98,9 @@ private:
   > CustomNodesMap;
 
   CustomNodesMap nodeContainerMap;
+
+  std::map<int, int> customNodeNeighbours;
+
 
   Ptr<UniformRandomVariable> rvariable;
 
