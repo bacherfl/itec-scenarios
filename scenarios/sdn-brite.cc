@@ -64,8 +64,8 @@ main (int argc, char *argv[])
 
   // BRITE needs a configuration file to build its graph.
   std::string confFile = "brite_configs/brite_low_bw.conf";
-  //std::string strategy = "sdn";
-  std::string strategy = "bestRoute";
+  std::string strategy = "sdn";
+  //std::string strategy = "bestRoute";
   std::string route = "all";
   std::string outputFolder = "output/";
   std::string conectivity = "high";
@@ -223,11 +223,12 @@ main (int argc, char *argv[])
 
   gen.randomlyPlaceNodes (10, "Server", ndn::NetworkGenerator::ASNode, sdnp2p);
   gen.randomlyPlaceNodes (20, "Client", ndn::NetworkGenerator::LeafNode, sdnp2p);
+  gen.placeCustomNodeForEachAS ("SDNCache", ndn::NetworkGenerator::ASNode, sdnp2p); //add SDN controlled cache nodes to each AS
   //gen.randomlyAddSDNConnectionsBetweenAllAS (number_of_connections_between_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddSDNConnectionsBetweenTwoAS (additional_random_connections_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddSDNConnectionsBetweenTwoNodesPerAS(additional_random_connections_leaf,min_bw_leaf,max_bw_leaf,5,20);
 
-  double simTime = 30.0;
+  double simTime = 300.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
@@ -266,14 +267,14 @@ main (int argc, char *argv[])
     exit(-1);
   }
 
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 1k chunks in cache (about 100MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "250"); // all entities can store up to 1k chunks in cache (about 100MB)
 
   ndnHelper.InstallAll();
 
   // Installing global routing interface on all routing nodes
   ndn::GlobalRoutingHelper ndnGlobalRoutingHelper;
   ndnGlobalRoutingHelper.Install (gen.getAllASNodes ());
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000"); // all entities can store up to 1k chunks in cache (about 10MB)
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "250"); // all entities can store up to 1k chunks in cache (about 10MB)
   ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute", "EnableNACKs", "true");
   //ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
 
@@ -306,13 +307,14 @@ main (int argc, char *argv[])
   //ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
   ndn::AppHelper periodHelper ("PeriodClient");
 
-  for(int i=0; i<client.size (); i++)
+  for (int i=0; i<client.size (); i++)
   {
     periodHelper.SetAttribute("Region", IntegerValue(gen.getASNumberOfCustomNode(client.Get(i))));
     ApplicationContainer c = periodHelper.Install(client.Get(i));
 
     int asNumber = gen.getASNumberOfCustomNode(client.Get(i));
     std::cout << "AS Number of Client_" << client.Get(i)->GetId() << ": " << asNumber << std::endl;
+    ndn::fw::SDNController::SetASNumberOfClient(client.Get(i)->GetId(), asNumber);
     /*
     consumerHelper.SetPrefix (std::string("/Server_" + boost::lexical_cast<std::string>(i%server.size ()) + "/layer0"));
 
@@ -330,6 +332,18 @@ main (int argc, char *argv[])
     c.Start(Seconds(0.0));
     c.Stop(Seconds(simTime));
 
+  }
+
+  NodeContainer sdnCache = gen.getCustomNodes("SDNCache");
+  ndnGlobalRoutingHelper.Install((gen.getCustomNodes("SDNCache")));
+  ndn::AppHelper sdnCacheHelper ("SDNApp");
+
+  for (int i = 0; i < sdnCache.size(); i++) {
+      ApplicationContainer c = sdnCacheHelper.Install(sdnCache.Get(i));
+      ndn::fw::SDNController::SetASNumberOfClient(sdnCache.Get(i)->GetId(), gen.getASNumberOfCustomNode(sdnCache.Get(i)));
+
+      c.Start(Seconds(0.0));
+      c.Stop(Seconds(simTime));
   }
 
     // Calculate and install FIBs

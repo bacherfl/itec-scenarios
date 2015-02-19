@@ -39,7 +39,7 @@ public:
     LinkRepairAction* InterestUnsatisfied(const std::string &prefix, int faceId);
     LinkRepairAction* InterestSatisfied(const std::string &prefix, int faceId);
 
-    void ClearTimedOutFlowEntry(std::string prefix, FlowEntry *fe);
+    void ClearTimedOutFlowEntry(std::string prefix);
 
     std::vector<std::string> getFlowsOfFace(int faceId);
 

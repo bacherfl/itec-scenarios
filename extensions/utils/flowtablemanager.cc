@@ -6,7 +6,7 @@ namespace fw {
 
 using namespace std;
 
-const double FlowTableManager::MIN_SAT_RATIO = 0.5;
+const double FlowTableManager::MIN_SAT_RATIO = 0.2;
 const int FlowTableManager::FACE_STATUS_GREEN = 0;
 const int FlowTableManager::FACE_STATUS_YELLOW = 1;
 const int FlowTableManager::FACE_STATUS_RED = 2;
@@ -44,9 +44,11 @@ void FlowTableManager::PushRule(const string &prefix, int faceId)
         fe->unsatisfiedInterests = 0;
         fe->status = FACE_STATUS_GREEN;
         fe->probability = 0.0;
-        AddFlowEntry(prefix, fe);
-        Simulator::Schedule(Seconds(10.0), &FlowTableManager::ClearTimedOutFlowEntry, this, prefix, fe);
+        AddFlowEntry(prefix, fe);        
         //flowTable[prefix].push_back(fe);
+    }
+    if (flowTable[prefix].size() == 1) {
+        //Simulator::Schedule(Seconds(10.0), &FlowTableManager::ClearTimedOutFlowEntry, this, prefix);
     }
     mtx_.unlock();
     TryUpdateFaceProbabilities(prefix);
@@ -77,23 +79,14 @@ void FlowTableManager::AddFlowEntry(const string &prefix, FlowEntry *fe)
             tmp->probability += shift;
         }
     }
-    flowTable[prefix] = flowEntries;    
+    flowTable[prefix] = flowEntries;
 }
 
-void FlowTableManager::ClearTimedOutFlowEntry(std::string prefix, FlowEntry *fe)
+void FlowTableManager::ClearTimedOutFlowEntry(std::string prefix)
 {
-    typedef std::map<std::string, std::vector<FlowEntry *> > FlowTable;
-    typedef std::vector<FlowEntry *> Flows;
-    Flows flows = flowTable[prefix];
-    int idx = -1;
-    for (Flows::iterator it = flows.begin(); it != flows.end(); it++) {
-        FlowEntry *f = (*it);
-        if (f->faceId == fe->faceId)
-            break;
-        idx++;
-    }
-    if (idx > -1)
-        flows.erase(flows.begin() + idx);
+    mtx_.lock();
+    flowTable[prefix].clear();
+    mtx_.unlock();
 }
 
 bool FlowTableManager::TryUpdateFaceProbabilities(const string &prefix)
@@ -203,12 +196,15 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
 
 Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFaceId)
 {
+    Ptr<Face> face = NULL;
+    mtx_.lock();
     if (flowTable[prefix].size() > 0)
     {
         //return GetFaceForPrefixBasedOnReliability(prefix, inFaceId);
-        return GetFaceForPrefixBasedOnUniformDistribution(prefix, inFaceId);
+        face = GetFaceForPrefixBasedOnUniformDistribution(prefix, inFaceId);
     }
-    return NULL;
+    mtx_.unlock();
+    return face;
 }
 
 Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnReliability(const std::string &prefix, int inFaceId)
@@ -300,11 +296,9 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnUniformDistribution(const std
     fe->receivedInterests++;
     if (fe->receivedInterests >= 50)
     {
-        mtx_.lock();
         fe->receivedInterests = 0;
         fe->satisfiedInterests = 0;
         fe->unsatisfiedInterests = 0;
-        mtx_.unlock();
     }
 
     for (int i = 0; i < faces.size(); i++)

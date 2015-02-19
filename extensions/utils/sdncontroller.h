@@ -82,6 +82,9 @@ public:
     static void SetLinkBitrate(int nodeId, int faceId, uint64_t bitrate);
     static void LinkRecovered(int nodeId, int faceId, std::string prefix, double failureRate);
     static void RecordFlow(int nodeId, int faceId, const std::string & name);
+    static std::string GenerateExcludeStringForPathQuery(std::vector<std::string> origins, std::string target);
+    static void LogRequest(uint32_t nodeId, std::string prefix);
+    static void SetASNumberOfClient(int clientId, int asNumber);
 
     static bool isLargeNetwork;
 
@@ -105,6 +108,7 @@ private:
     static const int IDX_DEVICE_ATTRIBUTES = 3;
 
     static std::stringstream recv_data;
+    static std::vector<int> leafNodes;
 
     static CURL *ch;
 

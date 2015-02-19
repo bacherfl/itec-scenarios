@@ -53,6 +53,35 @@ int NetworkGenerator::getASNumberOfCustomNode(Ptr<Node> n)
     return asNumber;
 }
 
+void NetworkGenerator::placeCustomNodeForEachAS(std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p)
+{
+    std::vector<int> allAS;
+    NodeContainer allCustomNodes;
+    for(int i=0; i < getNumberOfAS (); i++)
+      allAS.push_back (i);
+
+    for (std::vector<int>::iterator it = allAS.begin(); it != allAS.end(); it++) {
+        NodeContainer container;
+        if(place == NetworkGenerator::ASNode)
+        {
+          container.Add (getAllASNodesFromAS(*it));
+        }
+        else
+        {
+          container.Add (getAllLeafNodesFromAS(*it));
+        }
+        NodeContainer customNodes;
+        customNodes.Create (1);
+        allCustomNodes.Add(customNodes.Get(0));
+        int rand = rvariable->GetInteger (0,container.size ()-1);
+
+        p2p->Install (customNodes.Get (0), container.Get (rand));
+
+        customNodeNeighbours[customNodes.Get(0)->GetId()] = container.Get(rand)->GetId();
+    }
+    nodeContainerMap[setIdentifier] = allCustomNodes;
+}
+
 void NetworkGenerator::randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p, std::vector<int> ASnumbers)
 {
     NodeContainer container;
@@ -73,7 +102,7 @@ void NetworkGenerator::randomlyPlaceNodes(int nodeCount, std::string setIdentifi
 
     if(container.size () == 0)
     {
-      NS_LOG_UNCOND("Could not place nodes, as no nodes are privided by the topology to hook.");
+      NS_LOG_UNCOND("Could not place nodes, as no nodes are provided by the topology to hook.");
       return;
     }
 

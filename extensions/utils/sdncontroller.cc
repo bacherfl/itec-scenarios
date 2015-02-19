@@ -16,6 +16,7 @@ std::map<uint32_t, ns3::SDNApp*> SDNController::apps;
 std::stringstream SDNController::recv_data;
 CURL* SDNController::ch;
 bool SDNController::isLargeNetwork = false;
+std::vector<int> SDNController::leafNodes;
 
 SDNController::SDNController()
 {
@@ -46,28 +47,12 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
     {
         if (atoi(origins.at(i).c_str()) == startNodeId)
             continue;
-        stringstream exclStr;
-        if (origins.size() > 1) {
-            vector<string> excl;
-            for (int j = 0; j < origins.size(); j++) {
-                if (origins.at(j).compare(origins.at(i)) != 0) {
-                    excl.push_back(origins.at(j));
-                }
-            }
-
-            exclStr << "[";
-            for (int i = 0; i < excl.size(); i++) {
-                exclStr << "'" << excl.at(i) << "'";
-                if (i < excl.size() -1)
-                    exclStr << ",";
-            }
-            exclStr << "]";
-        }
+        string exclStr = GenerateExcludeStringForPathQuery(origins, origins.at(i));
 
         statement.str("");
         if (origins.size() > 1) {
             statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
-                         "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE ALL (n IN nodes(p) WHERE NOT n.nodeId IN " << exclStr.str() << ") return p;";
+                         "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE ALL (n IN nodes(p) WHERE NOT n.nodeId IN " << exclStr << ") return p;";
         }
         else {
             statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
@@ -82,25 +67,79 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
         vector<Path *> paths = ParsePaths(data);
 
         if (paths.size() == 0) {
-            //start advanced route search
-            //CalculateAlternativeRoutesForPrefix(startNodeId, prefix, origins);
+            CalculateAlternativeRoutesForPrefix(startNodeId, prefix, origins);
         }
         for (int i = 0; i < paths.size(); i++)
         {
             PushPath(paths.at(i), prefix);
         }
     }
+
+    /*
+    if (getNumberOfFacesForNode(startNodeId) == 1) {
+        //node is a leaf node
+
+        statement.str("");
+        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}) CREATE (requester)-[:REQUEST]->(p:RequestedPrefix {prefix:'" << prefix <<"', time: " << Simulator::Now().GetSeconds() << "});";
+
+        PerformNeo4jTrx(statement.str(), curlCallback);
+    }
+    */
     //AddOrigins(prefix, startNodeId);
+}
+
+std::string SDNController::GenerateExcludeStringForPathQuery(std::vector<std::string> origins, string target) {
+    stringstream exclStr;
+    if (origins.size() > 1) {
+        vector<string> excl;
+        for (int j = 0; j < origins.size(); j++) {
+            if (origins.at(j).compare(target) != 0) {
+                excl.push_back(origins.at(j));
+            }
+        }
+
+        exclStr << "[";
+        for (int i = 0; i < excl.size(); i++) {
+            exclStr << "'" << excl.at(i) << "'";
+            if (i < excl.size() -1)
+                exclStr << ",";
+        }
+        exclStr << "]";
+    }
+    return exclStr.str();
 }
 
 void SDNController::CalculateAlternativeRoutesForPrefix(int startNodeId, const std::string &prefix, std::vector<std::string> origins)
 {
-    /*
-    for (int i = 0; i < origins.size(); i++) {
-        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
-                     "p = allShortestPaths((requester)-[*]->(server)) return p;";
+    std::stringstream statement;
+    for (int i = 0; i < origins.size(); i++)
+    {
+        if (atoi(origins.at(i).c_str()) == startNodeId)
+            continue;
+        string exclStr = GenerateExcludeStringForPathQuery(origins, origins.at(i));
+
+        statement.str("");
+        if (origins.size() > 1) {
+            statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
+                         "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE ALL (n IN nodes(p) WHERE NOT n.nodeId IN " << exclStr << ") return p;";
+        }
+        else {
+            statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node{nodeId:'" << origins.at(i) << "'})," <<
+                         "p = allShortestPaths((requester)-[:LINK*]->(server)) return p;";
+        }
+
+
+        std::cout << statement.str() << "\n";
+
+        std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
+
+        vector<Path *> paths = ParsePaths(data);
+
+        for (int i = 0; i < paths.size(); i++)
+        {
+            PushPath(paths.at(i), prefix);
+        }
     }
-    */
 }
 
 vector<string> SDNController::GetPrefixOrigins(const string &prefix)
@@ -542,7 +581,7 @@ void SDNController::AddLink(Ptr<Node> a,
 void SDNController::clearGraphDb()
 {
     std::stringstream statement;
-    //statement << "MATCH (n:Node)-[r]-(), (p:Prefix)-[r2]-() DELETE n, r, p, r2;";
+    //statement << "MATCH (n:Node)-[r]-(), (p:Prefix)-[r2]-(), (p2:RequestedPrefix)-[r3]-() DELETE n, r, p, r2, p2, r3;";
     statement << "MATCH (n)-[r]-() DELETE n, r";
 
     PerformNeo4jTrx(statement.str(), NULL);
@@ -604,8 +643,18 @@ void SDNController::registerForwarder(SDNControlledStrategy *fwd, uint32_t nodeI
 void SDNController::RegisterApp(ns3::SDNApp *app, uint32_t nodeId)
 {
     apps[nodeId] = app;
-    app->RequestContent("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s", 1000000);
-    AddOrigins("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s", nodeId);
+    //app->RequestContent("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s", 1000000);
+    //AddOrigins("/itec/bunny_2s_480p_only/bunny_2s_100kbit/bunny_2s1.m4s", nodeId);
+}
+
+void SDNController::LogRequest(uint32_t nodeId, std::string prefix)
+{
+    stringstream statement;
+    statement << "MERGE (requester:Node{nodeId:'" << nodeId << "'}) " <<
+                 "MERGE (p:RequestedPrefix {prefix:'" << prefix <<"', time: " << (int) (Simulator::Now().GetSeconds()) << "}) " <<
+                 "CREATE (requester)-[:REQUEST]->(p);";
+
+    PerformNeo4jTrx(statement.str(), curlCallback);
 }
 
 void SDNController::RequestForUnknownPrefix(std::string &prefix)
@@ -618,6 +667,13 @@ void SDNController::NodeReceivedNackOnFace(Ptr<Node>, Ptr<Face>)
 
 }
 
+void SDNController::SetASNumberOfClient(int clientId, int asNumber)
+{
+    stringstream statement;
+    statement << "MATCH (n:Node {nodeId:'" << clientId << "'}) SET n.as = " << asNumber <<";";
+    PerformNeo4jTrx(statement.str(), curlCallback);
 }
+}
+
 }
 }

@@ -34,6 +34,7 @@ public:
   NetworkGenerator(std::string conf_file);
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, PointToPointHelper *p2p);
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, PointToPointHelper *p2p, std::vector<int> ASnumbers);
+  void placeCustomNodeForEachAS(std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p);
 
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p);
   void randomlyPlaceNodes(int nodeCount, std::string setIdentifier, NodePlacement place, SDNP2PHelper *p2p, std::vector<int> ASnumbers);

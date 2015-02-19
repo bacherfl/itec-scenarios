@@ -11,6 +11,7 @@ namespace ns3 {
 struct Period {
     int length;
     std::map<std::string, double> popularities;
+    std::map<std::string, double> contentSizes;
 };
 
 class PeriodClient : public ndn::App, public IDownLoader
@@ -42,6 +43,7 @@ private:
     void init();
     void StartNextPeriod();
     void DetermineContentNameForPeriod(Period *p);
+    void LogCurrentInterest() ;
     //void Request
 };
 

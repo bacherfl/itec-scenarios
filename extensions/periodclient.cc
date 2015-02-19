@@ -11,6 +11,7 @@
 #include "ns3/random-variable.h"
 #include "ns3/ndn-interest.h"
 #include "ns3/ndn-data.h"
+#include "utils/sdncontroller.h"
 #include <fstream>
 
 
@@ -75,7 +76,9 @@ void PeriodClient::init()
                 for (int x = 0; x < stats.size(); x++) {
                     std::string name = stats[x]["name"].asString();
                     double popularity = stats[x]["popularity"].asDouble();
+                    double size = stats[x]["size"].asDouble();
                     p->popularities[name] = popularity;
+                    p->contentSizes[name] = size;
                 }
             }            
         }
@@ -93,6 +96,13 @@ void PeriodClient::init()
 
     currentPeriod = 0;
     Simulator::ScheduleNow(&PeriodClient::StartNextPeriod, this);
+    //Simulator::Schedule(Seconds(5.0), &PeriodClient::LogCurrentInterest, this);
+}
+
+void PeriodClient::LogCurrentInterest()
+{
+    ns3::ndn::fw::SDNController::LogRequest(GetNode()->GetId(), this->currentContentName);
+    Simulator::Schedule(Seconds(5.0), &PeriodClient::LogCurrentInterest, this);
 }
 
 void PeriodClient::StartNextPeriod()
@@ -108,7 +118,17 @@ void PeriodClient::StartNextPeriod()
     }
     currentSeqNr = 0;
 
-    requester = new SDNContentRequester(this, currentContentName, 1000000); //TODO make download rate configurable
+    int contentSize = p->contentSizes[currentContentName];
+    //set some default size if no size info available in the configuration file
+    if (contentSize == 0)
+        contentSize = 5000000;
+
+    requester = new SDNContentRequester(
+                        this,
+                        currentContentName,
+                        1000000,
+                        contentSize
+                ); //TODO make download rate configurable
     requester->RequestContent();
 
     nextEvent = Simulator::Schedule(Seconds(periodLength), &PeriodClient::StartNextPeriod, this);
