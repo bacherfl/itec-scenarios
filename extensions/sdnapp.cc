@@ -74,4 +74,9 @@ void SDNApp::RequestContent(const std::string &name, int dataRate)
     requester->RequestContent();
 }
 
+void SDNApp::OnDownloadFinished(std::string prefix)
+{
+    SDNController::AddOrigins(prefix, this->GetNode()->GetId());
+}
+
 }

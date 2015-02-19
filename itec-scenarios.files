@@ -201,3 +201,6 @@ extensions/utils/sdncontentrequester.cc
 extensions/periodclient.h
 extensions/periodclient.cc
 extensions/idownloader.h
+extensions/period.h
+extensions/periodfactory.h
+extensions/periodfactory.cc

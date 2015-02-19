@@ -36,6 +36,8 @@ void SDNContentRequester::SendNextInterest()
     chunkNr++;
     if ((chunkNr < maxChunk) || (maxChunk == -1)) {
         nextInterestEvent = Simulator::Schedule(MilliSeconds(interestInterval), &SDNContentRequester::SendNextInterest, this);
+    } else {
+        OnDownloadFinished();
     }
 }
 
@@ -47,4 +49,9 @@ void SDNContentRequester::RequestContent()
 void SDNContentRequester::Stop()
 {
     Simulator::Cancel(nextInterestEvent);
+}
+
+void SDNContentRequester::OnDownloadFinished()
+{
+    app->OnDownloadFinished(name);
 }

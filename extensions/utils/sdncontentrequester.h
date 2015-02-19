@@ -12,6 +12,7 @@ public:
 
     void RequestContent();
     void Stop();
+    void OnDownloadFinished();
 
 private:
     void InitDataRate(int dataRate);

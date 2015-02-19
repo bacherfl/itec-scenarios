@@ -22,6 +22,7 @@ public:
 
     void RequestContent(const std::string &name, int dataRate);
     virtual void SendInterest(std::string name, uint32_t seqNum);
+    virtual void OnDownloadFinished(std::string prefix);
 
 protected:
     void RegisterAtController();

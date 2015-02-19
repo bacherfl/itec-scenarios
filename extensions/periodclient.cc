@@ -13,6 +13,7 @@
 #include "ns3/ndn-data.h"
 #include "utils/sdncontroller.h"
 #include <fstream>
+#include "periodfactory.h"
 
 
 namespace ns3 {
@@ -46,44 +47,8 @@ void PeriodClient::StartApplication()
 
 void PeriodClient::init()
 {
-    std::ifstream file(m_configFile);
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    std::string configStr = buffer.str();
+    this->periods = PeriodFactory::GetInstance()->GetPeriodsForRegion(m_configFile, m_region);
 
-    Json::Reader reader;
-    Json::Value root;
-
-    bool parsingSuccessful = reader.parse(configStr, root);
-    if (!parsingSuccessful) {
-        std::cout << "could not parse data" << configStr <<  "\n";
-        return;
-    }
-
-    periodLength = root["periodLength"].asInt();
-
-    Json::Value periods = root["Periods"];
-
-    for (int i = 0; i < periods.size(); i++) {
-        Json::Value period = periods[i];
-        Period *p = new Period;
-        p->length = periodLength;
-        Json::Value regionStatistics = period["regionStatistics"];
-        for (int j = 0; j < regionStatistics.size(); j++) {
-            if (regionStatistics[j]["region"].asInt() == m_region) {
-                Json::Value stats = regionStatistics[j]["statistics"];
-
-                for (int x = 0; x < stats.size(); x++) {
-                    std::string name = stats[x]["name"].asString();
-                    double popularity = stats[x]["popularity"].asDouble();
-                    double size = stats[x]["size"].asDouble();
-                    p->popularities[name] = popularity;
-                    p->contentSizes[name] = size;
-                }
-            }            
-        }
-        this->periods.push_back(p);
-    }
     int i = 0;
     for (Periods::iterator it = this->periods.begin(); it != this->periods.end(); it++) {
         Period *p = (*it);
@@ -131,7 +96,7 @@ void PeriodClient::StartNextPeriod()
                 ); //TODO make download rate configurable
     requester->RequestContent();
 
-    nextEvent = Simulator::Schedule(Seconds(periodLength), &PeriodClient::StartNextPeriod, this);
+    nextEvent = Simulator::Schedule(Seconds(p->length), &PeriodClient::StartNextPeriod, this);
 }
 
 void PeriodClient::DetermineContentNameForPeriod(Period *p)
@@ -184,6 +149,11 @@ void PeriodClient::SendInterest(std::string name, uint32_t seqNum)
 
     m_transmittedInterests (interest, this, m_face);
     m_face->ReceiveInterest(interest);
+}
+
+void PeriodClient::OnDownloadFinished(std::string prefix)
+{
+
 }
 
 }

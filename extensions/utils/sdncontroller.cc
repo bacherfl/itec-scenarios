@@ -17,6 +17,7 @@ std::stringstream SDNController::recv_data;
 CURL* SDNController::ch;
 bool SDNController::isLargeNetwork = false;
 std::vector<int> SDNController::leafNodes;
+std::map<int, std::vector<Period *> > SDNController::periods;
 
 SDNController::SDNController()
 {
@@ -673,6 +674,12 @@ void SDNController::SetASNumberOfClient(int clientId, int asNumber)
     statement << "MATCH (n:Node {nodeId:'" << clientId << "'}) SET n.as = " << asNumber <<";";
     PerformNeo4jTrx(statement.str(), curlCallback);
 }
+
+void SDNController::SetPeriodPopularityConfig(std::string configFilePath)
+{
+    periods = PeriodFactory::GetInstance()->GetPeriods(configFilePath);
+}
+
 }
 
 }

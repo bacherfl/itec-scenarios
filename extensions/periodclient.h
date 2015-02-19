@@ -4,15 +4,10 @@
 #include "ns3/ndn-app.h"
 #include "idownloader.h"
 #include "utils/sdncontentrequester.h"
+#include "period.h"
 #include <map>
 
 namespace ns3 {
-
-struct Period {
-    int length;
-    std::map<std::string, double> popularities;
-    std::map<std::string, double> contentSizes;
-};
 
 class PeriodClient : public ndn::App, public IDownLoader
 {
@@ -26,6 +21,7 @@ public:
     virtual void OnData(Ptr<const ndn::Data> contentObject);
 
     virtual void SendInterest(std::string name, uint32_t seqNum);
+    virtual void OnDownloadFinished(std::string prefix);
 
 private:
     std::string m_configFile;

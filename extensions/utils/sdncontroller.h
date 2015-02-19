@@ -19,6 +19,8 @@
 #include <iostream>
 #include <curl/curl.h>
 
+#include "../periodfactory.h"
+
 namespace ns3 {
 
 class SDNApp;
@@ -86,6 +88,8 @@ public:
     static void LogRequest(uint32_t nodeId, std::string prefix);
     static void SetASNumberOfClient(int clientId, int asNumber);
 
+    static void SetPeriodPopularityConfig(std::string configFilePath);
+
     static bool isLargeNetwork;
 
 private:
@@ -111,6 +115,8 @@ private:
     static std::vector<int> leafNodes;
 
     static CURL *ch;
+
+    static std::map<int, std::vector<Period *> > periods;
 
 };
 }
