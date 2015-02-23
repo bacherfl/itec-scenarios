@@ -57,11 +57,11 @@ void SDNControlledStrategy::AssignBandwidth(const string &prefix, int faceId, ui
     qosQueues[faceId][prefix] = new ns3::ndn::utils::QoSQueue(bitrate);
 }
 
-void SDNControlledStrategy::PushRule(const string &prefix, int faceId)
+void SDNControlledStrategy::PushRule(const string &prefix, int faceId, int cost)
 {
     //cout << "new rule: " << prefix << " -> face " << faceId << "\n";
 
-    flowTableManager.PushRule(prefix, faceId);
+    flowTableManager.PushRule(prefix, faceId, cost);
     /*
 
     vector<FlowEntry* > flowEntries = flowTable[prefix];

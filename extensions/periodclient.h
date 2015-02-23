@@ -3,13 +3,14 @@
 
 #include "ns3/ndn-app.h"
 #include "idownloader.h"
+#include "utils/statisticsconsumer.h"
 #include "utils/sdncontentrequester.h"
 #include "period.h"
 #include <map>
 
 namespace ns3 {
 
-class PeriodClient : public ndn::App, public IDownLoader
+class PeriodClient : public ndn::StatisticsConsumer, public IDownLoader
 {
 public:
     static TypeId GetTypeId();
@@ -22,6 +23,7 @@ public:
 
     virtual void SendInterest(std::string name, uint32_t seqNum);
     virtual void OnDownloadFinished(std::string prefix);
+    virtual void WillSendOutInterest(uint32_t sequenceNumber);
 
 private:
     std::string m_configFile;

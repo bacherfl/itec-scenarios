@@ -56,7 +56,7 @@ public:
     virtual void OnData(Ptr<Face> face, Ptr<Data> data);    
 
     void init();
-    void PushRule(const std::string &prefix, int faceId);
+    void PushRule(const std::string &prefix, int faceId, int cost);
     void AssignBandwidth(const std::string &prefix, int faceId, uint64_t bitrate);
     std::vector<std::string> getFlowsOfFace(int faceId);
     //bool TryUpdateFaceProbabilities(std::vector<FlowEntry* > flowEntries);

@@ -53,7 +53,7 @@ std::map<int, std::vector<Period *> > PeriodFactory::GetPeriods(std::string conf
                 double popularity = stats[x]["popularity"].asDouble();
                 double size = stats[x]["size"].asDouble();
                 p->popularities[name] = popularity;
-                p->contentSizes[name] = size;
+                p->contentSizes[name] = 5000000; //size;
             }
             periodsMap[regionStatistics[j]["region"].asInt()].push_back(p);
         }
@@ -97,7 +97,7 @@ std::vector<Period *> PeriodFactory::GetPeriodsForRegion(std::string configFileN
                     double popularity = stats[x]["popularity"].asDouble();
                     double size = stats[x]["size"].asDouble();
                     p->popularities[name] = popularity;
-                    p->contentSizes[name] = size;
+                    p->contentSizes[name] = 5000000; //size;
                 }
             }
         }

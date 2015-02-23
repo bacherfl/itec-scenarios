@@ -3,6 +3,7 @@
 #include "utils/sdncontentrequester.h"
 #include "ns3/ndn-app-face.h"
 #include "ns3/random-variable.h"
+#include "ns3/ndnSIM/utils/ndn-fw-hop-count-tag.h"
 
 NS_LOG_COMPONENT_DEFINE ("SDNApp");
 
@@ -15,20 +16,20 @@ using namespace ndn::fw;
 TypeId SDNApp::GetTypeId()
 {
     static TypeId tid = TypeId("SDNApp")
-            .SetParent<ndn::App>()
+            .SetParent<ndn::Producer>()
             .AddConstructor<SDNApp>();
     return tid;
 }
 
 void SDNApp::StartApplication()
 {
-    ndn::App::StartApplication();
+    ndn::Producer::StartApplication();
     RegisterAtController();
 }
 
 void SDNApp::StopApplication()
 {
-    ndn::App::StopApplication();
+    ndn::Producer::StopApplication();
 }
 
 void SDNApp::SendInterest(std::string name, uint32_t seqNum)
@@ -49,13 +50,13 @@ void SDNApp::SendInterest(std::string name, uint32_t seqNum)
 
 void SDNApp::OnInterest(Ptr<const ndn::Interest> interest)
 {
-
+    ndn::Producer::OnInterest(interest);
 }
 
 void SDNApp::OnData(Ptr<const ndn::Data> contentObject)
 {
     //NS_LOG_DEBUG ("Receiving Data packet for " << contentObject->GetName ());
-    ndn::App::OnData(contentObject);
+    ndn::Producer::OnData(contentObject);
 }
 
 void SDNApp::RegisterAtController()
@@ -69,6 +70,16 @@ void SDNApp::RequestContent(const std::string &name, int dataRate)
     std::cout << "Requesting content " << name << "\n";
     std::string nameCpy(name);
     SDNContentRequester *requester = new SDNContentRequester(this, nameCpy, dataRate);
+
+    contentRequesters.push_back(requester);
+    requester->RequestContent();
+}
+
+void SDNApp::RequestContent(const std::string &name, int dataRate, int contentSize)
+{
+    std::cout << "Requesting content " << name << "\n";
+    std::string nameCpy(name);
+    SDNContentRequester *requester = new SDNContentRequester(this, nameCpy, dataRate, contentSize);
 
     contentRequesters.push_back(requester);
     requester->RequestContent();

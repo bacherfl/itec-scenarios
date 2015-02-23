@@ -18,6 +18,8 @@ CURL* SDNController::ch;
 bool SDNController::isLargeNetwork = false;
 std::vector<int> SDNController::leafNodes;
 std::map<int, std::vector<Period *> > SDNController::periods;
+std::map<int, int> SDNController::currentPeriodsPerAS;
+std::map<int, int> SDNController::asSDNCaches;
 
 SDNController::SDNController()
 {
@@ -38,6 +40,50 @@ void SDNController::AppFaceAddedToNode(Ptr<Node> node)
 void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string &prefix)
 {
     std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
+
+    //CalculateRoutesToAllSources(startNodeId, prefix);
+    CalculateRouteToNearestSource(startNodeId, prefix);
+    /*
+    if (getNumberOfFacesForNode(startNodeId) == 1) {
+        //node is a leaf node
+
+        statement.str("");
+        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}) CREATE (requester)-[:REQUEST]->(p:RequestedPrefix {prefix:'" << prefix <<"', time: " << Simulator::Now().GetSeconds() << "});";
+
+        PerformNeo4jTrx(statement.str(), curlCallback);
+    }
+    */
+    //AddOrigins(prefix, startNodeId);
+}
+
+void SDNController::CalculateRouteToNearestSource(int startNodeId, const std::string &prefix)
+{
+    std::stringstream statement;
+
+    statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node)," <<
+    "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE '" << prefix << "' in server.prefixes return p ORDER BY length(p) LIMIT 1";
+
+    std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
+
+    vector<Path *> paths = ParsePaths(data);
+
+    if (paths.size() == 0) {
+        statement.str("");
+        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node)," <<
+        "p = allShortestPaths((requester)-[*]->(server)) WHERE '" << prefix << "' in server.prefixes return p ORDER BY length(p) LIMIT 1";
+
+        std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
+        vector<Path *> paths = ParsePaths(data);
+    }
+
+    for (int i = 0; i < paths.size(); i++)
+    {
+        PushPath(paths.at(i), prefix);
+    }
+}
+
+void SDNController::CalculateRoutesToAllSources(int startNodeId, const std::string &prefix)
+{
     std::stringstream statement;
 
     vector<string> origins = GetPrefixOrigins(prefix);
@@ -75,18 +121,6 @@ void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string 
             PushPath(paths.at(i), prefix);
         }
     }
-
-    /*
-    if (getNumberOfFacesForNode(startNodeId) == 1) {
-        //node is a leaf node
-
-        statement.str("");
-        statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}) CREATE (requester)-[:REQUEST]->(p:RequestedPrefix {prefix:'" << prefix <<"', time: " << Simulator::Now().GetSeconds() << "});";
-
-        PerformNeo4jTrx(statement.str(), curlCallback);
-    }
-    */
-    //AddOrigins(prefix, startNodeId);
 }
 
 std::string SDNController::GenerateExcludeStringForPathQuery(std::vector<std::string> origins, string target) {
@@ -282,17 +316,18 @@ void SDNController::AddOrigins(std::string prefix, int prodId)
 
 void SDNController::PushPath(Path *p, const std::string &prefix)
 {
+    int cost = p->pathEntries.size();
     for (int i = 0; i < p->pathEntries.size(); i++)
     {
         PathEntry *pe = p->pathEntries.at(i);
         SDNControlledStrategy *strategy = forwarders[pe->start];
-        strategy->PushRule(prefix, pe->face);
+        strategy->PushRule(prefix, pe->face, cost);
         if (i < p->pathEntries.size() - 1) {
             if (pe->bandwidth > 0) {
                 strategy->AssignBandwidth(
                         prefix,
                         pe->face,
-                        pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
+                        2 * pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
                 );
             }
             else {
@@ -301,8 +336,8 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
                         pe->face,
                         1000000);
             }
-
         }
+        cost--;
     }
     //LogChosenPath(p, prefix);
 }
@@ -675,12 +710,47 @@ void SDNController::SetASNumberOfClient(int clientId, int asNumber)
     PerformNeo4jTrx(statement.str(), curlCallback);
 }
 
+void SDNController::SetASNumberOfSDNCache(int clientId, int asNumber)
+{
+    asSDNCaches[asNumber] = clientId;
+}
+
 void SDNController::SetPeriodPopularityConfig(std::string configFilePath)
 {
     periods = PeriodFactory::GetInstance()->GetPeriods(configFilePath);
+
+    PlanNextPeriods();
+}
+
+void SDNController::PlanNextPeriods()
+{
+    typedef map<int, vector<Period *> > Periods;
+    for (Periods::iterator it = periods.begin(); it != periods.end(); it++) {
+        currentPeriodsPerAS[it->first] = 0;
+        PlanPeriodForAS(it->first);
+    }
+}
+
+void SDNController::PlanPeriodForAS(int asId)
+{
+    Period *p = periods[asId].at(++currentPeriodsPerAS[asId] % periods[asId].size());
+
+    //get most popular content for the next period
+    double max = 0.0;
+    string contentName;
+    for (map<string, double>::iterator it = p->popularities.begin(); it != p->popularities.end(); it++) {
+        if (it->second >= max) {
+            contentName = it->first;
+            max = it->second;
+        }
+    }
+
+    SDNApp *sdnCache = apps[asSDNCaches[asId]];
+    sdnCache->RequestContent(contentName, 1000000, p->contentSizes[contentName]);
+
+    Simulator::Schedule(Seconds(p->length), &SDNController::PlanPeriodForAS, asId);
 }
 
 }
-
 }
 }

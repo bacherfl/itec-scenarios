@@ -42,7 +42,7 @@ namespace ndn {
         virtual void
         StopApplication();
 
-    private:
+    protected:
         long nrSentInterests;
         long nrSatisfiedInterests;
         long nrTimeouts;

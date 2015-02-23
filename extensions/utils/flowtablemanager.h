@@ -18,6 +18,7 @@ typedef struct flow_entry_t
     long bytesReceived;
     long status;
     double probability;
+    int cost;
     Time timeout;
 } FlowEntry;
 
@@ -31,7 +32,7 @@ class FlowTableManager
 public:
     FlowTableManager();
 
-    void PushRule(const std::string &prefix, int faceId);
+    void PushRule(const std::string &prefix, int faceId, int cost);
     bool TryUpdateFaceProbabilities(const std::string &prefix);
     void AddFlowEntry(const std::string &prefix, FlowEntry *fe);
     double CalculateSuccessRate(FlowEntry *fe);
@@ -45,7 +46,8 @@ public:
 
     Ptr<Face> GetFaceForPrefix(const std::string &prefix, int inFaceId);
     Ptr<Face> GetFaceForPrefixBasedOnReliability(const std::string &prefix, int inFaceId);
-    Ptr<Face> GetFaceForPrefixBasedOnUniformDistribution(const std::string &prefix, int inFaceId);
+    Ptr<Face> GetFaceForPrefixBasedOnCost(const std::string &prefix, int inFaceId);
+    Ptr<Face> GetRandomFaceForPrefix(const std::string &prefix, int inFaceId);
 private:
 
     std::vector<Ptr<Face> > faces;

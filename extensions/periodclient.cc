@@ -25,7 +25,7 @@ NS_OBJECT_ENSURE_REGISTERED (PeriodClient);
 TypeId PeriodClient::GetTypeId()
 {
     static TypeId tid = TypeId("PeriodClient")
-            .SetParent<ndn::App>()
+            .SetParent<ndn::StatisticsConsumer>()
             .AddConstructor<PeriodClient>()
             .AddAttribute ("Region", "Region",
                            IntegerValue (0),
@@ -41,7 +41,7 @@ TypeId PeriodClient::GetTypeId()
 
 void PeriodClient::StartApplication()
 {
-    ndn::App::StartApplication();
+    ndn::StatisticsConsumer::StartApplication();
     init();
 }
 
@@ -119,21 +119,21 @@ void PeriodClient::StopApplication()
     Simulator::Cancel(nextEvent);
     if (requester != NULL)
         requester->Stop();
-    ndn::App::StopApplication();
+    ndn::StatisticsConsumer::StopApplication();
 }
 
 void PeriodClient::OnInterest(Ptr<const ndn::Interest> interest)
 {
-    ndn::App::OnInterest(interest);
+    ndn::StatisticsConsumer::OnInterest(interest);
 }
 
 void PeriodClient::OnData(Ptr<const ndn::Data> contentObject)
 {
-    ndn::App::OnData(contentObject);
+    ndn::StatisticsConsumer::OnData(contentObject);
 }
 
 void PeriodClient::SendInterest(std::string name, uint32_t seqNum)
-{
+{    
     if (name.compare("") == 0)
         return;
 
@@ -149,11 +149,17 @@ void PeriodClient::SendInterest(std::string name, uint32_t seqNum)
 
     m_transmittedInterests (interest, this, m_face);
     m_face->ReceiveInterest(interest);
+    this->nrSentInterests++;
 }
 
 void PeriodClient::OnDownloadFinished(std::string prefix)
 {
 
+}
+
+void PeriodClient::WillSendOutInterest(uint32_t sequenceNumber)
+{
+    ndn::StatisticsConsumer::WillSendOutInterest(sequenceNumber);
 }
 
 }
