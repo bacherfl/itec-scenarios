@@ -327,7 +327,7 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
                 strategy->AssignBandwidth(
                         prefix,
                         pe->face,
-                        2 * pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
+                        pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
                 );
             }
             else {
@@ -746,7 +746,7 @@ void SDNController::PlanPeriodForAS(int asId)
     }
 
     SDNApp *sdnCache = apps[asSDNCaches[asId]];
-    sdnCache->RequestContent(contentName, 1000000, p->contentSizes[contentName]);
+    sdnCache->RequestContent(contentName, 750000, p->contentSizes[contentName]);
 
     Simulator::Schedule(Seconds(p->length), &SDNController::PlanPeriodForAS, asId);
 }

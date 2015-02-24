@@ -65,8 +65,8 @@ main (int argc, char *argv[])
   // BRITE needs a configuration file to build its graph.
   std::string confFile = "brite_configs/brite_low_bw.conf";
   std::string strategy = "sdn";
-  //std::string strategy = "bestRoute";
-  std::string route = "all";
+ // std::string strategy = "bestRoute";
+  std::string route = "single";
   std::string outputFolder = "output/";
   std::string conectivity = "high";
 
@@ -228,7 +228,7 @@ main (int argc, char *argv[])
   gen.randomlyAddSDNConnectionsBetweenTwoAS (additional_random_connections_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddSDNConnectionsBetweenTwoNodesPerAS(additional_random_connections_leaf,min_bw_leaf,max_bw_leaf,5,20);
 
-  double simTime = 100.0;
+  double simTime = 120.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
@@ -268,7 +268,7 @@ main (int argc, char *argv[])
   }
 
   //ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "250000"); // all entities can store up to 1k chunks in cache (about 100MB)
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "1500");
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "15000");
 
 
   ndnHelper.InstallAll();

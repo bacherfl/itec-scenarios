@@ -224,30 +224,17 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
         else if (qosQueues[outFace->GetId()].size() > 0 && qosQueues[outFace->GetId()][prefix] != NULL)
         {
             pitTable[interest->GetName().toUri()] = outFace->GetId();
-            //===============================================================
-            /*
+
             if (qosQueues[outFace->GetId()][prefix]->TryForwardInterest())
             {
                 if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
                     propagatedCount++;
             }
             else {
-                LogDroppedInterest(prefix, outFace->GetId());
+                //if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+                  //  propagatedCount++;
+                //LogDroppedInterest(prefix, outFace->GetId());
             }
-            */
-            //===============================================================
-            //===================EXPERIMENTAL================================
-            if (qosQueues[outFace->GetId()][prefix]->TryForwardInterest())
-            {
-                if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
-                    propagatedCount++;
-            }
-            else {
-                if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
-                    propagatedCount++;
-                LogDroppedInterest(prefix, outFace->GetId());
-            }
-            //===============================================================
         }
 
         else if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
@@ -255,7 +242,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
     }
     //we're on the target node where the prefix is available --> forward to app face
     else {
-        /*
+
         Ptr<Node> node = this->GetObject<Node>();
 
         typedef fib::FaceMetricContainer::type::index<fib::i_metric>::type FacesByMetric;
@@ -270,7 +257,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
             faceIterator++;
         }
-        */
+
     }
 
     return propagatedCount > 0;
@@ -329,6 +316,7 @@ void SDNControlledStrategy::DidReceiveValidNack (Ptr<Face> inFace, uint32_t nack
     Name name = pitEntry->GetInterest()->GetName();
     string prefix = name.getPrefix(name.size() - 1).toUri();
     LogDroppedInterest(prefix, inFace->GetId());
+    Nacks::DidReceiveValidNack(inFace, nackCode, nack, pitEntry);
 }
 
 void SDNControlledStrategy::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)

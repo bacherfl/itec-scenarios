@@ -203,11 +203,15 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
     {
         double p = (double)rand() / RAND_MAX;
 
-        if (p <= 1.0) {
+        if (p < 0.9) {
             face = GetFaceForPrefixBasedOnCost(prefix, inFaceId);
             //return GetFaceForPrefixBasedOnReliability(prefix, inFaceId);
         }
         else {
+            face = GetRandomFaceForPrefix(prefix, inFaceId);
+        }
+        if (face == NULL) {
+
             face = GetRandomFaceForPrefix(prefix, inFaceId);
         }
     }
@@ -225,6 +229,15 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefi
             candidates.push_back(flowTable[prefix].at(i));
     }
 
+    if (candidates.size() == 0) {
+        for (int i = 0; i < flowTable[prefix].size(); i++)
+        {
+            FlowEntry *fe = flowTable[prefix].at(i);
+            if ((fe->faceId != inFaceId))
+                candidates.push_back(flowTable[prefix].at(i));
+        }
+    }
+
     int minCost = INT_MAX;
     int faceId = -1;
     for (vector<FlowEntry*>::iterator it = candidates.begin(); it != candidates.end(); it++) {
@@ -237,6 +250,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefi
     if (faceId == -1) {
         return NULL;
     }
+
     for (int i = 0; i < flowTable[prefix].size(); i++) {
         FlowEntry *fe = flowTable[prefix].at(i);
         if (fe->faceId == faceId) {
@@ -247,7 +261,6 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefi
                 fe->satisfiedInterests = 0;
                 fe->unsatisfiedInterests = 0;
             }
-
         }
     }
     for (int i = 0; i < faces.size(); i++)
