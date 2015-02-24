@@ -48,6 +48,8 @@ public:
     Ptr<Face> GetFaceForPrefixBasedOnReliability(const std::string &prefix, int inFaceId);
     Ptr<Face> GetFaceForPrefixBasedOnCost(const std::string &prefix, int inFaceId);
     Ptr<Face> GetRandomFaceForPrefix(const std::string &prefix, int inFaceId);
+
+    void PrintFlowTableForPrefix(const std::string &prefix);
 private:
 
     std::vector<Ptr<Face> > faces;

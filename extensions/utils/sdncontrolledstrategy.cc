@@ -238,7 +238,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
         }
 
         else if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
-            propagatedCount ++;
+            propagatedCount++;
     }
     //we're on the target node where the prefix is available --> forward to app face
     else {

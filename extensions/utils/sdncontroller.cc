@@ -61,7 +61,7 @@ void SDNController::CalculateRouteToNearestSource(int startNodeId, const std::st
     std::stringstream statement;
 
     statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node)," <<
-    "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE '" << prefix << "' in server.prefixes return p ORDER BY length(p) LIMIT 1";
+    "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE '" << prefix << "' in server.prefixes AND NOT server.nodeId = '" << startNodeId << "' return p ORDER BY length(p) LIMIT 1";
 
     std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
@@ -70,16 +70,22 @@ void SDNController::CalculateRouteToNearestSource(int startNodeId, const std::st
     if (paths.size() == 0) {
         statement.str("");
         statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node)," <<
-        "p = allShortestPaths((requester)-[*]->(server)) WHERE '" << prefix << "' in server.prefixes return p ORDER BY length(p) LIMIT 1";
+        "p = allShortestPaths((requester)-[*]->(server)) WHERE '" << prefix << "' in server.prefixes AND NOT server.nodeId = '" << startNodeId << "' return p ORDER BY length(p) LIMIT 1";
 
         std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
         vector<Path *> paths = ParsePaths(data);
+        for (int i = 0; i < paths.size(); i++)
+        {
+            PushPath(paths.at(i), prefix);
+        }
+    }
+    else {
+        for (int i = 0; i < paths.size(); i++)
+        {
+            PushPath(paths.at(i), prefix);
+        }
     }
 
-    for (int i = 0; i < paths.size(); i++)
-    {
-        PushPath(paths.at(i), prefix);
-    }
 }
 
 void SDNController::CalculateRoutesToAllSources(int startNodeId, const std::string &prefix)
@@ -214,7 +220,7 @@ vector<Path *> SDNController::ParsePaths(string data)
     Json::Reader reader;
     Json::Value root;
 
-    std::cout << data << "\n";
+    //std::cout << data << "\n";
     bool parsingSuccessful = reader.parse(data, root);
     if (!parsingSuccessful) {
         std::cout << "could not parse data" << data <<  "\n";
@@ -226,7 +232,7 @@ vector<Path *> SDNController::ParsePaths(string data)
     for (int i = 0; i < paths.size(); i++)
     {
         Json::Value path = paths[i];
-        std::cout << "path length: " << path.size() << "\n";
+        //std::cout << "path length: " << path.size() << "\n";
 
         bool firstNode = true;
         PathEntry *pe;
