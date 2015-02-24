@@ -54,7 +54,18 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
 
 void SDNControlledStrategy::AssignBandwidth(const string &prefix, int faceId, uint64_t bitrate)
 {
-    qosQueues[faceId][prefix] = new ns3::ndn::utils::QoSQueue(bitrate);
+    //qosQueues[faceId][prefix] = new ns3::ndn::utils::QoSQueue(bitrate);
+    typedef std::map<int, std::map<std::string, ns3::ndn::utils::QoSQueue*> > QoSQueues;
+    for (QoSQueues::iterator it = qosQueues.begin(); it != qosQueues.end(); it++) {
+        vector<string> flows = flowTableManager.getFlowsOfFace(it->first);
+        int nrFlows = flows.size();
+        int bitRateLimit = bitrate / nrFlows;
+
+        for (vector<string>::iterator it2 = flows.begin(); it2 != flows.end(); it2++) {
+            qosQueues[it->first][*it2] = new ns3::ndn::utils::QoSQueue(bitRateLimit);
+        }
+
+    }
 }
 
 void SDNControlledStrategy::PushRule(const string &prefix, int faceId, int cost)

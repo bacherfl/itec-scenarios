@@ -333,7 +333,8 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
                 strategy->AssignBandwidth(
                         prefix,
                         pe->face,
-                        pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
+                        pe->bandwidth
+                        //pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
                 );
             }
             else {
