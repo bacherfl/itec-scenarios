@@ -44,10 +44,10 @@ public:
 
     std::vector<std::string> getFlowsOfFace(int faceId);
 
-    Ptr<Face> GetFaceForPrefix(const std::string &prefix, int inFaceId);
-    Ptr<Face> GetFaceForPrefixBasedOnReliability(const std::string &prefix, int inFaceId);
-    Ptr<Face> GetFaceForPrefixBasedOnCost(const std::string &prefix, int inFaceId);
-    Ptr<Face> GetRandomFaceForPrefix(const std::string &prefix, int inFaceId);
+    Ptr<Face> GetFaceForPrefix(const std::string &prefix, std::vector<int> exclude);
+    Ptr<Face> GetFaceForPrefixBasedOnReliability(const std::string &prefix, std::vector<int> exclude);
+    Ptr<Face> GetFaceForPrefixBasedOnCost(const std::string &prefix, std::vector<int> exclude);
+    Ptr<Face> GetRandomFaceForPrefix(const std::string &prefix, std::vector<int> exclude);
 
     void PrintFlowTableForPrefix(const std::string &prefix);
 private:
@@ -56,6 +56,8 @@ private:
     std::map<std::string, std::vector<FlowEntry* > > flowTable;
 
     static const double MIN_SAT_RATIO;
+    static const double SHORTEST_PATH_FRACTION;
+    static const int INTEREST_INTERVAL;
     static const int FACE_STATUS_GREEN;
     static const int FACE_STATUS_YELLOW;
     static const int FACE_STATUS_RED;

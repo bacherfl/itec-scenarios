@@ -6,7 +6,9 @@ namespace fw {
 
 using namespace std;
 
-const double FlowTableManager::MIN_SAT_RATIO = 0.7;
+const double FlowTableManager::MIN_SAT_RATIO = 0.95;
+const int FlowTableManager::INTEREST_INTERVAL = 50;
+const double FlowTableManager::SHORTEST_PATH_FRACTION = 1.0;
 const int FlowTableManager::FACE_STATUS_GREEN = 0;
 const int FlowTableManager::FACE_STATUS_YELLOW = 1;
 const int FlowTableManager::FACE_STATUS_RED = 2;
@@ -49,8 +51,7 @@ void FlowTableManager::PushRule(const string &prefix, int faceId, int cost)
         //flowTable[prefix].push_back(fe);
     }
     if (flowTable[prefix].size() == 1) {
-        double rnd = rand() % 5 + 5;
-        //Simulator::Schedule(Seconds(rnd), &FlowTableManager::ClearTimedOutFlowEntry, this, prefix);
+        Simulator::Schedule(Seconds(10.0), &FlowTableManager::ClearTimedOutFlowEntry, this, prefix);
     }
     mtx_.unlock();
     //TryUpdateFaceProbabilities(prefix);
@@ -62,7 +63,6 @@ void FlowTableManager::PushRule(const string &prefix, int faceId, int cost)
         cout << " " << flowEntries.at(i)->faceId << " ";
     }
     */
-    cout << "\n";
 }
 
 void FlowTableManager::AddFlowEntry(const string &prefix, FlowEntry *fe)
@@ -154,7 +154,7 @@ LinkRepairAction* FlowTableManager::InterestUnsatisfied(const string &prefix, in
             double successRate = CalculateSuccessRate(fe);
 
             mtx_.unlock();
-            if ((successRate < MIN_SAT_RATIO) && (fe->status == FACE_STATUS_GREEN) && (fe->receivedInterests >= 10))
+            if ((successRate < MIN_SAT_RATIO) && (fe->status == FACE_STATUS_GREEN) /*&& (fe->receivedInterests >= 10)*/)
             {
                 fe->status = FACE_STATUS_RED;
                 action->repair = true;
@@ -185,7 +185,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
             //cout << "satisfied: " << successRate << "\n";
-            if ((fe->status == FACE_STATUS_RED) && (successRate >= MIN_SAT_RATIO + 0.05) && (fe->receivedInterests >= 10))
+            if ((fe->status == FACE_STATUS_RED) && (successRate >= MIN_SAT_RATIO) /* && (fe->receivedInterests >= 10)*/)
             {
                 fe->status = FACE_STATUS_GREEN;
                 action->repair = true;
@@ -199,7 +199,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
     return action;
 }
 
-Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFaceId)
+Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, std::vector<int> exclude)
 {
     Ptr<Face> face = NULL;
 
@@ -209,29 +209,34 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, int inFa
     {
         double p = (double)rand() / RAND_MAX;
 
-        if (p < 0.7) {
-            face = GetFaceForPrefixBasedOnCost(prefix, inFaceId);
+        if (p < SHORTEST_PATH_FRACTION) {
+            face = GetFaceForPrefixBasedOnCost(prefix, exclude);
             //return GetFaceForPrefixBasedOnReliability(prefix, inFaceId);
         }
         else {
-            face = GetRandomFaceForPrefix(prefix, inFaceId);
+            face = GetRandomFaceForPrefix(prefix, exclude);
         }
         if (face == NULL) {
 
-            face = GetRandomFaceForPrefix(prefix, inFaceId);
+            face = GetRandomFaceForPrefix(prefix, exclude);
         }
     }
     mtx_.unlock();
     return face;
 }
 
-Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefix, int inFaceId)
+Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefix, std::vector<int> exclude)
 {
     vector<FlowEntry *> candidates;
     for (int i = 0; i < flowTable[prefix].size(); i++)
     {
         FlowEntry *fe = flowTable[prefix].at(i);
-        if ((fe->faceId != inFaceId) && (fe->status != FACE_STATUS_RED))
+        bool found = false;
+        for (int j = 0; j < exclude.size(); j++) {
+            if (fe->faceId == exclude.at(j))
+                found = true;
+        }
+        if ((!found) && (fe->status != FACE_STATUS_RED))
             candidates.push_back(flowTable[prefix].at(i));
     }
     /*
@@ -265,7 +270,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefi
         FlowEntry *fe = flowTable[prefix].at(i);
         if (fe->faceId == faceId) {
             fe->receivedInterests++;
-            if (fe->receivedInterests >= 50)
+            if (fe->receivedInterests >= INTEREST_INTERVAL)
             {
                 fe->receivedInterests = 0;
                 fe->satisfiedInterests = 0;
@@ -283,7 +288,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefi
     }
 }
 
-Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnReliability(const std::string &prefix, int inFaceId)
+Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnReliability(const std::string &prefix, std::vector<int> exclude)
 {
     double p = (double)rand() / RAND_MAX;
     double tmp = 0.0;
@@ -293,7 +298,12 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnReliability(const std::string
     for (int i = 0; i < flowTable[prefix].size(); i++)
     {
         FlowEntry *fe = flowTable[prefix].at(i);
-        if (fe->faceId != inFaceId)
+        bool found = false;
+        for (int j = 0; j < exclude.size(); j++) {
+            if (fe->faceId == exclude.at(j))
+                found = true;
+        }
+        if (!found)
             candidates.push_back(flowTable[prefix].at(i));
     }
 
@@ -336,7 +346,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnReliability(const std::string
     }
 }
 
-Ptr<Face> FlowTableManager::GetRandomFaceForPrefix(const std::string &prefix, int inFaceId)
+Ptr<Face> FlowTableManager::GetRandomFaceForPrefix(const std::string &prefix, std::vector<int> exclude)
 {
     bool faceFound = false;
     int cnt = 0;
@@ -352,7 +362,12 @@ Ptr<Face> FlowTableManager::GetRandomFaceForPrefix(const std::string &prefix, in
         int idx = rand() % candidates.size();
         //flowTable[prefix]
         fe = candidates.at(idx);
-        if (true /*fe->faceId != inFaceId*/)
+        bool found = false;
+        for (int j = 0; j < exclude.size(); j++) {
+            if (fe->faceId == exclude.at(j))
+                found = true;
+        }
+        if (!found)
         {
             faceId = fe->faceId;
             faceFound = true;
@@ -367,7 +382,7 @@ Ptr<Face> FlowTableManager::GetRandomFaceForPrefix(const std::string &prefix, in
 
 
     fe->receivedInterests++;
-    if (fe->receivedInterests >= 50)
+    if (fe->receivedInterests >= INTEREST_INTERVAL)
     {
         fe->receivedInterests = 0;
         fe->satisfiedInterests = 0;

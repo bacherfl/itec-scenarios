@@ -39,7 +39,7 @@ void SDNController::AppFaceAddedToNode(Ptr<Node> node)
 
 void SDNController::CalculateRoutesForPrefix(int startNodeId, const std::string &prefix)
 {
-    std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
+    //std::cout << "calculating route from node " << startNodeId << " for prefix " << prefix << "\n";
 
     //CalculateRoutesToAllSources(startNodeId, prefix);
     CalculateRouteToNearestSource(startNodeId, prefix);
@@ -61,7 +61,7 @@ void SDNController::CalculateRouteToNearestSource(int startNodeId, const std::st
     std::stringstream statement;
 
     statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node)," <<
-    "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE '" << prefix << "' in server.prefixes AND NOT server.nodeId = '" << startNodeId << "' return p ORDER BY length(p) LIMIT 1";
+    "p = allShortestPaths((requester)-[:LINK*]->(server)) WHERE '" << prefix << "' in server.prefixes AND NOT server.nodeId = '" << startNodeId << "' return p ORDER BY length(p) ASC";
 
     std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
@@ -70,7 +70,7 @@ void SDNController::CalculateRouteToNearestSource(int startNodeId, const std::st
     if (paths.size() == 0) {
         statement.str("");
         statement << "MATCH (requester:Node{nodeId:'" << startNodeId << "'}), (server:Node)," <<
-        "p = allShortestPaths((requester)-[*]->(server)) WHERE '" << prefix << "' in server.prefixes AND NOT server.nodeId = '" << startNodeId << "' return p ORDER BY length(p) LIMIT 1";
+        "p = allShortestPaths((requester)-[*]->(server)) WHERE '" << prefix << "' in server.prefixes AND NOT server.nodeId = '" << startNodeId << "' return p ORDER BY length(p) ASC LIMIT 1";
 
         std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
         vector<Path *> paths = ParsePaths(data);
@@ -170,7 +170,7 @@ void SDNController::CalculateAlternativeRoutesForPrefix(int startNodeId, const s
         }
 
 
-        std::cout << statement.str() << "\n";
+        //std::cout << statement.str() << "\n";
 
         std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
@@ -191,12 +191,12 @@ vector<string> SDNController::GetPrefixOrigins(const string &prefix)
 
     string data = PerformNeo4jTrx(statement.str(), curlCallback);
 
-    cout << data << "\n";
+    //cout << data << "\n";
 
     Json::Reader reader;
     Json::Value root;
 
-    std::cout << data << "\n";
+    //std::cout << data << "\n";
     bool parsingSuccessful = reader.parse(data, root);
     if (!parsingSuccessful) {
         std::cout << "could not parse data" << data <<  "\n";
@@ -333,7 +333,7 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
                 strategy->AssignBandwidth(
                         prefix,
                         pe->face,
-                        pe->bandwidth
+                        pe->bandwidth /* * 0.5 */
                         //pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
                 );
             }
@@ -429,9 +429,9 @@ void SDNController::FindAlternativePathBasedOnSatRate(int startNodeId, const std
                  << "REDUCE(totalSatRate=1, l in relationships(p) | totalSatRate*(1-l.failureRate)) AS satRate "
                  << "LIMIT 1;";
 
-    std::cout << statement.str() << "\n";
+    //std::cout << statement.str() << "\n";
     std::string data = PerformNeo4jTrx(statement.str(), curlCallback);
-    std::cout << data << "\n";
+    //std::cout << data << "\n";
 
     Path *p = ParsePath(data);
     if (p != NULL)
@@ -753,7 +753,7 @@ void SDNController::PlanPeriodForAS(int asId)
     }
 
     SDNApp *sdnCache = apps[asSDNCaches[asId]];
-    sdnCache->RequestContent(contentName, 750000, p->contentSizes[contentName]);
+    sdnCache->RequestContent(contentName, 700000, p->contentSizes[contentName]);
 
     Simulator::Schedule(Seconds(p->length), &SDNController::PlanPeriodForAS, asId);
 }

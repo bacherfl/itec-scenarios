@@ -53,7 +53,7 @@ public:
     virtual void DidReceiveValidNack (Ptr<Face> inFace, uint32_t nackCode, Ptr<const Interest> nack, Ptr<pit::Entry> pitEntry);
     //virtual bool TrySendOutInterest(Ptr< Face > inFace, Ptr< Face > outFace, Ptr< const Interest > interest, Ptr< pit::Entry > pitEntry);
     virtual void DidExhaustForwardingOptions(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
-    virtual void OnData(Ptr<Face> face, Ptr<Data> data);    
+    //virtual void OnData(Ptr<Face> face, Ptr<Data> data);
 
     void init();
     void PushRule(const std::string &prefix, int faceId, int cost);
@@ -63,7 +63,7 @@ public:
     //void AddFlowEntry(const std::string &prefix, FlowEntry *fe);
 
     Ptr<Face> GetFaceFromSDNController(Ptr<const Interest> interest, int inFaceId);
-    Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest, int inFaceId);
+    Ptr<Face> SelectFaceFromLocalFib(Ptr<const Interest> interest, std::vector<int> exclude);
 
     Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 
@@ -83,12 +83,15 @@ protected:
     std::map<std::string, std::vector<FlowEntry* > > flowTable;
 
     std::map<int, std::map<std::string, ns3::ndn::utils::QoSQueue*> > qosQueues;
+    std::map<int, ns3::ndn::utils::QoSQueue*> aggregateQosQueues;
+    std::map<int, bool> qosQueueInitialized;
     std::map<std::string, int> pitTable;
 
 
     unsigned int prefixComponentNum;
     unsigned int useTockenBucket;
     bool initialized;
+    bool useAggregateQueuesPerFace;
 
     static const double MIN_SAT_RATIO;
     static const int FACE_STATUS_GREEN;
@@ -96,6 +99,10 @@ protected:
     static const int FACE_STATUS_RED;
 
     boost::mutex mtx_;
+
+
+    bool HasQueue(int faceId, std::string prefix);
+    bool TryConsumeQueueToken(int faceId, std::string prefix);
 
 };
 

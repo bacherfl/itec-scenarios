@@ -65,8 +65,8 @@ main (int argc, char *argv[])
   // BRITE needs a configuration file to build its graph.
   std::string confFile = "brite_configs/brite_low_bw.conf";
   std::string strategy = "sdn";
- // std::string strategy = "bestRoute";
-  std::string route = "single";
+  //std::string strategy = "bestRoute";
+  std::string route = "all";
   std::string outputFolder = "output/";
   std::string conectivity = "high";
 
@@ -223,12 +223,12 @@ main (int argc, char *argv[])
 
   gen.randomlyPlaceNodes (10, "Server", ndn::NetworkGenerator::ASNode, sdnp2p);
   gen.randomlyPlaceNodes (20, "Client", ndn::NetworkGenerator::LeafNode, sdnp2p);
-  gen.placeCustomNodeForEachAS ("SDNCache", ndn::NetworkGenerator::LeafNode, sdnp2p); //add SDN controlled cache nodes to each AS
+  gen.placeCustomNodeForEachAS ("SDNCache", ndn::NetworkGenerator::ASNode, sdnp2p); //add SDN controlled cache nodes to each AS
   //gen.randomlyAddSDNConnectionsBetweenAllAS (number_of_connections_between_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddSDNConnectionsBetweenTwoAS (additional_random_connections_as,min_bw_as,max_bw_as,5,20);
   gen.randomlyAddSDNConnectionsBetweenTwoNodesPerAS(additional_random_connections_leaf,min_bw_leaf,max_bw_leaf,5,20);
 
-  double simTime = 120.0;
+  double simTime = 240.0;
 
   for(int i = 0; i < totalLinkFailures; i++)
     gen.creatRandomLinkFailure(0, simTime, 0, simTime/10);
@@ -245,7 +245,7 @@ main (int argc, char *argv[])
   else if(strategy.compare ("bestRoute") == 0)
   {
     ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::BestRoute::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
-    ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
+    //ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
   }
   else if(strategy.compare("smartflooding") == 0 )
   {
@@ -257,7 +257,7 @@ main (int argc, char *argv[])
     ndnHelper.SetForwardingStrategy ("ns3::ndn::fw::Flooding::PerOutFaceLimits", "Limit", "ns3::ndn::Limits::Rate", "EnableNACKs", "true");
     ndnHelper.EnableLimits (true, Seconds (0.1), 4096, 50);
   }
-  else if (strategy.compare("sdn") == 0 )
+  else if (strategy.compare("sdn") == 0)
   {
       ndnHelper.SetForwardingStrategy("ns3::ndn::fw::SDNControlledStrategy", "EnableNACKs", "true");
   }
@@ -268,7 +268,7 @@ main (int argc, char *argv[])
   }
 
   //ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "250000"); // all entities can store up to 1k chunks in cache (about 100MB)
-  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "15000");
+  ndnHelper.SetContentStore ("ns3::ndn::cs::Stats::Lru","MaxSize", "25000");
 
 
   ndnHelper.InstallAll();
