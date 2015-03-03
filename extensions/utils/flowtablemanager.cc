@@ -8,7 +8,7 @@ using namespace std;
 
 const double FlowTableManager::MIN_SAT_RATIO = 0.95;
 const int FlowTableManager::INTEREST_INTERVAL = 50;
-const double FlowTableManager::SHORTEST_PATH_FRACTION = 1.0;
+const double FlowTableManager::SHORTEST_PATH_FRACTION = 0.85;
 const int FlowTableManager::FACE_STATUS_GREEN = 0;
 const int FlowTableManager::FACE_STATUS_YELLOW = 1;
 const int FlowTableManager::FACE_STATUS_RED = 2;

@@ -10,6 +10,11 @@
 
 namespace ns3 {
 
+struct RTT {
+    Time sentTS;
+    Time receivedTS;
+};
+
 class PeriodClient : public ndn::StatisticsConsumer, public IDownLoader
 {
 public:
@@ -37,6 +42,8 @@ private:
     std::string currentContentName;
     int currentSeqNr;
     SDNContentRequester *requester;
+    std::map<std::string, std::map<std::string, RTT* > > interestRTTs;    //prefix->seqNr->rtt
+    std::map<std::string, long> rttSamples;
 
     void init();
     void StartNextPeriod();

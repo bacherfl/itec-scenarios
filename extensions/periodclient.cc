@@ -88,6 +88,7 @@ void PeriodClient::StartNextPeriod()
     if (contentSize == 0)
         contentSize = 5000000;
 
+    rttSamples[currentContentName] = 0;
     requester = new SDNContentRequester(
                         this,
                         currentContentName,
@@ -130,6 +131,16 @@ void PeriodClient::OnInterest(Ptr<const ndn::Interest> interest)
 void PeriodClient::OnData(Ptr<const ndn::Data> contentObject)
 {
     ndn::StatisticsConsumer::OnData(contentObject);
+    std::string prefix = contentObject->GetName().getPrefix(contentObject->GetName().size() - 1).toUri();
+    std::string seqNr = contentObject->GetName().getPostfix(1).toUri().c_str();
+
+    std::map<std::string, RTT*>::iterator it = interestRTTs[prefix].find(seqNr);
+    if (it != interestRTTs[prefix].end()) {
+        RTT *rtt = it->second;
+
+        rtt->receivedTS = Simulator::Now();
+        //std::cout << "RTT(" << prefix << "," << seqNr << ") = " << rtt->receivedTS - rtt->sentTS << std::endl;
+    }
 }
 
 void PeriodClient::SendInterest(std::string name, uint32_t seqNum)
@@ -150,11 +161,37 @@ void PeriodClient::SendInterest(std::string name, uint32_t seqNum)
     m_transmittedInterests (interest, this, m_face);
     m_face->ReceiveInterest(interest);
     this->nrSentInterests++;
+
+    if (this->nrSentInterests % 10 == 0) {
+        RTT *rtt = new RTT;
+        rtt->sentTS = Simulator::Now();
+        interestRTTs[name][interest->GetName().getPostfix(1).toUri()] = rtt;
+        rttSamples[name]++;
+        //std::map<std::string, long>::iterator it = rttSamples.find(name);
+        //if (it != rttSamples.end())
+        //    it->second++;
+    }
 }
 
 void PeriodClient::OnDownloadFinished(std::string prefix)
 {
+    Time sum;
+    int samples = 0;
+    for (std::map<std::string, RTT* >::iterator it = interestRTTs[prefix].begin(); it != interestRTTs[prefix].end(); it++) {
+        RTT *rtt = it->second;
+        if (rtt->receivedTS - rtt->sentTS > 0) {
+            sum += (rtt->receivedTS - rtt->sentTS) / 1000000.0;
+            samples++;
+        }
+    }
 
+    if (samples > 0)
+        std::cout << "Average RTT = " << sum / samples << std::endl;
+
+    std::map<std::string, std::map<std::string, RTT* > >::iterator it = interestRTTs.find(prefix);
+    if (it != interestRTTs.end()) {
+        interestRTTs.erase(it);
+    }
 }
 
 void PeriodClient::WillSendOutInterest(uint32_t sequenceNumber)
