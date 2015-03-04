@@ -43,6 +43,8 @@ void PeriodClient::StartApplication()
 {
     ndn::StatisticsConsumer::StartApplication();
     init();
+    StatisticsLogger *logger = StatisticsLogger::GetInstance();
+    logger->AddNodeStatistics(GetNode()->GetId());
 }
 
 void PeriodClient::init()
@@ -72,6 +74,8 @@ void PeriodClient::LogCurrentInterest()
 
 void PeriodClient::StartNextPeriod()
 {
+    periodSatisfiedInterests = 0;
+    periodSentInterests = 0;
     Period *p = periods.at(currentPeriod++ % periods.size());
 
     //select a content based on the popularity values for the current period
@@ -130,6 +134,7 @@ void PeriodClient::OnInterest(Ptr<const ndn::Interest> interest)
 
 void PeriodClient::OnData(Ptr<const ndn::Data> contentObject)
 {
+    periodSatisfiedInterests++;
     ndn::StatisticsConsumer::OnData(contentObject);
     std::string prefix = contentObject->GetName().getPrefix(contentObject->GetName().size() - 1).toUri();
     std::string seqNr = contentObject->GetName().getPostfix(1).toUri().c_str();
@@ -161,6 +166,7 @@ void PeriodClient::SendInterest(std::string name, uint32_t seqNum)
     m_transmittedInterests (interest, this, m_face);
     m_face->ReceiveInterest(interest);
     this->nrSentInterests++;
+    periodSentInterests++;
 
     if (this->nrSentInterests % 10 == 0) {
         RTT *rtt = new RTT;
@@ -180,14 +186,23 @@ void PeriodClient::OnDownloadFinished(std::string prefix)
     for (std::map<std::string, RTT* >::iterator it = interestRTTs[prefix].begin(); it != interestRTTs[prefix].end(); it++) {
         RTT *rtt = it->second;
         if (rtt->receivedTS - rtt->sentTS > 0) {
-            sum += (rtt->receivedTS - rtt->sentTS) / 1000000.0;
+            sum += (rtt->receivedTS - rtt->sentTS);
             samples++;
         }
     }
 
-    if (samples > 0)
-        std::cout << "Average RTT = " << sum / samples << std::endl;
+    if (samples > 0) {
+        std::cout << "Average RTT = " << sum.ToDouble(Time::MS) / samples << std::endl;
 
+        StatisticsLogger *logger = StatisticsLogger::GetInstance();
+        logger->AddPeriodToNodeStatistics(
+                GetNode()->GetId(),
+                currentPeriod,
+                (periodSatisfiedInterests + 0.0) / periodSentInterests,
+                sum.ToDouble(Time::MS) / samples,
+                currentContentName);
+
+    }
     std::map<std::string, std::map<std::string, RTT* > >::iterator it = interestRTTs.find(prefix);
     if (it != interestRTTs.end()) {
         interestRTTs.erase(it);

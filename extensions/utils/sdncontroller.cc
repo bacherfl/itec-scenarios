@@ -753,7 +753,7 @@ void SDNController::PlanPeriodForAS(int asId)
     }
 
     SDNApp *sdnCache = apps[asSDNCaches[asId]];
-    sdnCache->RequestContent(contentName, 700000, p->contentSizes[contentName]);
+    sdnCache->RequestContent(contentName, SDNParameters::SDN_CACHE_DOWNLOAD_RATE, p->contentSizes[contentName]);
 
     Simulator::Schedule(Seconds(p->length), &SDNController::PlanPeriodForAS, asId);
 }

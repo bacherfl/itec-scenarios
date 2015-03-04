@@ -103,18 +103,18 @@ bool FlowTableManager::TryUpdateFaceProbabilities(const string &prefix)
     {
         FlowEntry *fe = (*it);
         double successRate = CalculateSuccessRate(fe);
-        if (successRate < MIN_SAT_RATIO)
+        if (successRate < SDNParameters::MIN_SAT_RATIO)
         {
-            fractionToShift = MIN_SAT_RATIO - successRate;
+            fractionToShift = SDNParameters::MIN_SAT_RATIO - successRate;
             shifted = 0;
             for (vector<FlowEntry *>::iterator it2 = flowEntries.begin(); it2 != flowEntries.end(); it2++)
             {
                 FlowEntry *fe2 = (*it);
                 double successRate2 = CalculateSuccessRate(fe2);
 
-                if (successRate2 > MIN_SAT_RATIO)
+                if (successRate2 > SDNParameters::MIN_SAT_RATIO)
                 {
-                    double shift = min(fractionToShift, successRate2 - MIN_SAT_RATIO);
+                    double shift = min(fractionToShift, successRate2 - SDNParameters::MIN_SAT_RATIO);
                     shift = min(shift, 1 - fe2->probability);
                     fe->probability -= shift;
                     fe2->probability += shift;
@@ -154,7 +154,7 @@ LinkRepairAction* FlowTableManager::InterestUnsatisfied(const string &prefix, in
             double successRate = CalculateSuccessRate(fe);
 
             mtx_.unlock();
-            if ((successRate < MIN_SAT_RATIO) && (fe->status == FACE_STATUS_GREEN) /*&& (fe->receivedInterests >= 10)*/)
+            if ((successRate < SDNParameters::MIN_SAT_RATIO) && (fe->status == FACE_STATUS_GREEN) /*&& (fe->receivedInterests >= 10)*/)
             {
                 fe->status = FACE_STATUS_RED;
                 action->repair = true;
@@ -185,7 +185,7 @@ LinkRepairAction* FlowTableManager::InterestSatisfied(const std::string &prefix,
             double successRate = CalculateSuccessRate(fe);
             mtx_.unlock();
             //cout << "satisfied: " << successRate << "\n";
-            if ((fe->status == FACE_STATUS_RED) && (successRate >= MIN_SAT_RATIO) /* && (fe->receivedInterests >= 10)*/)
+            if ((fe->status == FACE_STATUS_RED) && (successRate >= SDNParameters::MIN_SAT_RATIO) /* && (fe->receivedInterests >= 10)*/)
             {
                 fe->status = FACE_STATUS_GREEN;
                 action->repair = true;
@@ -209,7 +209,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefix(const std::string &prefix, std::vec
     {
         double p = (double)rand() / RAND_MAX;
 
-        if (p < SHORTEST_PATH_FRACTION) {
+        if (p < SDNParameters::SHORTEST_PATH_FRACTION) {
             face = GetFaceForPrefixBasedOnCost(prefix, exclude);
             //return GetFaceForPrefixBasedOnReliability(prefix, inFaceId);
         }
@@ -270,7 +270,7 @@ Ptr<Face> FlowTableManager::GetFaceForPrefixBasedOnCost(const std::string &prefi
         FlowEntry *fe = flowTable[prefix].at(i);
         if (fe->faceId == faceId) {
             fe->receivedInterests++;
-            if (fe->receivedInterests >= INTEREST_INTERVAL)
+            if (fe->receivedInterests >= SDNParameters::INTEREST_INTERVAL)
             {
                 fe->receivedInterests = 0;
                 fe->satisfiedInterests = 0;

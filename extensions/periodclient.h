@@ -7,6 +7,7 @@
 #include "utils/sdncontentrequester.h"
 #include "period.h"
 #include <map>
+#include "utils/statisticslogger.h"
 
 namespace ns3 {
 
@@ -38,6 +39,9 @@ private:
     int currentPeriod;
     int periodLength;
     ns3::EventId nextEvent;
+
+    int periodSentInterests;
+    int periodSatisfiedInterests;
 
     std::string currentContentName;
     int currentSeqNr;

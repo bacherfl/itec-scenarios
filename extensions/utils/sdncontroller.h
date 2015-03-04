@@ -20,6 +20,7 @@
 #include <curl/curl.h>
 
 #include "../periodfactory.h"
+#include "sdnparameters.h"
 
 namespace ns3 {
 

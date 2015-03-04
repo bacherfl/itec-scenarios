@@ -3,6 +3,7 @@
 
 #include "ns3/ndn-face.h"
 #include "boost/thread/mutex.hpp"
+#include "sdnparameters.h"
 
 
 namespace ns3 {

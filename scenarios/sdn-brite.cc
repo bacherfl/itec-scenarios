@@ -48,6 +48,7 @@
 #include "../extensions/utils/parameterconfiguration.h"
 #include "../extensions/utils/sdncontroller.h"
 #include "../extensions/utils/sdnp2phelper.h"
+#include "../extensions/utils/statisticslogger.h"
 
 using namespace ns3;
 
@@ -59,6 +60,7 @@ int
 main (int argc, char *argv[])
 {
 
+    StatisticsLogger *logger = StatisticsLogger::GetInstance();
     ndn::fw::SDNController::clearGraphDb();
     ndn::fw::SDNController::isLargeNetwork = false;
 
