@@ -15,7 +15,11 @@ public:
 
     void AddNodeStatistics(int nodeId);
     void AddPeriodToNodeStatistics(int nodeId, int periodId, double avgSatisfactionRate, double avgRtt, std::string requestedContent);
-    std::string SendRequest(std::string url, std::string requestBody);
+    void SetAggregatedValuesOfNode(int nodeId);
+    long GetSimulationRunId();
+    void CompleteSimulationRun();
+    static void Complete();
+    std::string SendRequest(std::string url, std::string requestBody, std::string requestMethod);
 
 private:
     StatisticsLogger(){}

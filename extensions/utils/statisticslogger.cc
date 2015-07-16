@@ -22,6 +22,8 @@ void StatisticsLogger::initialize()
 
 std::string StatisticsLogger::CreateSimulationRun()
 {
+    if (!SDNParameters::LOG_SIMULATION)
+        return "";
     //TODO get parameters from ParameterConfig class and create SimulationRun JSON object to send to REST service
     Json::Value request = Json::Value(Json::objectValue);
     Json::Value simulationRun = Json::Value(Json::objectValue);
@@ -29,15 +31,25 @@ std::string StatisticsLogger::CreateSimulationRun()
     simulationRun["minSatRatio"] = SDNParameters::MIN_SAT_RATIO;
     simulationRun["shortestPathSelectionProbability"] = SDNParameters::SHORTEST_PATH_FRACTION;
     simulationRun["interestInterval"] = SDNParameters::INTEREST_INTERVAL;
+    simulationRun["enablePrefetching"] = SDNParameters::ENABLE_PREFETCHING;
+    simulationRun["valid"] = SDNParameters::LOG_SIMULATION;
+    simulationRun["strategyName"] = SDNParameters::STRATEGY_NAME;
+    simulationRun["topology"] = SDNParameters::TOPOLOGY;
+    simulationRun["bwAssignmentAdj"] = SDNParameters::BW_ASSIGNMENT_ADJ;
+    simulationRun["sessionName"] = SDNParameters::SIMULATION_SESSION;
+    simulationRun["description"] = SDNParameters::SESSION_DESCRIPTION;
+    simulationRun["zipfDistributionAlpha"] = SDNParameters::ZIPF_DISTRIBUTION_ALPHA;
     request["simulationRun"] = simulationRun;
 
     Json::StyledWriter writer;
-    string strSimId = SendRequest(string("http://10.0.2.2:8080/statistics"), writer.write(simulationRun));
+    string strSimId = SendRequest(string("http://10.0.2.2:8080/statistics"), writer.write(simulationRun), string("POST"));
     simulationRunId = atol(strSimId.c_str());
 }
 
 void StatisticsLogger::AddNodeStatistics(int nodeId)
 {
+    if (!SDNParameters::LOG_SIMULATION)
+        return;
     stringstream nodeName;
     nodeName << nodeId;
 
@@ -48,12 +60,14 @@ void StatisticsLogger::AddNodeStatistics(int nodeId)
 
     stringstream url;
     url << "http://10.0.2.2:8080/statistics/" << simulationRunId << "/node";
-    string strNodeId = SendRequest(url.str(), writer.write(nodeStatistics));
+    string strNodeId = SendRequest(url.str(), writer.write(nodeStatistics), string("POST"));
     nodeIdMap[nodeId] = atol(strNodeId.c_str());
 }
 
 void StatisticsLogger::AddPeriodToNodeStatistics(int nodeId, int periodId, double avgSatisfactionRate, double avgRtt, std::string requestedContent)
 {
+    if (!SDNParameters::LOG_SIMULATION)
+        return;
     long id = nodeIdMap[nodeId];
 
     Json::Value period = Json::Value(Json::objectValue);
@@ -67,10 +81,41 @@ void StatisticsLogger::AddPeriodToNodeStatistics(int nodeId, int periodId, doubl
     stringstream url;
     url << "http://10.0.2.2:8080/statistics/nodes/" << id << "/period";
 
-    SendRequest(url.str(), writer.write(period));
+    SendRequest(url.str(), writer.write(period), string("POST"));
 }
 
-std::string StatisticsLogger::SendRequest(std::string url, std::string requestBody)
+void StatisticsLogger::SetAggregatedValuesOfNode(int nodeId)
+{
+    if (!SDNParameters::LOG_SIMULATION)
+        return;
+    long id = nodeIdMap[nodeId];
+
+    stringstream url;
+    url << "http://10.0.2.2:8080/statistics/nodes/" << id << "/aggr";
+
+    SendRequest(url.str(), "", string("PUT"));
+}
+
+void StatisticsLogger::CompleteSimulationRun()
+{
+    if (!SDNParameters::LOG_SIMULATION)
+        return;
+    stringstream url;
+    url << "http://10.0.2.2:8080/statistics/" << simulationRunId << "/complete";
+    SendRequest(url.str(), "", string("PUT"));
+}
+
+void StatisticsLogger::Complete()
+{
+    GetInstance()->CompleteSimulationRun();
+}
+
+long StatisticsLogger::GetSimulationRunId()
+{
+    return simulationRunId;
+}
+
+std::string StatisticsLogger::SendRequest(std::string url, std::string requestBody, std::string requestMethod)
 {
     struct curl_slist *headers = NULL;
     if ((ch = curl_easy_init()) == NULL)
@@ -83,7 +128,7 @@ std::string StatisticsLogger::SendRequest(std::string url, std::string requestBo
     headers = curl_slist_append(headers, "Content-type: application/json");
 
     curl_easy_setopt(ch, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_easy_setopt(ch, CURLOPT_CUSTOMREQUEST, requestMethod.c_str());
     curl_easy_setopt(ch, CURLOPT_HTTPHEADER, headers);
     curl_easy_setopt(ch, CURLOPT_POSTFIELDS, requestBody.c_str());
     curl_easy_setopt(ch, CURLOPT_WRITEFUNCTION, CurlCallback);
