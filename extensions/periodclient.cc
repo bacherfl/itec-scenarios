@@ -52,6 +52,7 @@ void PeriodClient::init()
     this->periods = PeriodFactory::GetInstance()->GetPeriodsForRegion(m_configFile, m_region);
 
     int i = 0;
+    /*
     for (Periods::iterator it = this->periods.begin(); it != this->periods.end(); it++) {
         Period *p = (*it);
         std::cout << "Period " << i << ":" << std::endl;
@@ -60,7 +61,7 @@ void PeriodClient::init()
         }
         i++;
     }
-
+    */
     currentPeriod = 0;
     Simulator::ScheduleNow(&PeriodClient::StartNextPeriod, this);
     //Simulator::Schedule(Seconds(5.0), &PeriodClient::LogCurrentInterest, this);
@@ -107,7 +108,7 @@ void PeriodClient::StartNextPeriod()
 void PeriodClient::DetermineContentNameForPeriod(Period *p)
 {
     currentContentName = "";
-    int rnd = rand() % 101;
+    int rnd = rand() % 100;
 
     double sum = 0;
     for (std::map<std::string, double>::iterator it = p->popularities.begin(); it != p->popularities.end(); it++) {
@@ -125,6 +126,9 @@ void PeriodClient::StopApplication()
     if (requester != NULL)
         requester->Stop();
     ndn::StatisticsConsumer::StopApplication();
+    StatisticsLogger *logger = StatisticsLogger::GetInstance();
+    logger->SetAggregatedValuesOfNode(GetNode()->GetId());
+    //logger->CompleteSimulationRun();
 }
 
 void PeriodClient::OnInterest(Ptr<const ndn::Interest> interest)

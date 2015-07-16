@@ -35,7 +35,8 @@ void SDNContentRequester::SendNextInterest()
     app->SendInterest(nameStr.str(), chunkNr);
     chunkNr++;
     if ((chunkNr < maxChunk) || (maxChunk == -1)) {
-        nextInterestEvent = Simulator::Schedule(MilliSeconds(interestInterval), &SDNContentRequester::SendNextInterest, this);
+        double rnd = ((double) rand() / RAND_MAX) * 5.0;
+        nextInterestEvent = Simulator::Schedule(MilliSeconds(interestInterval + rnd), &SDNContentRequester::SendNextInterest, this);
     } else {
         OnDownloadFinished();
     }

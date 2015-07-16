@@ -333,7 +333,7 @@ void SDNController::PushPath(Path *p, const std::string &prefix)
                 strategy->AssignBandwidth(
                         prefix,
                         pe->face,
-                        pe->bandwidth
+                        pe->bandwidth * SDNParameters::BW_ASSIGNMENT_ADJ
                         //pe->bandwidth / (strategy->getFlowsOfFace(pe->face).size() + 1)
                 );
             }
@@ -734,7 +734,8 @@ void SDNController::PlanNextPeriods()
     typedef map<int, vector<Period *> > Periods;
     for (Periods::iterator it = periods.begin(); it != periods.end(); it++) {
         currentPeriodsPerAS[it->first] = 0;
-        PlanPeriodForAS(it->first);
+        Simulator::Schedule(Seconds(45.0), &SDNController::PlanPeriodForAS, it->first);
+        //PlanPeriodForAS(it->first);
     }
 }
 
@@ -753,7 +754,8 @@ void SDNController::PlanPeriodForAS(int asId)
     }
 
     SDNApp *sdnCache = apps[asSDNCaches[asId]];
-    sdnCache->RequestContent(contentName, SDNParameters::SDN_CACHE_DOWNLOAD_RATE, p->contentSizes[contentName]);
+    if (SDNParameters::STRATEGY_NAME.compare(SDNParameters::STRATEGY_SDN_CACHE) == 0)
+        sdnCache->RequestContent(contentName, SDNParameters::SDN_CACHE_DOWNLOAD_RATE, p->contentSizes[contentName]);
 
     Simulator::Schedule(Seconds(p->length), &SDNController::PlanPeriodForAS, asId);
 }
