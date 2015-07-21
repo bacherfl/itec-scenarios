@@ -32,7 +32,7 @@ Install Guide (testet on Ubuntu 12.04 64bit)
 
     # Build and install NS-3 and ndnSIM
     * cd ns-3
-    * ./waf configure -d optimized --with-brite=../BRITE
+    * CXXFLAGS="-std=c++11" ./waf configure -d optimized --with-brite=../BRITE --boost-libs=/usr/lib/x86_64-linux-gnu
     * ./waf
     * sudo ./waf install
 		* cd ./build
