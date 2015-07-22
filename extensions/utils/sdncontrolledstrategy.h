@@ -32,6 +32,11 @@ namespace ns3 {
 namespace ndn {
 namespace fw {
 
+struct FaceStatistics {
+    long bytesSent;
+    long bytesReceived;
+};
+
 // ns3::ndn::fw::ANYFORWARDINGSTRATEGY::SDNControlledStrategy
 class SDNControlledStrategy: public Nacks
 {
@@ -68,6 +73,11 @@ public:
     Ptr<Interest> prepareNack(Ptr<const Interest> interest);
 
     void LogDroppedInterest(std::string prefix, int faceId);
+    bool SendInterest(Ptr<Face> inFace, Ptr<Face> outFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry);
+    int GetNodeId();
+
+    std::map<int, FaceStatistics* > GetFaceStatistics();
+    void ClearFaceStatistics();
 protected:
 
     int m_maxLevel;
@@ -86,6 +96,8 @@ protected:
     std::map<int, ns3::ndn::utils::QoSQueue*> aggregateQosQueues;
     std::map<int, bool> qosQueueInitialized;
     std::map<std::string, int> pitTable;
+
+    std::map<int, FaceStatistics* > faceStatsMap;
 
 
     unsigned int prefixComponentNum;

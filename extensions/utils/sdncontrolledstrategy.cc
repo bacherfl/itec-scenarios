@@ -52,6 +52,11 @@ void SDNControlledStrategy::AddFace (Ptr<Face> face)
     faces.push_back (face);
     qosQueueInitialized[face->GetId()] = false;
     Nacks::AddFace(face);
+
+    FaceStatistics *fs = new FaceStatistics;
+    fs->bytesReceived = 0;
+    fs->bytesSent = 0;
+    faceStatsMap[face->GetId()] = fs;
 }
 
 void SDNControlledStrategy::AssignBandwidth(const string &prefix, int faceId, uint64_t bitrate)
@@ -156,11 +161,22 @@ bool SDNControlledStrategy::TryConsumeQueueToken(int faceId, string prefix)
     }
 }
 
+bool SDNControlledStrategy::SendInterest(Ptr<Face> inFace, Ptr<Face> outFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
+{
+    if (TrySendOutInterest (inFace, outFace, interest, pitEntry)) {
+        faceStatsMap[outFace->GetId()]->bytesSent += INTEREST_PACKET_SIZE;
+        return true;
+    }
+    return false;
+}
+
 bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Interest> interest, Ptr<pit::Entry> pitEntry)
 {
     vector<int> exclude;
     exclude.push_back(inFace->GetId());
     Ptr<Face> outFace = SelectFaceFromLocalFib(interest, exclude);
+
+    faceStatsMap[inFace->GetId()]->bytesReceived += INTEREST_PACKET_SIZE;
 
     int propagatedCount = 0;
 
@@ -174,7 +190,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
         string prefix = interest->GetName().getPrefix(interest->GetName().size() - 1).toUri();
         if (outFace->GetId() == faces.size() - 1)
         {
-            if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+            if (SendInterest (inFace, outFace, interest, pitEntry))
                 propagatedCount++;
         }
 
@@ -184,7 +200,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
             if (TryConsumeQueueToken(outFace->GetId(), prefix))
             {
-                if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+                if (SendInterest (inFace, outFace, interest, pitEntry))
                     propagatedCount++;
             }
             else {
@@ -198,7 +214,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
                     } else {
                         if (outFace->GetId() == faces.size() - 1)
                         {
-                            if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+                            if (SendInterest (inFace, outFace, interest, pitEntry))
                                 propagatedCount++;
                         }
 
@@ -208,7 +224,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
 
                             if (TryConsumeQueueToken(outFace->GetId(), prefix))
                             {
-                                if (TrySendOutInterest (inFace, outFace, interest, pitEntry)) {
+                                if (SendInterest (inFace, outFace, interest, pitEntry)) {
                                     propagatedCount++;
                                     tryForwarding = false;
                                 }
@@ -222,7 +238,7 @@ bool SDNControlledStrategy::DoPropagateInterest(Ptr<Face> inFace, Ptr<const Inte
             }
         }
 
-        else if (TrySendOutInterest (inFace, outFace, interest, pitEntry))
+        else if (SendInterest (inFace, outFace, interest, pitEntry))
             propagatedCount++;
     }
     //we're on the target node where the prefix is available --> forward to app face
@@ -275,6 +291,7 @@ void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pi
     Nacks::WillSatisfyPendingInterest(inFace,pitEntry);
     if(inFace != 0) // ==0 means data comes from cache
     {
+        faceStatsMap[inFace->GetId()]->bytesReceived += DATA_PACKET_SIZE;
         Name name = pitEntry->GetInterest()->GetName();
         string prefix = name.getPrefix(name.size() - 1).toUri();
         LinkRepairAction *action = flowTableManager.InterestSatisfied(prefix, inFace->GetId());
@@ -282,6 +299,11 @@ void SDNControlledStrategy::WillSatisfyPendingInterest (Ptr<Face> inFace, Ptr<pi
         {
             Ptr<Node> node = this->GetObject<Node>();
             SDNController::LinkRecovered(node->GetId(), inFace->GetId(), prefix, action->failRate);
+        }
+
+        for (pit::Entry::in_iterator it = pitEntry->GetIncoming().begin(); it != pitEntry->GetIncoming().end(); it++) {
+            pit::IncomingFace face = *it;
+            faceStatsMap[face.m_face->GetId()]->bytesSent += DATA_PACKET_SIZE;
         }
     }    
 }
@@ -317,6 +339,26 @@ void SDNControlledStrategy::DidExhaustForwardingOptions (Ptr<Face> inFace, Ptr<c
 std::vector<std::string> SDNControlledStrategy::getFlowsOfFace(int faceId)
 {
     return flowTableManager.getFlowsOfFace(faceId);
+}
+
+std::map<int, FaceStatistics* > SDNControlledStrategy::GetFaceStatistics()
+{
+    return faceStatsMap;
+}
+
+void SDNControlledStrategy::ClearFaceStatistics()
+{
+    for (std::map<int, FaceStatistics* >::iterator it = faceStatsMap.begin(); it != faceStatsMap.end(); it++) {
+        FaceStatistics *fs = it->second;
+        fs->bytesReceived = 0;
+        fs->bytesSent = 0;
+    }
+}
+
+int SDNControlledStrategy::GetNodeId()
+{
+    Ptr<Node> node = this->GetObject<Node>();
+    return node->GetId();
 }
 
 } // namespace fw

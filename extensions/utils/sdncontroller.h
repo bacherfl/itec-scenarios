@@ -22,6 +22,8 @@
 #include "../periodfactory.h"
 #include "sdnparameters.h"
 
+#include "sdnroutingmodule.h"
+
 namespace ns3 {
 
 class SDNApp;
@@ -29,6 +31,7 @@ class SDNApp;
 namespace ndn {
 namespace fw {
 
+/*
 typedef struct route_t {
     std::vector<std::map<Ptr<Node>, Ptr<Face> > > endpoints;
 } Route;
@@ -43,22 +46,16 @@ typedef struct path_entry_t {
 typedef struct path_t {
     std::vector<PathEntry*> pathEntries;
 } Path;
-
+*/
 class SDNControlledStrategy;
+struct FaceStatistics;
 
 class SDNController {
 public:
     SDNController();
 
     static void CalculateRoutesForPrefix(int startNodeId, const std::string &prefix);
-    static void CalculateRoutesToAllSources(int startNodeId, const std::string &prefix);
-    static void CalculateRouteToNearestSource(int startNodeId, const std::string & prefix);
-    static void CalculateAlternativeRoutesForPrefix(int startNodeId, const std::string &prefix, std::vector<std::string> origins);
-    static void FindAlternativePathBasedOnSatRate(int startNodeId, const std::string &prefix);
-    static std::vector<Path *> ParsePaths(std::string data);
-    static Path* ParsePath(std::string data);
     static void AddOrigins(std::string prefix, int prodId);
-    static std::vector<std::string> GetPrefixOrigins(const std::string &prefix);
 
     static void AddLink(Ptr<Node> a,
                         Ptr<Node> b,
@@ -96,10 +93,13 @@ public:
     static void SetPeriodPopularityConfig(std::string configFilePath);
     static void PlanNextPeriods();
     static void PlanPeriodForAS(int asId);
+    static void GatherNodeStatistics();
 
     static bool isLargeNetwork;
 
 private:
+
+    static SDNRoutingModule routingModule;
     static void PushPath(Path *p, const std::string &prefix);
 
 
@@ -107,6 +107,8 @@ private:
     typedef std::map<std::string, std::string > DeviceAttributes;
     typedef boost::tuples::tuple<Ptr<Node>, Ptr<Node>, ChannelAttributes, DeviceAttributes> IncidencyListEntry;
     Ptr<GlobalRouter> globalRouter;
+
+    static std::map<int, std::vector<std::map<int, FaceStatistics* > > > nodeFaceStatistics;
 
     static std::map<uint32_t, SDNControlledStrategy*> forwarders;
     static std::map<uint32_t, ns3::SDNApp*> apps;
